@@ -3,31 +3,33 @@ import util from 'util'
 import env from './env'
 
 export const log = {
-  // TODO loglevel opts?
-  info(message) {
-    if (env('loglevel', 'number') > 0)
+  async info(message) {
+    if (await env('loglevel', 'number', 0) > 0)
 
     console.log(chalk`{blue [info]} ${message}`)
   },
 
-  success(message) {
-    if (env('loglevel', 'number') > 1) return
+  async success(message) {
+    if (await env('loglevel', 'number', 0) > 1) return
 
     console.log(chalk`{green [success]} ${message}`)
   },
 
-  warn(message) {
-    if (env('loglevel', 'number') > 2) return
+  async warn(message) {
+    if (await env('loglevel', 'number', 0) > 2) return
 
     console.error(chalk`{yellow [warn]} ${message}`)
   },
 
-  fatal(message) {
+  // note: you can also just `throw` to do this
+  async fatal(message) {
     console.error(chalk`{bgRed [fatal]} ${message}`)
+
+    process.exit(1) // fatal errors only!
   },
 
-  inspect(object, opts = {}) {
-    if (env('loglevel', 'number') > -1) return
+  async inspect(object, opts = {}) {
+    if (await env('loglevel', 'number', 0) > -1) return
 
     console.log(util.inspect(object, Object.assign({
       depth: null,

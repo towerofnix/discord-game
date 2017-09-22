@@ -4,7 +4,12 @@ import chalk from 'chalk'
 import { log } from './util'
 
 async function getOptions(configFile = 'env.json') {
-  return JSON.parse(await fs.readFile(configFile))
+  try {
+    return JSON.parse(await fs.readFile(configFile, 'utf8'))
+  } catch(err) {
+    // for some reason the await above swallowed the error
+    await log.fatal(err)
+  }
 }
 
 export const all = memize(getOptions)
@@ -19,13 +24,11 @@ export default async function env(key, type, defaultValue = null) {
     value = defaultValue
 
   if (typeof value === 'undefined') {
-    log.fatal(chalk`Configuration option expected but not provided: {yellow ${key}} {dim (${type})}`)
-    process.exit(1)
+    await log.fatal(chalk`Environment option expected but not provided: {yellow ${key}} {dim (${type})}`)
   }
 
   if (typeof value !== type) {
-    log.fatal(chalk`Configuration option {yellow ${key}} should be {cyan ${type}} but it is {cyan ${typeof value}}`)
-    process.exit(1)
+    await log.fatal(chalk`Environment option {yellow ${key}} should be {cyan ${type}} but it is {cyan ${typeof value}}`)
   }
 
   return value
