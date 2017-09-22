@@ -3,9 +3,8 @@ import memize from 'memize'
 import chalk from 'chalk'
 import { log } from './util'
 
-async function getOptions() {
-  // TODO await fs.readFile some config file
-  return {}
+async function getOptions(configFile = 'env.json') {
+  return JSON.parse(await fs.readFile(configFile))
 }
 
 export const all = memize(getOptions)
