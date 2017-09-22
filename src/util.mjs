@@ -4,7 +4,7 @@ import env from './env'
 
 export const log = {
   async info(message) {
-    if (await env('loglevel', 'number', 0) > 0)
+    if (await env('loglevel', 'number', 0) > 0) return
 
     console.log(chalk`{blue [info]} ${message}`)
   },
