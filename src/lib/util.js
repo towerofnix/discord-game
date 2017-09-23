@@ -1,22 +1,29 @@
-const { env } = require('./env')
-
 const chalk = require('chalk')
 const util = require('util')
 
 const log = {
   async info(message) {
+    // FIXME: Please never forgive me for this.
+    // Just kidding; it's your fault.
+    // -Florrie
+    const { env } = require('./env')
+
     if (await env('loglevel', 'number', 0) > 0) return
 
     console.log(chalk`{blue [info]} ${message}`)
   },
 
   async success(message) {
+    const { env } = require('./env')
+
     if (await env('loglevel', 'number', 0) > 1) return
 
     console.log(chalk`{green [success]} ${message}`)
   },
 
   async warn(message) {
+    const { env } = require('./env')
+
     if (await env('loglevel', 'number', 0) > 2) return
 
     console.error(chalk`{yellow [warn]} ${message}`)
