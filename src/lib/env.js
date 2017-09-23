@@ -1,4 +1,4 @@
-const { log } = require('./util')
+const { log } = require('./util/logFatal')
 
 const fs = require('mz/fs')
 const memize = require('memize')
