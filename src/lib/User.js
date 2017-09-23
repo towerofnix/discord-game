@@ -1,11 +1,12 @@
 const discord = require('discord.js')
 const camo = require('camo')
 
-async function getMemberById(id) {
-  if (!id || typeof id !== 'string') throw 'getMemberById(string id) expected'
+async function getMemberById(id, guild) {
+  if (!id || typeof id !== 'string') throw new TypeError('getMemberById(string id) expected')
+  if (!guild) throw new TypeError('getMemberById(, discord.Guild guild) expected')
 
   // discord.Guild#fetchMember has a cache, so we don't need to memoize this
-  return await global.guild.fetchMember(id, true) // discord.GuildMember
+  return await guild.fetchMember(id, true) // discord.GuildMember
 }
 
 class User extends camo.Document {
@@ -14,22 +15,24 @@ class User extends camo.Document {
 
     this._id = { type: String, unique: true, required: true } // discord.Snowflake
     this.currentRoom = { type: String, default: 'void' } // reference to Room (TODO)
+    //this.currentBattle = { type: String, default: '' }
   }
 
   static async getById(id) {
-    if (!id || typeof id !== 'string') throw 'User.getById(string id) expected'
+    if (!id || typeof id !== 'string') throw new TypeError('User.getById(string id) expected')
     return await User.findOne({ _id: id })
   }
 
   static async exists(id) {
-    if (!id || typeof id !== 'string') throw 'User.exists(string id) expected'
+    if (!id || typeof id !== 'string') throw new TypeError('User.exists(string id) expected')
     return await User.getById(id) !== null
   }
 
-  static async addNewUsers() {
+  static async addNewUsers(members) {
+    if (!members) throw new TypeError('User.addNewUsers(discord.Collection<discord.Snowflake, discord.GuildMember>) expected')
     let numAdded = 0
 
-    for (const [ id, member ] of global.guild.members) {
+    for (const [ id, member ] of members) {
       // if this user is a bot, ignore it
       if (member.user.bot === true)
         continue
@@ -46,8 +49,14 @@ class User extends camo.Document {
     return numAdded
   }
 
-  async getName() {
-    return (await getMemberById(this._id)).displayName
+  async getMember(guild) {
+    if (!guild) throw new TypeError('User#getMember(discord.Guild guild) expected')
+    return await getMemberById(this._id, guild)
+  }
+
+  async getName(guild) {
+    if (!guild) throw new TypeError('User#getName(discord.Guild guild) expected')
+    return (await this.getMember(guild)).displayName
   }
 }
 
