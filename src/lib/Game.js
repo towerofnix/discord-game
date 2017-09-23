@@ -5,9 +5,7 @@ const chalk = require('chalk')
 const { env } = require('./env')
 const { log } = require('./util')
 const { CommandController } = require('./CommandController')
-
-// TODO: Very bad! lib requiring from game is definitely not a good sign.
-const { registerRooms } = require('../game/rooms/register-rooms')
+const { RoomController } = require('./controllers/RoomController')
 
 class Game {
   constructor() {
@@ -42,7 +40,7 @@ class Game {
 
   async setup() {
     // TODO: registerRooms will be defined under a RoomController class.
-    await registerRooms()
+    // await registerRooms()
 
     this.commandController = new CommandController(this.client)
   }
