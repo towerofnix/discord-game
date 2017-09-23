@@ -34,4 +34,4 @@ async function env(key, type, defaultValue = null) {
   return value
 }
 
-module.exports = {env, getOptions}
+module.exports = { env, getOptions }

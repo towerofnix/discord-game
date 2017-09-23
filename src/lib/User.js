@@ -51,4 +51,4 @@ class User extends camo.Document {
   }
 }
 
-module.exports = {User, getMemberById}
+module.exports = { User, getMemberById }

@@ -39,4 +39,4 @@ const log = {
   }
 }
 
-module.exports = {log}
+module.exports = { log }
