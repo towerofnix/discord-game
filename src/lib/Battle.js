@@ -1,5 +1,6 @@
-const { log } = require('./util')
+const { log, prompt } = require('./util')
 const { User } = require('./User')
+const attacks = require('../game/moves/attacks')
 
 const chalk = require('chalk')
 const shortid = require('shortid')
@@ -49,6 +50,46 @@ class Battle {
     for (let entity of this.teamB) {
       if (entity instanceof User)
         await (await entity.getMember(guild)).addRole(this.teamARole)
+    }
+
+    return await this.teamATurn(guild)
+  }
+
+  async teamATurn(guild) {
+    if (!guild) throw new TypeError('Battle#teamATurn(discord.Guild guild) expected')
+
+    for (let entity of this.teamA) {
+      if (entity instanceof User) {
+        let user = entity
+        let member = await user.getMember(guild)
+
+        let userMoves = [
+          [ 'Tactics', '🏴' ],
+          [ 'Items',   '🌂' ],
+          [ 'Attacks', '🥊' ],
+        ]
+
+        let userAttacks = [
+          // TEMP, user should be able to learn attacks and stuff
+          new attacks.Tackle
+        ]
+
+        switch (await prompt(this.teamAChannel, user, `${member.displayName}'s Turn`, userMoves)) {
+          case '🥊': {
+            let attack = await prompt(this.teamAChannel, user, `${member.displayName}'s Turn - Attacks`, userAttacks.map(atk => [ atk.name, atk.emoji ]))
+            // TODO
+            break
+          }
+
+          case '🏴':
+          case '🌂': {
+            // TODO
+            throw new TypeError
+          }
+        }
+      } else if (entity instanceof Enemy) {
+        // TODO
+      } else throw new TypeError
     }
   }
 }
