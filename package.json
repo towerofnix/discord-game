@@ -9,8 +9,8 @@
     "uws": "^8.14.1"
   },
   "scripts": {
-    "start": "node --experimental-modules src/main.mjs",
-    "watch": "nodemon src/main.mjs --watch src -x 'node --experimental-modules'"
+    "start": "node src/main.js",
+    "watch": "nodemon src/main.js --watch src"
   },
   "devDependencies": {
     "nodemon": "^1.12.1"

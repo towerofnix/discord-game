@@ -1,14 +1,14 @@
-import discord from 'discord.js'
-import camo from 'camo'
+const discord = require('discord.js')
+const camo = require('camo')
 
-export async function getMemberById(id) {
+async function getMemberById(id) {
   if (!id || typeof id !== 'string') throw 'getMemberById(string id) expected'
 
   // discord.Guild#fetchMember has a cache, so we don't need to memoize this
   return await global.guild.fetchMember(id, true) // discord.GuildMember
 }
 
-export default class User extends camo.Document {
+class User extends camo.Document {
   constructor() {
     super()
 
@@ -50,3 +50,5 @@ export default class User extends camo.Document {
     return (await getMemberById(this._id)).displayName
   }
 }
+
+module.exports = {User, getMemberById}

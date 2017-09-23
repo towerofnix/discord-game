@@ -1,8 +1,9 @@
-import chalk from 'chalk'
-import util from 'util'
-import env from './env'
+const { env } = require('./env')
 
-export const log = {
+const chalk = require('chalk')
+const util = require('util')
+
+const log = {
   async info(message) {
     if (await env('loglevel', 'number', 0) > 0) return
 
@@ -37,3 +38,5 @@ export const log = {
     }, opts)))
   }
 }
+
+module.exports = {log}

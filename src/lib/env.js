@@ -1,23 +1,23 @@
-import fs from 'mz/fs'
-import memize from 'memize'
-import chalk from 'chalk'
-import { log } from './util'
+const { log } = require('./util')
 
-async function getOptions(configFile = 'env.json') {
+const fs = require('mz/fs')
+const memize = require('memize')
+const chalk = require('chalk')
+
+const getOptions = memize(async function(configFile = 'env.json') {
   try {
     return JSON.parse(await fs.readFile(configFile, 'utf8'))
   } catch(err) {
     // for some reason the await above swallowed the error
     await log.fatal(err)
   }
-}
+})
 
-export const all = memize(getOptions)
-export default async function env(key, type, defaultValue = null) {
+async function env(key, type, defaultValue = null) {
   if (!key) throw 'env(key) expected'
   if (!type) throw 'env(, type) expected'
 
-  const environment = await all()
+  const environment = await getOptions()
   let value = environment[key]
 
   if (!value && defaultValue !== null)
@@ -33,3 +33,5 @@ export default async function env(key, type, defaultValue = null) {
 
   return value
 }
+
+module.exports = {env, getOptions}

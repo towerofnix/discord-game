@@ -1,9 +1,10 @@
-import User from './User'
-import Discord from 'discord.js'
-import { log } from './util'
-import env from './env'
-import chalk from 'chalk'
-import camo from 'camo'
+const { User } = require('./lib/User')
+const { log } = require('./lib/util')
+const { env } = require('./lib/env')
+
+const Discord = require('discord.js')
+const chalk = require('chalk')
+const camo = require('camo')
 
 process.on('uncaughtException', async err => {
   if (typeof err === 'object') await log.inspect(err) // only shows on -1 loglevel [debug]
@@ -40,6 +41,8 @@ client.on('guildMemberAdd', async member => {
     await log.success(chalk`Added user: {cyan ${await user.getName()}}`)
   }
 })
+
+console.log('going, lol')
 
 env('database_uri', 'string', 'nedb://data/')
   .then(dbUri => camo.connect(dbUri))
