@@ -10,12 +10,4 @@ class Room {
   }
 }
 
-async function registerRoom(room) {
-  // Discord'y stuff here!
-  // TODO: Implement this, lol.
-  // - Should do a sanity check - channels should exist, and have the right
-  //   description and permissions. (If they don't, make/set them.)
-  await log.info(`Registering room: ${room.displayName} #${room.channelName}`)
-}
-
-module.exports = { Room, registerRoom }
+module.exports = { Room }

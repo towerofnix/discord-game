@@ -1,3 +1,4 @@
 module.exports = Object.assign({},
   require('./CommandController'),
-  require('./BattleController'))
+  require('./BattleController'),
+  require('./RoomController'))

@@ -1,5 +1,6 @@
 const { Game } = require('./lib/Game')
 const { log } = require('./lib/util')
+const { LonelyVoid } = require('./game/rooms/LonelyVoid')
 
 const Discord = require('discord.js')
 const chalk = require('chalk')
@@ -16,6 +17,7 @@ async function main() {
 
   const game = new Game()
   await game.setup()
+  await game.roomController.registerRoom(new LonelyVoid())
   await game.go()
 }
 
