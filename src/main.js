@@ -7,13 +7,11 @@ const camo = require('camo')
 
 async function main() {
   process.on('uncaughtException', async err => {
-    if (typeof err === 'object') await log.inspect(err) // only shows on -1 loglevel [debug]
     await log.fatal(err)
   })
 
   process.on('unhandledRejection', async err => {
-    if (typeof err === 'object') await log.inspect(err) // only shows on -1 loglevel [debug]
-    await log.fatal(err)
+    await log.fatal(err.stack || err)
   })
 
   const game = new Game()
