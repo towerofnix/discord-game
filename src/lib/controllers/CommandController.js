@@ -3,10 +3,11 @@ const EventEmitter = require('events')
 const PREFIX = '.'
 
 class CommandController extends EventEmitter {
-  constructor(client) {
+  constructor(game) {
+    if (!game) throw new TypeError('new CommandController(Game game) expected')
     super()
 
-    client.on('message', msg => this.handleMessage(msg))
+    game.client.on('message', msg => this.handleMessage(msg))
   }
 
   handleMessage(message) {

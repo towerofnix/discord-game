@@ -1,5 +1,3 @@
-'use strict'
-
 const { Room } = require('../../lib/Room')
 
 class LonelyVoid extends Room {

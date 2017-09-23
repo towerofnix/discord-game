@@ -1,29 +1,38 @@
-const Discord = require('discord.js')
+const discord = require('discord.js')
 const camo = require('camo')
 const chalk = require('chalk')
 
+const { User } = require('./User')
 const { env } = require('./env')
 const { log } = require('./util')
-const { CommandController } = require('./CommandController')
+const { CommandController, BattleController } = require('./controllers')
 
 // TODO: Very bad! lib requiring from game is definitely not a good sign.
 const { registerRooms } = require('../game/rooms/register-rooms')
 
 class Game {
   constructor() {
-    this.client = new Discord.Client
+    this.client = new discord.Client
     this.client.on('ready', () => this.handleClientReady())
     this.client.on('guildMemberAdd', member => this.handleMemberJoin(member))
   }
 
   async handleClientReady() {
     await log.success('Connected to Discord API')
+    this.guild = this.client.guilds.first() // assumes one and only guild
 
-    global.guild = client.guilds.first() // assuming one and only!
+    // Remove battle-related channels and roles, if any
+    await log.info('Cleaning battle-related channels and roles...')
+    const battlesCleaned = await this.battleController.cleanAll()
+    if (battlesCleaned > 0)
+      await log.success(`Cleaned (${battlesCleaned}) battles`)
+    else
+      await log.info('No battles to clean')
+
 
     // New user check
     await log.info('Checking for any new users not yet in the database...')
-    const newUserAmount = await User.addNewUsers()
+    const newUserAmount = await User.addNewUsers(this.guild.members)
     if (newUserAmount > 0)
       await log.success(`Added (${newUserAmount}) new users to the database`)
     else
@@ -36,7 +45,7 @@ class Game {
       await log.info('A new user just joined! Adding them to the database...')
       const user = User.create({ _id: member.id })
       await user.save()
-      await log.success(chalk`Added user: {cyan ${await user.getName()}}`)
+      await log.success(chalk`Added user: {cyan ${await user.getName(this.guild)}}`)
     }
   }
 
@@ -44,8 +53,8 @@ class Game {
     // TODO: registerRooms will be defined under a RoomController class.
     await registerRooms()
 
-    this.commandController = new CommandController(this.client)
-    // TODO: battleController
+    this.commandController = new CommandController(this)
+    this.battleController = new BattleController(this)
   }
 
   async go() {
