@@ -45,6 +45,7 @@ class Game {
     await registerRooms()
 
     this.commandController = new CommandController(this.client)
+    // TODO: battleController
   }
 
   async go() {

@@ -14,6 +14,7 @@ class User extends camo.Document {
 
     this._id = { type: String, unique: true, required: true } // discord.Snowflake
     this.currentRoom = { type: String, default: 'void' } // reference to Room (TODO)
+    this.currentBattle = { type: String, default: '' }
   }
 
   static async getById(id) {
