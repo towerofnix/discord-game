@@ -15,7 +15,7 @@ class RoomController {
     //   description and permissions. (If they don't, make/set them.)
 
     await log.info(`Registering room: ${room.displayName} #${room.channelName}`)
-    this.roomMap.set
+    this.roomMap.set(room.channelName, room)
   }
 }
 
