@@ -52,6 +52,7 @@ class Game {
 
     this.commandController = new CommandController(this)
     this.battleController = new BattleController(this)
+    this.roomController = new RoomController(this)
   }
 
   async go() {
