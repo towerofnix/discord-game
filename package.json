@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "camo": "^0.12.3",
     "chalk": "^2.1.0",
     "discord.js": "^11.2.1",
     "erlpack": "hammerandchisel/erlpack",
@@ -13,5 +14,8 @@
   },
   "devDependencies": {
     "nodemon": "^1.12.1"
+  },
+  "optionalDependencies": {
+    "nedb": "^1.8.0"
   }
 }
