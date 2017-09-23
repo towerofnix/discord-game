@@ -21,7 +21,7 @@ async function main() {
   await game.go()
 }
 
-module.exports = {main}
+module.exports = { main }
 
 if (require.main === module) {
   main()

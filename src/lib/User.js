@@ -17,12 +17,12 @@ class User extends camo.Document {
   }
 
   static async getById(id) {
-    if (!id || typeof id !== 'string') throw 'User#getById(string id) expected'
+    if (!id || typeof id !== 'string') throw 'User.getById(string id) expected'
     return await User.findOne({ _id: id })
   }
 
   static async exists(id) {
-    if (!id || typeof id !== 'string') throw 'User#exists(string id) expected'
+    if (!id || typeof id !== 'string') throw 'User.exists(string id) expected'
     return await User.getById(id) !== null
   }
 
