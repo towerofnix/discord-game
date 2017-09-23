@@ -20,10 +20,12 @@ class Battle {
     this.channel = null
   }
 
-  async start(guild) {
-    if (!guild) throw new TypeError('Battle#start(discord.Guild guild) expected')
+  async start(game) {
+    if (!game) throw new TypeError('Battle#start(Game game) expected')
     if (this.started) throw new Error('Battle#start() already started')
     this.started = true
+
+    const guild = game.guild
 
     const everyoneRole = guild.id
     this.teamARole = await guild.createRole({ name: `in battle: ${this.id} a` })
@@ -43,13 +45,17 @@ class Battle {
     // TODO header image
 
     for (let entity of this.teamA) {
-      if (entity instanceof User)
+      if (entity instanceof User) {
+        await game.musicController.play('battle', entity)
         await (await entity.getMember(guild)).addRole(this.teamARole)
+      }
     }
 
     for (let entity of this.teamB) {
-      if (entity instanceof User)
+      if (entity instanceof User) {
+        await game.musicController.play('battle', entity)
         await (await entity.getMember(guild)).addRole(this.teamARole)
+      }
     }
 
     return await this.teamATurn(guild)

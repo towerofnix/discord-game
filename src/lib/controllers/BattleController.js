@@ -14,7 +14,7 @@ class BattleController extends EventEmitter {
       // TEMP
       const user = await User.getById(member.id)
       let battle = new Battle([ user ], [ new enemies.Think ])
-      battle.start(game.guild)
+      battle.start(game)
     })
   }
 

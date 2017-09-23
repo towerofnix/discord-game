@@ -14,6 +14,33 @@ class RoomController {
     })
   }
 
+  async moveUserToRoom(roomId, user) {
+    if (!roomId) throw new TypeError(`RoomController#userJoin(string roomId) expected`)
+    if (!user) throw new TypeError(`RoomController#userJoin(, User user) expected`)
+
+    const room = this.roomMap.get(roomId)
+
+    if (!room) throw new TypeError(`RoomController#userJoin(string roomId) does not exist`)
+
+    const roleName = `in location: ${room.channelName}`
+    const member = await user.getMember(this.game.guild)
+    const guild = this.game.guild
+
+    let role = guild.roles.find('name', roleName)
+
+    // remove previous "in location" role [if any]
+    for (let [ id, role ] of member.roles) {
+      if (role.name.startsWith('in location:'))
+        await member.removeRole(id)
+    }
+
+    // add user to channel
+    await member.addRole(role)
+
+    // notify room of new member
+    if (room.onjoin) await room.onjoin(user, this.game)
+  }
+
   async registerRoom(room) {
     if (!room || !(room instanceof Room)) throw new TypeError('RoomController#registerRoom(Room room) expected')
 
@@ -40,7 +67,6 @@ class RoomController {
 
     if (role === null) {
       role = await guild.createRole({ name: `in location: ${room.channelName}` })
-      console.log(typeof role)
     }
 
     let channel = guild.channels.findKey('name', channelName)

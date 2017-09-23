@@ -5,7 +5,8 @@ const chalk = require('chalk')
 const { User } = require('./User')
 const { env } = require('./env')
 const { log } = require('./util')
-const { CommandController, BattleController, RoomController } = require('./controllers')
+const { CommandController, BattleController, RoomController,
+        MusicController } = require('./controllers')
 
 class Game {
   constructor() {
@@ -29,7 +30,7 @@ class Game {
 
     // New user check
     await log.info('Checking for any new users not yet in the database...')
-    const newUserAmount = await User.addNewUsers(this.guild.members)
+    const newUserAmount = await User.addNewUsers(this, this.guild.members)
     if (newUserAmount > 0)
       await log.success(`Added (${newUserAmount}) new users to the database`)
     else
@@ -43,6 +44,9 @@ class Game {
       const user = User.create({ _id: member.id })
       await user.save()
       await log.success(chalk`Added user: {cyan ${await user.getName(this.guild)}}`)
+
+      // Add them to #lonely-void
+      await this.roomController.moveUserToRoom('lonely-void', user)
     }
   }
 
@@ -53,6 +57,7 @@ class Game {
     this.commandController = new CommandController(this)
     this.battleController = new BattleController(this)
     this.roomController = new RoomController(this)
+    this.musicController = new MusicController(this)
   }
 
   async go() {

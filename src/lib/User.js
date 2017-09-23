@@ -28,8 +28,9 @@ class User extends camo.Document {
     return await User.getById(id) !== null
   }
 
-  static async addNewUsers(members) {
-    if (!members) throw new TypeError('User.addNewUsers(discord.Collection<discord.Snowflake, discord.GuildMember>) expected')
+  static async addNewUsers(game, members) {
+    if (!game) throw new TypeError('User.addNewUsers(Game game) expected')
+    if (!members) throw new TypeError('User.addNewUsers(, discord.Collection<discord.Snowflake, discord.GuildMember> members) expected')
     let numAdded = 0
 
     for (const [ id, member ] of members) {
@@ -42,6 +43,8 @@ class User extends camo.Document {
         // add the user to the database
         let user = User.create({ _id: id })
         await user.save()
+        // add the user to #lonely-void (default room)
+        await game.roomController.moveUserToRoom('lonely-void', user)
         numAdded++
       }
     }
