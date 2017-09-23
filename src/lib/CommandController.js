@@ -25,8 +25,8 @@ class CommandController extends EventEmitter {
     let command = content.substr(0, eocIndex)
     let rest = content.substr(eocIndex + 1).trim()
 
-    this.emit('.' + command, rest)
-    this.emit('*', command, rest)
+    this.emit('.' + command, rest, message)
+    this.emit('*', command, rest, message)
   }
 }
 
