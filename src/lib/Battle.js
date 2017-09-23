@@ -43,12 +43,12 @@ class Battle {
 
     for (let entity of this.teamA) {
       if (entity instanceof User)
-        await entity.addRole(this.teamARole)
+        await (await entity.getMember(guild)).addRole(this.teamARole)
     }
 
     for (let entity of this.teamB) {
       if (entity instanceof User)
-        await entity.addRole(this.teamBRole)
+        await (await entity.getMember(guild)).addRole(this.teamARole)
     }
   }
 }

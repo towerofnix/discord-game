@@ -10,7 +10,7 @@ class BattleController extends EventEmitter {
     super()
 
     this.game = game
-    this.game.commandController.on('.battle', async (cmd, args, member) => {
+    this.game.commandController.on('.battle', async (cmd, args, { member }) => {
       // TEMP
       const user = await User.getById(member.id)
       let battle = new Battle([ user ], [ new enemies.Think ])

@@ -10,6 +10,8 @@ class CommandController extends EventEmitter {
     game.client.on('message', msg => this.handleMessage(msg))
   }
 
+  // TODO automagic .help messages?
+
   handleMessage(message) {
     if (!message)
       throw new TypeError('CommandController.handleMessage(discord.Message message) expected')

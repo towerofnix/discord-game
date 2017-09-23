@@ -51,12 +51,12 @@ class User extends camo.Document {
 
   async getMember(guild) {
     if (!guild) throw new TypeError('User#getMember(discord.Guild guild) expected')
-    return await getMemberById(this._id, this.guild)
+    return await getMemberById(this._id, guild)
   }
 
   async getName(guild) {
     if (!guild) throw new TypeError('User#getName(discord.Guild guild) expected')
-    return (await this.getMember(this.guild)).displayName
+    return (await this.getMember(guild)).displayName
   }
 }
 
