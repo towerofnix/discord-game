@@ -3,8 +3,6 @@ const { User } = require('../User')
 const { log } = require('../util')
 
 class RoomController {
-  // TODO: getRoomById
-
   constructor(game) {
     this.game = game
 
@@ -13,7 +11,7 @@ class RoomController {
 
     // TODO: Bad
     this.game.commandController.on('.create-room-channel', async () => {
-      await this.createRoomChannelAndRole(this.roomMap.get('lonely-void'))
+      await this.createRoomChannelAndRole(this.getRoomById('lonely-void'))
     })
 
     // TODO: Also bad
@@ -34,9 +32,7 @@ class RoomController {
     if (!roomId || typeof roomId !== 'string') throw new TypeError('RoomController#moveUserToRoom(string roomId) expected')
     if (!user || user instanceof User === false) throw new TypeError('RoomController#moveUserToRoom(, User user) expected')
 
-    if (this.hasRoomById(roomId) === false) throw new Error('Room does not exist')
-
-    const room = this.roomMap.get(roomId)
+    const room = this.getRoomById(roomId)
 
     const roleName = `in location: ${room.channelName}`
     const member = await user.getMember(this.game.guild)
@@ -58,9 +54,26 @@ class RoomController {
   }
 
   hasRoomById(roomId) {
+    // Checks if a room by the given ID exists.
+
     if (!roomId || typeof roomId !== 'string') throw new TypeError('RoomController#hasRoomById(string roomId) expected')
 
     return this.roomMap.has(roomId)
+  }
+
+  getRoomById(roomId) {
+    // Gets the Room object with the given ID (which is its channel name).
+    // Throws an error if the given room does not exist. (When handling, e.g.,
+    // user input, you should use `hasRoomById` to check if the given room
+    // exists before running getRoomById.)
+
+    if (!roomId || typeof roomId !== 'string') throw new TypeError('RoomController#getRoomById(string roomId) expected')
+
+    if (this.hasRoomById(roomId)) {
+      return this.roomMap.get(roomId)
+    } else {
+      throw new Error('Room does not exist (use RoomController#hasRoomById() to check if it does)')
+    }
   }
 
   async registerRoom(room) {
