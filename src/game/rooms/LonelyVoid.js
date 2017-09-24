@@ -5,7 +5,7 @@ class LonelyVoid extends Room {
     super('lonely-void', 'Lonely Void')
   }
 
-  async onjoin(user, game) {
+  async handleUserEntered(user, game) {
     await game.musicController.play('lol', user)
   }
 }

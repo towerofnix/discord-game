@@ -8,6 +8,8 @@ class Room {
     this.channelName = channelName
     this.displayName = displayName
   }
+
+  async handleUserEntered(user, game) {}
 }
 
 module.exports = { Room }

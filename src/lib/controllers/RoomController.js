@@ -38,7 +38,7 @@ class RoomController {
     await member.addRole(role)
 
     // notify room of new member
-    if (room.onjoin) await room.onjoin(user, this.game)
+    await room.handleUserEntered(user, this.game)
   }
 
   async registerRoom(room) {
