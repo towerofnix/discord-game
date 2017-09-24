@@ -54,11 +54,12 @@ class RoomController {
   }
 
   async createRoomChannelAndRole(room) {
+    // TODO: Make this more like RoomController#getSongRoleAndChannel
+
     if (!room || !(room instanceof Room)) throw new TypeError('RoomController#createRoomChannelAndRole(Room room) expected')
     // TODO: Assert room is registered
 
     const guild = this.game.guild
-    const everyoneRole = guild.id
 
     const roleName = `in location: ${room.channelName}`
     const channelName = room.channelName
@@ -66,12 +67,14 @@ class RoomController {
     let role = guild.roles.find('name', roleName)
 
     if (role === null) {
-      role = await guild.createRole({ name: `in location: ${room.channelName}` })
+      role = await guild.createRole({ name: roleName })
     }
 
     let channel = guild.channels.findKey('name', channelName)
 
     if (channel === null) {
+      const everyoneRole = guild.id
+
       channel = await guild.createChannel(channelName, 'text', [
         { id: everyoneRole, deny: 3136, allow: 0 },
         { id: role.id, deny: 0, allow: 3072 },
