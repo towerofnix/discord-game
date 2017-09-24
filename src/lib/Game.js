@@ -29,8 +29,8 @@ class Game {
 
 
     // New user check
-    await log.info('Checking for any new users not yet in the database...')
-    const newUserAmount = await User.addNewUsers(this, this.guild.members)
+    await log.info('Checking for any new members who don\'t yet have users in the database...')
+    const newUserAmount = await this.createUsersForNewMembers()
     if (newUserAmount > 0)
       await log.success(`Added (${newUserAmount}) new users to the database`)
     else
@@ -38,6 +38,12 @@ class Game {
   }
 
   async handleMemberJoin(member) {
+    await this.createUserForMember(member)
+  }
+
+  async createUserForMember(member) {
+    if (!member /* TODO: typecheck */) throw new TypeError('Game#createUserForMember(discord.GuildMember member) expected')
+
     if (await User.exists(member.id) === false) { // quick sanity check
       // Add new user to the database
       await log.info('A new user just joined! Adding them to the database...')
@@ -46,8 +52,27 @@ class Game {
       await log.success(chalk`Added user: {cyan ${await user.getName(this.guild)}}`)
 
       // Add them to #lonely-void
+      // TODO: assumes #lonely-void is the default room - bad!
       await this.roomController.moveUserToRoom('lonely-void', user)
     }
+  }
+
+  async createUsersForNewMembers() {
+    let numAdded = 0
+
+    for (const [ id, member ] of this.guild.members) {
+      // if this user is a bot, ignore it
+      if (member.user.bot === true)
+        continue
+
+      // is this user in the database?
+      if (await User.exists(id) === false) {
+        this.createUserForMember(member)
+        numAdded++
+      }
+    }
+
+    return numAdded
   }
 
   async setup() {
