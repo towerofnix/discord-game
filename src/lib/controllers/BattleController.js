@@ -21,11 +21,13 @@ class BattleController extends EventEmitter {
   async clean(id) {
     if (!id || typeof id !== 'string') throw new TypeError('BattleController#clean(string id) expected')
 
+    const del = thing => thing ? thing.delete() : Promise.resolve()
+
     await Promise.all([
-      this.game.guild.channels.find('name', `battle-a-${id}`).delete(),
-      this.game.guild.channels.find('name', `battle-b-${id}`).delete(),
-      this.game.guild.roles.find('name', `in battle: ${id} a`).delete(),
-      this.game.guild.roles.find('name', `in battle: ${id} b`).delete(),
+      del(this.game.guild.channels.find('name', `battle-a-${id}`)),
+      del(this.game.guild.channels.find('name', `battle-b-${id}`)),
+      del(this.game.guild.roles.find('name', `in battle: ${id} a`)),
+      del(this.game.guild.roles.find('name', `in battle: ${id} b`)),
     ])
   }
 
