@@ -1,5 +1,7 @@
 const { Room } = require('../../lib/Room')
 
+const { richWrite } = require('../../lib/util')
+
 class TinyLand extends Room {
   constructor() {
     super('tiny-land', 'Tiny Land')
@@ -7,6 +9,18 @@ class TinyLand extends Room {
 
   async handleUserEntered(user, game) {
     await game.musicController.play('tiny-land', user)
+
+    // TODO: send message to user function, or something
+
+    const { channel } = await game.roomController.getRoomChannelAndRole(this)
+
+    await richWrite(channel, user, 0xFF0033, 'Tiny Land', 'This place is exclusive to TINY BUGS ONLY!!!!!!!!! Get out now. R~!~`AHHHGHSdf.')
+
+    // TODO: settimeout - move user to lonelyvoid
+
+    setTimeout(() => {
+      game.roomController.moveUserToRoom('lonely-void', user)
+    }, 4000)
   }
 }
 
