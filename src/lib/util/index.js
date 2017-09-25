@@ -1,5 +1,8 @@
+// Sorry, alex! -Florrie
+const { prompt, promptOnMessage } = require('./prompt')
+
 module.exports = {
-  prompt: require('./prompt'),
+  prompt, promptOnMessage,
   richWrite: require('./richWrite'),
   log: Object.assign({},
     require('./log').log,
