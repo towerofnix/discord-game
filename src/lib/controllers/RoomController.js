@@ -74,7 +74,7 @@ class RoomController {
     if (this.hasRoomById(roomId)) {
       return this.roomMap.get(roomId)
     } else {
-      throw new Error('Room does not exist (use RoomController#hasRoomById() to check if it does)')
+      throw new Error(`Room "${roomId}" does not exist (use RoomController#hasRoomById() to check if it does)`)
     }
   }
 
