@@ -4,9 +4,9 @@ const chalk = require('chalk')
 
 const { User } = require('./User')
 const { env } = require('./env')
-const { log, promptOnMessage } = require('./util')
+const { log } = require('./util')
 const { CommandController, BattleController, RoomController,
-        MusicController } = require('./controllers')
+        MusicController, VerbController } = require('./controllers')
 
 class Game {
   constructor() {
@@ -83,7 +83,8 @@ class Game {
     this.battleController = new BattleController(this)
     this.roomController = new RoomController(this)
     this.musicController = new MusicController(this)
-    this.setupVerbHandlers()
+    this.verbController = new VerbController(this)
+    this.commandController.on('.examine', this.verbController.makeVerbCommandHandler('examine'))
   }
 
   async go() {
@@ -98,37 +99,6 @@ class Game {
 
     const token = await env('discord_token', 'string')
     await this.client.login(token)
-  }
-
-  // Verb code ----------------------------------------------------------------
-  // This should probably be moved to a VerbController class.
-
-  setupVerbHandlers() {
-    this.commandController.on('.examine', this.makeVerbHandler('examine'))
-  }
-
-  makeVerbHandler(verb) {
-    if (!verb || typeof verb !== 'string') throw new TypeError('Game#makeVerbHandler(string verb) expected')
-
-    return async (command, rest, message) => {
-      const user = await User.getById(message.author.id)
-
-      if (this.roomController.hasRoomById(user.currentRoom) === false) {
-        log.warn(`User ${message.author.tag} attempted to use a verb while in nonexistant room "${user.currentRoom}"!`)
-        return false
-      }
-
-      const room = this.roomController.getRoomById(user.currentRoom)
-      const { channel } = await this.roomController.getRoomChannelAndRole(room)
-
-      if (rest.length === 0) {
-        const choices = await room.getVerbChoices(verb, user, this) || []
-        const choice = await promptOnMessage(message, choices, user)
-        await room.handleVerbChoice(verb, choice, user, this)
-      } else {
-        console.log('Look at that thing.')
-      }
-    }
   }
 }
 
