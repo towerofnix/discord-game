@@ -28,8 +28,6 @@ class RoomController {
 
       const room = this.getRoomById(user.currentRoom)
       const { channel } = await this.getRoomChannelAndRole(room)
-
-      channel.send(`<@${message.author.id}> Welcome to your new location!`)
     })
   }
 

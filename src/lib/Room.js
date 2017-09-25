@@ -1,4 +1,5 @@
 const { log } = require('./util')
+const { User } = require('./User')
 
 class Room {
   constructor(channelName, displayName) {
@@ -10,6 +11,8 @@ class Room {
   }
 
   async handleUserEntered(user, game) {}
+  async getVerbChoices(verb, user, game) {}
+  async handleVerbChoice(verb, choice, user, game) {}
 }
 
 module.exports = { Room }
