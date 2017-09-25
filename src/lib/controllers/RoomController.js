@@ -100,7 +100,7 @@ class RoomController {
       role = await guild.createRole({ name: roleName })
     }
 
-    let channel = guild.channels.findKey('name', channelName)
+    let channel = guild.channels.find('name', channelName)
 
     if (channel === null) {
       const everyoneRole = guild.id
