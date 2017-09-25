@@ -49,6 +49,8 @@ class RoomController {
     // add user to channel
     await member.addRole(role)
 
+    user.currentRoom = room.channelName
+
     // notify room of new member
     await room.handleUserEntered(user, this.game)
   }
