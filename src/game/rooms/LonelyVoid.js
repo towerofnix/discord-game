@@ -1,5 +1,5 @@
 const { Room } = require('../../lib/Room')
-const { richWrite, prompt } = require('../../lib/util')
+const { richWrite } = require('../../lib/util')
 
 const lookAtSign = '📜' // :scroll:
 
