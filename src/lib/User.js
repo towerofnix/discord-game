@@ -1,5 +1,6 @@
 const discord = require('discord.js')
 const camo = require('camo')
+const memize = require('memize')
 
 async function getMemberById(id, guild) {
   if (!id || typeof id !== 'string') throw new TypeError('getMemberById(string id) expected')
@@ -8,6 +9,14 @@ async function getMemberById(id, guild) {
   // discord.Guild#fetchMember has a cache, so we don't need to memoize this
   return await guild.fetchMember(id, true) // discord.GuildMember
 }
+
+// By memizing this, we make it always return the same object for any given
+// user.
+const getUserById = memize(async function(id) {
+  if (!id || typeof id !== 'string') throw new TypeError('getUserById(string id) expected')
+
+  return await User.findOne({ _id: id })
+})
 
 class User extends camo.Document {
   constructor() {
@@ -20,7 +29,8 @@ class User extends camo.Document {
 
   static async getById(id) {
     if (!id || typeof id !== 'string') throw new TypeError('User.getById(string id) expected')
-    return await User.findOne({ _id: id })
+
+    return getUserById(id)
   }
 
   static async exists(id) {
