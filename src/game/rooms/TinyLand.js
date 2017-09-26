@@ -16,8 +16,6 @@ class TinyLand extends Room {
 
     await richWrite(channel, user, 0xFF0033, 'Tiny Land', 'This place is exclusive to TINY BUGS ONLY!!!!!!!!! Get out now. R~!~`AHHHGHSdf.')
 
-    // TODO: settimeout - move user to lonelyvoid
-
     setTimeout(() => {
       game.roomController.moveUserToRoom('lonely-void', user)
     }, 4000)
