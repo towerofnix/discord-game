@@ -1,8 +1,6 @@
 const { Room } = require('../../lib/Room')
 const { richWrite } = require('../../lib/util')
 
-const lookAtSign = '📜' // :scroll:
-
 class LonelyVoid extends Room {
   constructor() {
     super('lonely-void', 'Lonely Void')
@@ -20,9 +18,9 @@ class LonelyVoid extends Room {
 
   async getVerbChoices(verb, user) {
     if (verb === 'examine') {
-      return [
-        ['The sign', '📜']
-      ]
+      return {
+        sign: ['The sign', '📜'] // :scroll:
+      }
     }
 
     return []
@@ -32,7 +30,7 @@ class LonelyVoid extends Room {
     const { channel } = await game.roomController.getRoomChannelAndRole(this)
 
     if (verb === 'examine') {
-      if (choice === lookAtSign) {
+      if (choice === 'sign') {
         await richWrite(channel, user, 0xCCCCFF, 'Cardboard Sign', 'It\'s a rectangular sign made of cardboard. The edges are rough. Scribbled onto the sign with a permanent marker is a message:\n\n"WELCOME TO THE LONELY VOID! We have cookies."')
       }
     }

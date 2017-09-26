@@ -1,4 +1,4 @@
-const { promptOnMessage } = require('../util')
+const { promptOnMessage, log } = require('../util')
 const { User } = require('../User')
 
 class VerbController {

@@ -69,11 +69,11 @@ class Battle {
         let user = entity
         let member = await user.getMember(guild)
 
-        let userMoves = [
-          [ 'Tactics', '🏴' ],
-          [ 'Items',   '🌂' ],
-          [ 'Attacks', '🥊' ],
-        ]
+        let userMoves = {
+          tactics: [ 'Tactics', '🏴' ],
+          items: [ 'Items',   '🌂' ],
+          attacks: [ 'Attacks', '🥊' ],
+        }
 
         let userAttacks = [
           // TEMP, user should be able to learn attacks and stuff
@@ -81,14 +81,15 @@ class Battle {
         ]
 
         switch (await prompt(this.teamAChannel, user, `${member.displayName}'s Turn`, userMoves)) {
-          case '🥊': {
+          case 'attacks': {
             let attack = await prompt(this.teamAChannel, user, `${member.displayName}'s Turn - Attacks`, userAttacks.map(atk => [ atk.name, atk.emoji ]))
             // TODO
+            console.log(attack)
             break
           }
 
-          case '🏴':
-          case '🌂': {
+          case 'items':
+          case 'tactics': {
             // TODO
             throw new TypeError
           }
