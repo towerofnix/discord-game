@@ -95,7 +95,6 @@ class Game {
   }
 
   async cleanDiscordServer() {
-    // Remove battle-related channels and roles, if any
     await log.info('Removing battle-related channels...')
 
     const battlesRemoved = (await Promise.all(this.guild.channels
