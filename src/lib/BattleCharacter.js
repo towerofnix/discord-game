@@ -40,6 +40,12 @@ class BattleCharacter {
     this.maxHP = 30
     this.curHP = this.maxHP
   }
+
+  takeDamage(power) {
+    const damage = power // Nice formula
+    this.curHP -= Math.min(this.curHP, damage)
+    return damage
+  }
 }
 
 module.exports = { BattleCharacter }

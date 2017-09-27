@@ -1,4 +1,4 @@
-const { log, prompt } = require('./util')
+const { log, prompt, richWrite, delay } = require('./util')
 const { User } = require('./User')
 const { Enemy } = require('./Enemy')
 const { BattleCharacter } = require('./BattleCharacter')
@@ -59,12 +59,23 @@ class Battle {
   async runBattleLoop() {
     await this.runCurrentTurn()
     this.nextBattleCharacter()
+    await delay(800)
     await this.runBattleLoop()
   }
 
   async runCurrentTurn() {
     const action = await this.getBattleCharacterAction(this.currentBattleCharacter, this.currentTeam)
-    console.log(action)
+
+    if (action.type === 'attack') {
+      const title = `${this.currentBattleCharacter.name} - ${action.move.name}`
+
+      await this.writeToAllChannels(0xD79999, title, action.move.getActionString(this.currentBattleCharacter, action.target))
+      await delay(800)
+
+      const damage = action.target.takeDamage(action.move.power)
+
+      await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
+    }
   }
 
   nextBattleCharacter() {
@@ -128,9 +139,9 @@ class Battle {
     switch (await prompt(channel, user, `${member.displayName}'s Turn`, userMoves)) {
       case 'attacks': {
         const choices = new Map(userAttacks.map(atk => [atk, [atk.name, atk.emoji]]))
-        const attack = await prompt(channel, user, `${member.displayName}'s Turn - Attacks`, choices)
-        const target = await this.getUserTarget(user, team, attack)
-        return { type: 'attack', attack, target }
+        const move = await prompt(channel, user, `${member.displayName}'s Turn - Attacks`, choices)
+        const target = await this.getUserTarget(user, team, move)
+        return { type: 'attack', move, target }
       }
 
       // case 'items': {}
@@ -172,6 +183,12 @@ class Battle {
     const channel = this.channelMap.get(team)
 
     return await prompt(channel, user, `${await user.getName(this.guild)}'s turn - use ${move.name} on who?`, choices)
+  }
+
+  writeToAllChannels(color, title, content) {
+    return Promise.all(Array.from(this.channelMap.values()).map(channel => {
+      richWrite(channel, color, title, content)
+    }))
   }
 }
 
