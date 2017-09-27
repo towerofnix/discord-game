@@ -34,6 +34,7 @@ class User extends camo.Document {
     // character's ID, not the actual BattleCharacter object (since that can't
     // be saved).
     this._battleCharacter = new BattleCharacter(this)
+    this._battleCharacter.name = 'Some Player'
   }
 
   get battleCharacter() { return this._battleCharacter }

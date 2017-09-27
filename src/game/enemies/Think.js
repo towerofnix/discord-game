@@ -1,7 +1,11 @@
 const { Enemy } = require('../../lib/Enemy')
 
 class Think extends Enemy {
-  // TODO
+  constructor() {
+    super({
+      name: 'Think',
+    })
+  }
 }
 
 module.exports = { Think }
