@@ -14,7 +14,7 @@ class TinyLand extends Room {
 
     const { channel } = await game.roomController.getRoomChannelAndRole(this)
 
-    await richWrite(channel, user, 0xFF0033, 'Tiny Land', 'This place is exclusive to TINY BUGS ONLY!!!!!!!!! Get out now. R~!~`AHHHGHSdf.')
+    await richWrite(channel, 0xFF0033, 'Tiny Land', 'This place is exclusive to TINY BUGS ONLY!!!!!!!!! Get out now. R~!~`AHHHGHSdf.')
 
     setTimeout(() => {
       game.roomController.moveUserToRoom('lonely-void', user)

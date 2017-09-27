@@ -13,7 +13,7 @@ class LonelyVoid extends Room {
 
     const { channel } = await game.roomController.getRoomChannelAndRole(this)
 
-    await richWrite(channel, user, 0xCCCCFF, 'Open Field', 'You find yourself in an open field. Tall grass grows as far as you can see. The sun gently shines down; the sky is light blue with many puffy clouds spread across it. A small cardboard sign sits in the grass next to you.')
+    await richWrite(channel, 0xCCCCFF, 'Open Field', 'You find yourself in an open field. Tall grass grows as far as you can see. The sun gently shines down; the sky is light blue with many puffy clouds spread across it. A small cardboard sign sits in the grass next to you.')
   }
 
   async getVerbChoices(verb, user) {
