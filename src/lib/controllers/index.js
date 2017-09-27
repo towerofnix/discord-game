@@ -3,4 +3,5 @@ module.exports = Object.assign({},
   require('./BattleController'),
   require('./RoomController'),
   require('./MusicController'),
-  require('./VerbController'))
+  require('./VerbController'), // TODO delet this
+  require('./UserController'))

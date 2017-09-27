@@ -1,5 +1,7 @@
+// heck
+
 const discord = require('discord.js')
-const camo = require('camo')
+//const camo = require('camo')
 const memize = require('memize')
 
 const { BattleCharacter } = require('./BattleCharacter')
@@ -20,9 +22,9 @@ const getUserById = memize(async function(id) {
   return await User.findOne({ _id: id })
 })
 
-class User extends camo.Document {
+class User /*extends camo.Document*/ {
   constructor() {
-    super()
+    //super()
 
     this._id = { type: String, unique: true, required: true } // discord.Snowflake
     this.currentRoom = { type: String, default: 'void' } // channel ID of Room
@@ -62,4 +64,4 @@ class User extends camo.Document {
   }
 }
 
-module.exports = { User, getMemberById }
+module.exports = {} //{ User, getMemberById }
