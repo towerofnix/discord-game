@@ -3,6 +3,7 @@ const { User } = require('./User')
 const { Enemy } = require('./Enemy')
 const { BattleCharacter } = require('./BattleCharacter')
 const { Team } = require('./Team')
+const { BattleMove } = require('./BattleMove')
 const attacks = require('../game/moves/attacks')
 
 const chalk = require('chalk')
@@ -127,8 +128,9 @@ class Battle {
     switch (await prompt(channel, user, `${member.displayName}'s Turn`, userMoves)) {
       case 'attacks': {
         const choices = new Map(userAttacks.map(atk => [atk, [atk.name, atk.emoji]]))
-        const choice = await prompt(channel, user, `${member.displayName}'s Turn - Attacks`, choices)
-        return { type: 'attack', attack: choice }
+        const attack = await prompt(channel, user, `${member.displayName}'s Turn - Attacks`, choices)
+        const target = await this.getUserTarget(user, team, attack)
+        return { type: 'attack', attack, target }
       }
 
       // case 'items': {}
@@ -143,6 +145,33 @@ class Battle {
         return { type: 'skip turn' }
       }
     }
+  }
+
+  async getUserTarget(user, team, move) {
+    // TODO: Multi-page prompt function. We can use :heart:s for five options
+    // per page, but when there's more than five possible choices, that won't
+    // work.
+
+    if (!user || user instanceof User === false) throw new TypeError('Battle#getUserTarget(User user) expected')
+    if (!team || team instanceof Team === false) throw new TypeError('Battle#getUserTarget(, Team team) expected')
+    if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#getUserTarget(,, BattleMove move) expected')
+
+    const allCharacters = this.teams.map(team => team.battleCharacters)
+      .reduce((a, b) => a.concat(b), [])
+
+    const choices = new Map(allCharacters.map((char, i) => {
+      return [
+        char,
+        [char.name, [
+          '♥', '💙', '💚', '💛', '💜',
+          '🥕', '🥔', '🍆'
+        ][i]]
+      ]
+    }))
+
+    const channel = this.channelMap.get(team)
+
+    return await prompt(channel, user, `${await user.getName(this.guild)}'s turn - use ${move.name} on who?`, choices)
   }
 }
 
