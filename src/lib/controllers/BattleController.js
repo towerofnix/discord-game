@@ -13,31 +13,12 @@ class BattleController extends EventEmitter {
     this.game.commandController.on('.battle', async (cmd, args, { member }) => {
       // TEMP
       const user = await User.getById(member.id)
-      let battle = new Battle([ user ], [ new enemies.Think ])
+      let battle = new Battle([
+        user.battleCharacter.teams[0],
+        new enemies.Think().battleCharacter.teams[0]
+      ])
       battle.start(game)
     })
-  }
-
-  async clean(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('BattleController#clean(string id) expected')
-
-    const del = thing => thing ? thing.delete() : Promise.resolve()
-
-    await Promise.all([
-      del(this.game.guild.channels.find('name', `battle-a-${id}`)),
-      del(this.game.guild.channels.find('name', `battle-b-${id}`)),
-      del(this.game.guild.roles.find('name', `in battle: ${id} a`)),
-      del(this.game.guild.roles.find('name', `in battle: ${id} b`)),
-    ])
-  }
-
-  async cleanAll() {
-    let battles = this.game.guild.channels
-      .filter(c => c.name.startsWith('battle-a-'))
-      .map(c => this.clean(c.name.substr(9)))
-
-    await Promise.all(battles)
-    return battles.length
   }
 }
 

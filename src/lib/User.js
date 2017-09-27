@@ -2,6 +2,8 @@ const discord = require('discord.js')
 const camo = require('camo')
 const memize = require('memize')
 
+const { BattleCharacter } = require('./BattleCharacter')
+
 async function getMemberById(id, guild) {
   if (!id || typeof id !== 'string') throw new TypeError('getMemberById(string id) expected')
   if (!guild) throw new TypeError('getMemberById(, discord.Guild guild) expected')
@@ -25,7 +27,17 @@ class User extends camo.Document {
     this._id = { type: String, unique: true, required: true } // discord.Snowflake
     this.currentRoom = { type: String, default: 'void' } // channel ID of Room
     //this.currentBattle = { type: String, default: '' }
+
+    // TODO: Save/load this, somehow.
+    // This should definitely be less hacky. There should be a database for
+    // battle characters, and this should be a reference to a battle
+    // character's ID, not the actual BattleCharacter object (since that can't
+    // be saved).
+    this._battleCharacter = new BattleCharacter(this)
   }
+
+  get battleCharacter() { return this._battleCharacter }
+  get game() { return this._game }
 
   static async getById(id) {
     if (!id || typeof id !== 'string') throw new TypeError('User.getById(string id) expected')

@@ -19,15 +19,6 @@ class Game {
     await log.success('Connected to Discord API')
     this.guild = this.client.guilds.first() // assumes one and only guild
 
-    // Remove battle-related channels and roles, if any
-    await log.info('Cleaning battle-related channels and roles...')
-    const battlesCleaned = await this.battleController.cleanAll()
-    if (battlesCleaned > 0)
-      await log.success(`Cleaned (${battlesCleaned}) battles`)
-    else
-      await log.info('No battles to clean')
-
-
     // New user check
     await log.info('Checking for any new members who don\'t yet have users in the database...')
     const newUserAmount = await this.createUsersForNewMembers()
@@ -99,6 +90,37 @@ class Game {
 
     const token = await env('discord_token', 'string')
     await this.client.login(token)
+
+    await this.cleanDiscordServer()
+  }
+
+  async cleanDiscordServer() {
+    // Remove battle-related channels and roles, if any
+    await log.info('Removing battle-related channels...')
+
+    const battlesRemoved = (await Promise.all(this.guild.channels
+      .filter(channel => channel.name.startsWith('battle-'))
+      .map(channel => channel.delete())
+    )).length
+
+    if (battlesRemoved > 0) {
+      await log.success(`Removed (${battlesRemoved}) battle channels`)
+    } else {
+      await log.info('No battle channels to remove')
+    }
+
+    await log.info('Removing team-related roles...')
+
+    const rolesRemoved = (await Promise.all(this.guild.roles
+      .filter(role => role.name.startsWith('in team:'))
+      .map(role => role.delete())
+    )).length
+
+    if (rolesRemoved > 0) {
+      await log.success(`Removed (${rolesRemoved}) role channels`)
+    } else {
+      await log.info('No team roles to remove')
+    }
   }
 }
 

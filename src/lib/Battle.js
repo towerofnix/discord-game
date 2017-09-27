@@ -8,16 +8,14 @@ const shortid = require('shortid')
 const discord = require('discord.js')
 
 class Battle {
-  constructor(teamA, teamB) {
-    if (!teamA || !Array.isArray(teamA) || teamA.length == 0)
-      throw new TypeError('new Battle(array<User|Enemy> teamA) expected')
-    if (!teamB || !Array.isArray(teamB) || teamB.length == 0)
-      throw new TypeError('new Battle(, array<User|Enemy> teamB) expected')
+  constructor(teams) {
+    if (!teams || !Array.isArray(teams)) throw new TypeError('new Battle(array<Team> teams) expected')
+    if (teams.length < 2) throw new TypeError('At least two teams expected')
 
     this.id = shortid.generate().toLowerCase()
-    this.teamA = teamA
-    this.teamB = teamB
+    this.teams = teams
 
+    this.channelMap = new Map()
     this.started = false
     this.channel = null
   }
@@ -30,37 +28,26 @@ class Battle {
     const guild = game.guild
 
     const everyoneRole = guild.id
-    this.teamARole = await guild.createRole({ name: `in battle: ${this.id} a` })
-    this.teamBRole = await guild.createRole({ name: `in battle: ${this.id} b` })
 
-    this.teamAChannel = await guild.createChannel(`battle-a-${this.id}`, 'text', [
-      { id: everyoneRole, deny: 3136, allow: 0 }, // @everyone -rw -react
-      { id: this.teamARole.id, deny: 0, allow: 3072 }, // team A +rw
-    ])
+    for (const team of this.teams) {
+      this.channelMap.set(team, await guild.createChannel(`battle-${this.id}-team-${team.id}`, 'text', [
+        { id: everyoneRole, deny: 3136, allow: 0}, // @everyone -rw -react
+        { id: (await team.getRole(game.guild)).id, deny: 0, allow: 3072 }, // team +rw
+      ]))
+    }
 
-    this.teamBChannel = await guild.createChannel(`battle-b-${this.id}`, 'text', [
-      { id: everyoneRole, deny: 3136, allow: 0 }, // @everyone -rw -react
-      { id: this.teamBRole.id, deny: 0, allow: 3072 }, // team B +rw
-    ])
+    for (const team of this.teams) {
+      for (const { entity } of team) {
+        if (entity instanceof User) {
+          await game.musicController.play('battle', entity)
+        }
+      }
+    }
 
     // TODO spectator channel?
     // TODO header image
 
-    for (let entity of this.teamA) {
-      if (entity instanceof User) {
-        await game.musicController.play('battle', entity)
-        await (await entity.getMember(guild)).addRole(this.teamARole)
-      }
-    }
-
-    for (let entity of this.teamB) {
-      if (entity instanceof User) {
-        await game.musicController.play('battle', entity)
-        await (await entity.getMember(guild)).addRole(this.teamARole)
-      }
-    }
-
-    return await this.teamATurn(guild)
+    // TODO: Run the first turn
   }
 
   async getUserAction(user, guild) {
