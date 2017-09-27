@@ -1,14 +1,10 @@
-class Attack {
+const { BattleMove } = require('./BattleMove')
+
+class Attack extends BattleMove {
   constructor(opts) {
+    super(opts)
+
     if (!opts) throw new TypeError('new Attack(object opts) expected')
-
-    if (opts.name)
-      this.name = opts.name
-    else throw new TypeError('new Attack({ string name }) expected')
-
-    if (opts.emoji)
-      this.emoji = opts.emoji
-    else throw new TypeError('new Attack({ Emoji emoji }) expected')
 
     if (opts.type === 'physical' || opts.type === 'magical')
       this.type = opts.type

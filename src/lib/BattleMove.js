@@ -1,0 +1,27 @@
+class BattleMove {
+  constructor(opts) {
+    if (!opts) throw new TypeError('new BattleMove(object opts) expected')
+
+    if (opts.name)
+      this.name = opts.name
+    else throw new TypeError('new BattleMove({ string name }) expected')
+
+    if (opts.emoji)
+      this.emoji = opts.emoji
+    else throw new TypeError('new BattleMove({ Emoji emoji }) expected')
+
+    // TODO: Target type -- select one multiple, multiple of same team, etc.
+    // Maybe a more programmable way? E.g. select multiple or one is a flag,
+    // then there's an array of characters that can be picked from (maybe
+    // presented by team, in the UI). For now just assume each move can only
+    // target one.
+  }
+
+  getActionString(user, target) {
+    // Takes two BattleCharacters (not entities).
+
+    return `${user.name} notices that the ${this.name} move doesn't have an action string, but doesn't think too much about it and launches a sick burn at ${target.name}.`
+  }
+}
+
+module.exports = { BattleMove }

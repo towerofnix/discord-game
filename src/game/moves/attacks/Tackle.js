@@ -10,6 +10,10 @@ class Tackle extends Attack {
       power: 2,
     })
   }
+
+  getActionString(user, target) {
+    return `${user.name} tackles ${target.name}!`
+  }
 }
 
 module.exports = { Tackle }
