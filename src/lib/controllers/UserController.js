@@ -97,7 +97,7 @@ class UserController {
   async setLocation(id, location) {
     if (!id || typeof id !== 'string') throw new TypeError('UserController#setLocation(String id) expected')
     if (!location || typeof location !== 'string')
-      throw new TypeError('UserController#setLocation(, String hlocationp) expected')
+      throw new TypeError('UserController#setLocation(, String location) expected')
 
     await this._setLocation(id, location)
     return await this.set(id, { hp })
