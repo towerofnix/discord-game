@@ -30,6 +30,9 @@ class UserController {
       throw new TypeError('UserController#add(, UserData data) expected')
 
     await db.insert(Object.assign({ _id: id }, data))
+
+    if (data.location)
+      await this._setLocation(id, data.location)
   }
 
   async delete(id) {
@@ -52,11 +55,15 @@ class UserController {
     if (!data || !checkTypes(data, UserData, false))
       throw new TypeError('UserController#set(, UserData data) expected')
 
-    if (data.location)
-      await this._setLocation(id, location)
-
     let [ updated, doc ] = await db.update({ _id: id }, { $set: data }, { returnUpdatedDocs: true, multi: false })
     if (updated === 0) throw new TypeError('UserController#set() user not found')
+
+    // We update the data before running _setLocation, since _setLocation might
+    // give the user ID to functions in other part of the game, which could be
+    // expecting that the user's database entry already be updated (or behave
+    // differently if it isn't).
+    if (data.location)
+      await this._setLocation(id, data.location)
 
     delete doc._id
     return doc
@@ -65,8 +72,8 @@ class UserController {
   async getName(id) {
     if (!id || typeof id !== 'string') throw new TypeError('UserController#getName(String id) expected')
 
-    let user = await this.game.guild.members.find('id', id)
-    return user.displayName
+    const member = await this.getDiscordMember(id)
+    return member.displayName
   }
 
   async getHp(id) {
@@ -99,12 +106,30 @@ class UserController {
     if (!location || typeof location !== 'string')
       throw new TypeError('UserController#setLocation(, String location) expected')
 
-    await this._setLocation(id, location)
-    return await this.set(id, { hp })
+    // _setLocation is called by set, so we don't need to call it here.
+
+    return await this.set(id, { location })
   }
 
-  async _setLocation(id, location) {
+  async _setLocation(userId, roomId) {
     // Perform setLocation side effects
+
+    const roleName = `in location: ${roomId}`
+    const member = await this.getDiscordMember(userId)
+    const guild = this.game.guild
+
+    // Remove the user from any location roles they might have previously
+    // been in.
+    for (const [ roleId, role ] of member.roles) {
+      if (role.name.startsWith('in location:')) {
+        await member.removeRole(roleId)
+      }
+    }
+
+    const { role } = await this.game.rooms.getChannelAndRole(roomId)
+    member.addRole(role)
+
+    await this.game.rooms.notifyUserEntered(roomId, userId)
 
     // TODO:
     /*
@@ -130,6 +155,10 @@ class UserController {
     // notify room of new member
     await room.handleUserEntered(user, this.game)
     */
+  }
+
+  async getDiscordMember(id) {
+    return await this.game.guild.members.find('id', id)
   }
 }
 

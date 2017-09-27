@@ -14,8 +14,8 @@ async function main() {
 
   const game = new Game()
   await game.setup()
-  //await game.roomController.registerRoom(new LonelyVoid())
-  //await game.roomController.registerRoom(new TinyLand())
+  await game.rooms.register(new LonelyVoid(game))
+  await game.rooms.register(new TinyLand(game))
   await game.go()
 }
 

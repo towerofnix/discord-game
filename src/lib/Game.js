@@ -4,8 +4,8 @@ const chalk = require('chalk')
 //const { User } = require('./User')
 const { env } = require('./env')
 const { log } = require('./util')
-const { /*CommandController, BattleController, RoomController,
-        MusicController, VerbController,*/ UserController } = require('./controllers')
+const { /*CommandController, BattleController,*/ RoomController,
+        /*MusicController, VerbController,*/ UserController } = require('./controllers')
 
 class Game {
   constructor() {
@@ -37,12 +37,8 @@ class Game {
     if (await this.users.has(member.id) === false) { // quick sanity check
       // Add new user to the database
       await log.info('A new user just joined! Adding them to the database...')
-      await this.users.add(member.id, { hp: 10, location: 'lonely-void' })
+      await this.users.add(member.id, { hp: 10, location: 'tiny-land' })
       await log.success(chalk`Added user: {cyan ${await this.users.getName(member.id)}}`)
-
-      // Add them to #lonely-void
-      // TODO: assumes #lonely-void is the default room - bad!
-      await this.roomController.moveUserToRoom('lonely-void', user)
     }
   }
 
@@ -66,6 +62,7 @@ class Game {
 
   async setup() {
     this.users = new UserController(this)
+    this.rooms = new RoomController(this)
 
     // TODO: refactor lol
     return

@@ -2,16 +2,14 @@ const { Room } = require('../../lib/Room')
 const { richWrite } = require('../../lib/util')
 
 class LonelyVoid extends Room {
-  constructor() {
-    super('lonely-void', 'Lonely Void')
+  constructor(game) {
+    super(game, 'lonely-void', 'Lonely Void')
   }
 
-  async handleUserEntered(user, game) {
-    await super.handleUserEntered(user, game)
+  async handleUserEntered(userId) {
+    // await game.musicController.play('lol', user)
 
-    await game.musicController.play('lol', user)
-
-    const { channel } = await game.roomController.getRoomChannelAndRole(this)
+    const { channel } = await this.game.rooms.getChannelAndRole(this.id)
 
     await richWrite(channel, 0xCCCCFF, 'Open Field', 'You find yourself in an open field. Tall grass grows as far as you can see. The sun gently shines down; the sky is light blue with many puffy clouds spread across it. A small cardboard sign sits in the grass next to you.')
   }
@@ -27,7 +25,7 @@ class LonelyVoid extends Room {
   }
 
   async handleVerbChoice(verb, choice, user, game) {
-    const { channel } = await game.roomController.getRoomChannelAndRole(this)
+    const { channel } = await game.rooms.getRoomChannelAndRole(this)
 
     if (verb === 'examine') {
       if (choice === 'sign') {
