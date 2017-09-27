@@ -1,9 +1,11 @@
 const { log, prompt } = require('./util')
 const { User } = require('./User')
+const { Enemy } = require('./Enemy')
 const attacks = require('../game/moves/attacks')
 
 const chalk = require('chalk')
 const shortid = require('shortid')
+const discord = require('discord.js')
 
 class Battle {
   constructor(teamA, teamB) {
@@ -61,42 +63,52 @@ class Battle {
     return await this.teamATurn(guild)
   }
 
+  async getUserAction(user, guild) {
+    if (!user || user instanceof User === false) throw new TypeError('Battle#getUserAction(User user) expected')
+    if (!guild || guild instanceof discord.Guild === false) throw new TypeError('Battle#getUserAction(, discord.Guild guild) expected')
+
+    // TODO: Go here!! TODO TODO TODO TODO TODO.
+
+    const userMoves = {
+      skipTurn: [ 'Skip Turn', '⚓' ],
+      tactics: [ 'Tactics', '🏴' ],
+      items: [ 'Items',   '🌂' ],
+      attacks: [ 'Attacks', '🥊' ]
+    }
+
+    // TEMP, user should be able to learn attacks and stuff
+    const userAttacks = [
+      new attacks.Tackle
+    ]
+
+    const member = await user.getMember(guild)
+
+    switch (await prompt(this.teamAChannel, user, `${member.displayName}'s Turn`, userMoves)) {
+      case 'attacks': {
+        const choices = new Map(userAttacks.map(atk => [atk, [atk.name, atk.emoji]]))
+        const choice = await prompt(this.teamAChannel, user, `${member.displayName}'s Turn - Attacks`, choices)
+        return { type: 'attack', attack: choice }
+      }
+
+      // case 'items': {}
+      // case 'tactics': {}
+
+      case 'skipTurn': {
+        return { type: 'skip turn' }
+      }
+
+      default: {
+        log.warn('User selected a non-implemented battle action!')
+        return { type: 'skip turn' }
+      }
+    }
+  }
+
   async teamATurn(guild) {
-    if (!guild) throw new TypeError('Battle#teamATurn(discord.Guild guild) expected')
+    if (!guild || guild instanceof discord.Guild === false) throw new TypeError('Battle#teamATurn(discord.Guild guild) expected')
 
     for (let entity of this.teamA) {
-      if (entity instanceof User) {
-        let user = entity
-        let member = await user.getMember(guild)
-
-        let userMoves = {
-          tactics: [ 'Tactics', '🏴' ],
-          items: [ 'Items',   '🌂' ],
-          attacks: [ 'Attacks', '🥊' ],
-        }
-
-        let userAttacks = [
-          // TEMP, user should be able to learn attacks and stuff
-          new attacks.Tackle
-        ]
-
-        switch (await prompt(this.teamAChannel, user, `${member.displayName}'s Turn`, userMoves)) {
-          case 'attacks': {
-            let attack = await prompt(this.teamAChannel, user, `${member.displayName}'s Turn - Attacks`, userAttacks.map(atk => [ atk.name, atk.emoji ]))
-            // TODO
-            console.log(attack)
-            break
-          }
-
-          case 'items':
-          case 'tactics': {
-            // TODO
-            throw new TypeError
-          }
-        }
-      } else if (entity instanceof Enemy) {
-        // TODO
-      } else throw new TypeError
+      await this.getUserAction(entity, guild)
     }
   }
 }
