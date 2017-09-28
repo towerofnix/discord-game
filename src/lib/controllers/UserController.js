@@ -1,62 +1,33 @@
+const { BasicDatabaseController } = require('./BasicDatabaseController')
+
 const Datastore = require('nedb-promise')
 const db = new Datastore({
   filename: 'data/users.json',
   autoload: true,
 })
 
-const { log, checkTypes } = require('../util')
 const UserData = { hp: Number, location: String }
 
-// async superset of Map
-class UserController {
+class UserController extends BasicDatabaseController {
   constructor(game) {
     if (!game) throw new TypeError('new UserController(Game game) expected')
+
+    super(db, UserData)
 
     this.game = game
   }
 
-  async list() {
-    return (await db.find({}, { _id: 1 })).map(user => user._id)
-  }
-
-  async has(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('UserController#has(String id) expected')
-    return (await db.findOne({ _id: id }, { _id: 1 })) !== null
-  }
-
   async add(id, data) {
-    if (!id || typeof id !== 'string') throw new TypeError('UserController#add(String id) expected')
-    if (!data || !checkTypes(data, UserData, true))
-      throw new TypeError('UserController#add(, UserData data) expected')
-
-    await db.insert(Object.assign({ _id: id }, data))
+    const ret = await super.add(id, data)
 
     if (data.location)
       await this._setLocation(id, data.location)
-  }
 
-  async delete(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('UserController#delete(String id) expected')
-
-    await db.remove({ _id: id }, {})
-  }
-
-  async get(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('UserController#get(String id) expected')
-
-    let doc = await db.findOne({ _id: id }, { _id: 0 })
-    if (doc === null) throw new TypeError('UserController#get() user not found')
-
-    return doc
+    return ret
   }
 
   async set(id, data) {
-    if (!id || typeof id !== 'string') throw new TypeError('UserController#set(String id) expected')
-    if (!data || !checkTypes(data, UserData, false))
-      throw new TypeError('UserController#set(, UserData data) expected')
-
-    let [ updated, doc ] = await db.update({ _id: id }, { $set: data }, { returnUpdatedDocs: true, multi: false })
-    if (updated === 0) throw new TypeError('UserController#set() user not found')
+    const ret = await super.set(id, data)
 
     // We update the data before running _setLocation, since _setLocation might
     // give the user ID to functions in other part of the game, which could be
@@ -65,8 +36,7 @@ class UserController {
     if (data.location)
       await this._setLocation(id, data.location)
 
-    delete doc._id
-    return doc
+    return ret
   }
 
   async getName(id) {
@@ -77,38 +47,20 @@ class UserController {
   }
 
   async getHp(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('UserController#getHp(String id) expected')
-
-    let doc = await db.findOne({ _id: id }, { _id: 0, hp: 1 })
-    if (doc === null) throw new TypeError('UserController#getHp() user not found')
-
-    return doc.hp
+    return await this.getProperty(id, 'hp')
   }
 
-  async setHp(id, hp) {
-    if (!id || typeof id !== 'string') throw new TypeError('UserController#setHp(String id) expected')
-    if (!hp || typeof hp !== 'number') throw new TypeError('UserController#setHp(, Number hp) expected')
-
-    return await this.set(id, { hp })
+  async setHp(id, newHP) {
+    return await this.setProperty(id, 'hp', newHP)
   }
 
   async getLocation(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('UserController#getLocation(String id) expected')
-
-    let doc = await db.findOne({ _id: id }, { _id: 0, location: 1 })
-    if (doc === null) throw new TypeError('UserController#getLocation() user not found')
-
-    return doc.location
+    return await this.getProperty(id, 'location')
   }
 
-  async setLocation(id, location) {
-    if (!id || typeof id !== 'string') throw new TypeError('UserController#setLocation(String id) expected')
-    if (!location || typeof location !== 'string')
-      throw new TypeError('UserController#setLocation(, String location) expected')
-
+  async setLocation(id, newLocation) {
     // _setLocation is called by set, so we don't need to call it here.
-
-    return await this.set(id, { location })
+    return await this.setProperty(id, 'location', newLocation)
   }
 
   async _setLocation(userId, roomId) {
@@ -130,31 +82,6 @@ class UserController {
     member.addRole(role)
 
     await this.game.rooms.notifyUserEntered(roomId, userId)
-
-    // TODO:
-    /*
-    const room = this.rooms.get(id)
-
-    const roleName = `in location: ${room.channelName}`
-    const member = await user.getMember(this.game.guild)
-    const guild = this.game.guild
-
-    const { role } = await this.getRoomChannelAndRole(room)
-
-    // remove previous "in location" role [if any]
-    for (let [ id, role ] of member.roles) {
-      if (role.name.startsWith('in location:'))
-        await member.removeRole(id)
-    }
-
-    // add user to channel
-    await member.addRole(role)
-
-    user.currentRoom = room.channelName
-
-    // notify room of new member
-    await room.handleUserEntered(user, this.game)
-    */
   }
 
   async getDiscordMember(id) {
