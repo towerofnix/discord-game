@@ -11,10 +11,10 @@ function objectAsMap(object) {
   }
 }
 
-async function promptOnMessage(message, choices, user) {
+async function promptOnMessage(message, choices, userId) {
   if (!message || message instanceof Message === false) throw new TypeError('promptOnMessage(discord.Message message) expected')
   if (!choices || typeof choices !== 'object') throw new TypeError('promptOnMessage(, object | Map<anything, array<string title, Emoji emoji>> choices) expected')
-  if (!user || user instanceof User === false) throw new TypeError('prompt(,, User user) expected')
+  if (!userId || typeof userId !== 'string') throw new TypeError('prompt(,, string userId) expected')
 
   const choiceMap = objectAsMap(choices)
 
@@ -23,7 +23,7 @@ async function promptOnMessage(message, choices, user) {
   }
 
   const reactions = await message.awaitReactions(reaction => {
-    return reaction.users.find('id', user._id)
+    return reaction.users.find('id', userId)
   }, {max: 1})
 
   const reaction = reactions.first()
@@ -35,9 +35,9 @@ async function promptOnMessage(message, choices, user) {
   return key
 }
 
-async function prompt(channel, user, title, choices) {
+async function prompt(channel, userId, title, choices) {
   if (!channel) throw new TypeError('prompt(discord.TextChannel channel) expected')
-  if (!user) throw new TypeError('prompt(, User user) expected')
+  if (!userId || typeof userId !== 'string') throw new TypeError('prompt(, string userId) expected')
   if (!title || typeof title !== 'string') throw new TypeError('prompt(,, string title) expected')
   if (!choices || typeof choices !== 'object') throw new TypeError('prompt(,,, object | Map<anything, array<string title, Emoji emoji>> choices) expected')
 
@@ -48,7 +48,7 @@ async function prompt(channel, user, title, choices) {
 
   const message = await channel.send(embed)
 
-  const choice = await promptOnMessage(message, choices, user)
+  const choice = await promptOnMessage(message, choices, userId)
 
   return choice
 }

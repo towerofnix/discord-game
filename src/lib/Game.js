@@ -4,8 +4,8 @@ const chalk = require('chalk')
 //const { User } = require('./User')
 const { env } = require('./env')
 const { log } = require('./util')
-const { /*CommandController, BattleController,*/ RoomController,
-        /*MusicController, VerbController,*/ UserController } = require('./controllers')
+const { CommandController, /*BattleController,*/ RoomController,
+        /*MusicController,*/ UserController } = require('./controllers')
 
 class Game {
   constructor() {
@@ -64,15 +64,15 @@ class Game {
     this.users = new UserController(this)
     this.rooms = new RoomController(this)
 
+    this.commands = new CommandController(this)
+    this.commands.setupMessageListener()
+    this.commands.addVerb('examine')
+
     // TODO: refactor lol
     return
 
-    this.commandController = new CommandController(this)
     this.battleController = new BattleController(this)
-    this.roomController = new RoomController(this)
     this.musicController = new MusicController(this)
-    this.verbController = new VerbController(this) // why
-    this.commandController.on('.examine', this.verbController.makeVerbCommandHandler('examine'))
   }
 
   async go() {

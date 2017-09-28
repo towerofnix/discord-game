@@ -17,19 +17,19 @@ class LonelyVoid extends Room {
   async getVerbChoices(verb, user) {
     if (verb === 'examine') {
       return {
-        sign: ['The sign', '📜'] // :scroll:
+        sign: ['sign', '📜'] // :scroll:
       }
     }
 
     return []
   }
 
-  async handleVerbChoice(verb, choice, user, game) {
-    const { channel } = await game.rooms.getRoomChannelAndRole(this)
+  async handleVerbChoice(verb, choice, user) {
+    const { channel } = await this.game.rooms.getChannelAndRole(this.id)
 
     if (verb === 'examine') {
       if (choice === 'sign') {
-        await richWrite(channel, user, 0xCCCCFF, 'Cardboard Sign', 'It\'s a rectangular sign made of cardboard. The edges are rough. Scribbled onto the sign with a permanent marker is a message:\n\n"WELCOME TO THE LONELY VOID! We have cookies."')
+        await richWrite(channel, 0xCCCCFF, 'Cardboard Sign', 'It\'s a rectangular sign made of cardboard. The edges are rough. Scribbled onto the sign with a permanent marker is a message:\n\n"WELCOME TO THE LONELY VOID! We have cookies."')
       }
     }
   }
