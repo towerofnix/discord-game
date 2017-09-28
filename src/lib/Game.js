@@ -4,8 +4,9 @@ const chalk = require('chalk')
 //const { User } = require('./User')
 const { env } = require('./env')
 const { log } = require('./util')
-const { CommandController, /*BattleController,*/ RoomController,
-        /*MusicController,*/ UserController } = require('./controllers')
+const { CommandController, RoomController, /*MusicController,*/
+        UserController, TeamController,
+        BattleCharacterController } = require('./controllers')
 
 class Game {
   constructor() {
@@ -37,7 +38,10 @@ class Game {
     if (await this.users.has(member.id) === false) { // quick sanity check
       // Add new user to the database
       await log.info('A new user just joined! Adding them to the database...')
-      await this.users.add(member.id, { hp: 10, location: 'tiny-land' })
+
+      const battleCharacter = await this.battleCharacters.createNew()
+      await this.users.add(member.id, { location: 'tiny-land', battleCharacter })
+
       await log.success(chalk`Added user: {cyan ${await this.users.getName(member.id)}}`)
     }
   }
@@ -61,17 +65,42 @@ class Game {
   }
 
   async setup() {
+    this.battleCharacters = new BattleCharacterController(this)
     this.users = new UserController(this)
+    this.teams = new TeamController(this)
     this.rooms = new RoomController(this)
 
     this.commands = new CommandController(this)
     this.commands.setupMessageListener()
     this.commands.addVerb('examine')
 
+    this.commands.set('battle', async (rest, message) => {
+      // TEMP
+      console.log('Battle!')
+
+      const userId = message.author.id
+      const playerBattleCharacterId = await this.users.getBattleCharacter(userId)
+      const team1Id = await this.teams.findOrCreateForMember(playerBattleCharacterId)
+
+      console.log(await this.teams.getMembers(team1Id))
+
+      // const user = await this.users.get(member.id)
+      /*
+      let battle = new Battle([
+        team1Id
+
+        // TODO TODO TODO TODO TODO You know why this won't work! TODO TODO
+        // TODO TODO TODO  Check Discord #v_ for mor info.   TODO TODO TODO
+        // await this.teams.findOrCreateForMember(new enemies.Think())
+      ])
+
+      battle.start(game)
+      */
+    })
+
     // TODO: refactor lol
     return
 
-    this.battleController = new BattleController(this)
     this.musicController = new MusicController(this)
   }
 

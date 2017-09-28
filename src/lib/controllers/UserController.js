@@ -6,7 +6,7 @@ const db = new Datastore({
   autoload: true,
 })
 
-const UserData = { hp: Number, location: String }
+const UserData = { location: String, battleCharacter: String }
 
 class UserController extends BasicDatabaseController {
   constructor(game) {
@@ -46,16 +46,12 @@ class UserController extends BasicDatabaseController {
     return member.displayName
   }
 
-  async getHp(id) {
-    return await this.getProperty(id, 'hp')
-  }
-
-  async setHp(id, newHP) {
-    return await this.setProperty(id, 'hp', newHP)
-  }
-
   async getLocation(id) {
     return await this.getProperty(id, 'location')
+  }
+
+  async getBattleCharacter(id) {
+    return await this.getProperty(id, 'battleCharacter')
   }
 
   async setLocation(id, newLocation) {
