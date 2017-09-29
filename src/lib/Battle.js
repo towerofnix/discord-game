@@ -4,7 +4,7 @@ const { Enemy } = require('./Enemy')
 const { BattleCharacter } = require('./BattleCharacter')
 const { Team } = require('./Team')
 const { BattleMove } = require('./BattleMove')
-const attacks = require('../game/moves/attacks')
+const { Attack } = require('./Attack')
 
 const chalk = require('chalk')
 const shortid = require('shortid')
@@ -75,15 +75,17 @@ class Battle {
   async runCurrentTurn() {
     const action = await this.getBattleCharacterAction(this.currentCharacterId, this.currentTeamId)
 
-    if (action.type === 'attack') {
+    if (action.type === 'use move') {
       const title = `${await this.game.battleCharacters.getName(this.currentCharacterId)} - ${action.move.name}`
 
       await this.writeToAllChannels(0xD79999, title, await action.move.getActionString(this.currentCharacterId, action.target))
       await delay(800)
 
-      //const damage = action.target.takeDamage(action.move.power)
-
-      //await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
+      if (action instanceof Attack) {
+        // TODO: Attacks
+        // const damage = action.target.takeDamage(action.move.power)
+        // await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
+      }
     }
   }
 
@@ -160,14 +162,14 @@ class Battle {
         }))
         const move = await prompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choices)
         const target = await this.getUserTarget(userId, teamId, move)
-        return { type: 'attack', move, target }
+        return { type: 'use move', move, target }
       }
 
       // case 'items': {}
       // case 'tactics': {}
 
       case 'skipTurn': {
-        return { type: 'skip turn' }
+        return { type: 'use move', move: this.game.moves.get('skip-turn') }
       }
 
       default: {
