@@ -86,7 +86,7 @@ class Game {
       const team1Id = await this.teams.findOrCreateForMember(playerBattleCharacterId)
 
       const enemyId = 'think'
-      const enemyBattleCharacterId = await this.battleCharacters.createForCharacter('ai', enemyId)
+      const enemyBattleCharacterId = await this.battleCharacters.createForCharacter('ai', enemyId, 'Think', 'it')
       const team2Id = await this.teams.findOrCreateForMember(enemyBattleCharacterId)
 
       console.log('team 1:', await this.teams.getMembers(team1Id))
