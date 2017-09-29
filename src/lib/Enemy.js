@@ -1,15 +1,14 @@
-const { BattleCharacter } = require('./BattleCharacter')
-
 class Enemy {
   constructor(opts) {
-    if (!opts) throw new TypeError('new Enemy(object opts) expected')
+    if (!opts || typeof opts !== 'object') throw new TypeError('new Enemy(object opts) expected')
 
-    if (opts.name)
+    if (opts.id && typeof opts.id === 'string')
+      this.id = opts.id
+    else throw new TypeError('new Enemy({ string id }) expected')
+
+    if (opts.name && typeof opts.name === 'string')
       this.name = opts.name
     else throw new TypeError('new Enemy({ string name }) expected')
-
-    this.battleCharacter = new BattleCharacter(this)
-    this.battleCharacter.name = this.name
   }
 }
 

@@ -1,2 +1,3 @@
-module.exports = Object.assign({},
-  require('./Think'))
+module.exports = [
+  require('./Think')
+]

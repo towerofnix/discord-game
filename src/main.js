@@ -2,6 +2,7 @@ const { Game } = require('./lib/Game')
 const { log, checkTypes } = require('./lib/util')
 const { LonelyVoid } = require('./game/rooms/LonelyVoid')
 const { TinyLand } = require('./game/rooms/TinyLand')
+const enemies = require('./game/enemies')
 
 async function main() {
   process.on('uncaughtException', async err => {
@@ -14,8 +15,14 @@ async function main() {
 
   const game = new Game()
   await game.setup()
+
   await game.rooms.register(new LonelyVoid(game))
   await game.rooms.register(new TinyLand(game))
+
+  for (const enemyClass of enemies) {
+    await game.enemies.register(new enemyClass(game))
+  }
+
   await game.go()
 }
 

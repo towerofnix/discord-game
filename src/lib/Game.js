@@ -5,7 +5,7 @@ const chalk = require('chalk')
 const { env } = require('./env')
 const { log } = require('./util')
 const { CommandController, RoomController, /*MusicController,*/
-        UserController, TeamController,
+        UserController, EnemyController, TeamController,
         BattleCharacterController } = require('./controllers')
 
 class Game {
@@ -39,7 +39,7 @@ class Game {
       // Add new user to the database
       await log.info('A new user just joined! Adding them to the database...')
 
-      const battleCharacter = await this.battleCharacters.createNew()
+      const battleCharacter = await this.battleCharacters.createForCharacter('player', member.id)
       await this.users.add(member.id, { location: 'tiny-land', battleCharacter })
 
       await log.success(chalk`Added user: {cyan ${await this.users.getName(member.id)}}`)
@@ -69,6 +69,7 @@ class Game {
     this.users = new UserController(this)
     this.teams = new TeamController(this)
     this.rooms = new RoomController(this)
+    this.enemies = new EnemyController(this)
 
     this.commands = new CommandController(this)
     this.commands.setupMessageListener()
@@ -82,17 +83,15 @@ class Game {
       const playerBattleCharacterId = await this.users.getBattleCharacter(userId)
       const team1Id = await this.teams.findOrCreateForMember(playerBattleCharacterId)
 
-      console.log(await this.teams.getMembers(team1Id))
+      const enemyId = 'think'
+      const enemyBattleCharacterId = await this.battleCharacters.createForCharacter('ai', enemyId)
+      const team2Id = await this.teams.findOrCreateForMember(enemyBattleCharacterId)
 
-      // const user = await this.users.get(member.id)
+      console.log('team 1:', await this.teams.getMembers(team1Id))
+      console.log('team 2:', await this.teams.getMembers(team2Id))
+
       /*
-      let battle = new Battle([
-        team1Id
-
-        // TODO TODO TODO TODO TODO You know why this won't work! TODO TODO
-        // TODO TODO TODO  Check Discord #v_ for mor info.   TODO TODO TODO
-        // await this.teams.findOrCreateForMember(new enemies.Think())
-      ])
+      const battle = new Battle([team1Id, team2Id])
 
       battle.start(game)
       */

@@ -8,7 +8,10 @@ const db = new Datastore({
   autoload: true,
 })
 
-const BattleCharacterData = { hp: Number }
+const BattleCharacterData = {
+  hp: Number,
+  characterType: String, characterId: String,
+}
 
 class BattleCharacterController extends BasicDatabaseController {
   constructor(game) {
@@ -27,10 +30,13 @@ class BattleCharacterController extends BasicDatabaseController {
     return await this.setProperty(id, 'hp', newHP)
   }
 
-  async createNew() {
+  async createForCharacter(characterType, characterId) {
+    if (characterType !== 'player' && characterType !== 'ai') throw new TypeError('BattleCharacterController#createForCharacter(string ("player", "ai") characterType) expected')
+    if (!characterId || typeof characterId !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(, string characterId) expected')
+
     const id = shortid.generate().toLowerCase()
 
-    await this.add(id, { hp: 10 })
+    await this.add(id, { hp: 10, characterType, characterId })
 
     return id
   }
