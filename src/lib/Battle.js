@@ -156,10 +156,6 @@ class Battle {
 
     switch (await prompt(channel, userId, `${member.displayName}'s Turn`, userMoves)) {
       case 'attacks': {
-        // TODO  TODO TODO TODO TODO  TODO
-        // TODO Keep going from here! TODO
-        // TODO  TODO TODO TODO TODO  TODO
-
         const choices = new Map(userAttacks.map(atk => [atk, [atk.name, atk.emoji]]))
         const move = await prompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choices)
         const target = await this.getUserTarget(userId, teamId, move)
