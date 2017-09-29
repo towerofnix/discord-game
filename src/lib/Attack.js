@@ -1,10 +1,8 @@
 const { BattleMove } = require('./BattleMove')
 
 class Attack extends BattleMove {
-  constructor(opts) {
-    super(opts)
-
-    if (!opts) throw new TypeError('new Attack(object opts) expected')
+  constructor(game, opts) {
+    super(game, opts)
 
     if (opts.type === 'physical' || opts.type === 'magical')
       this.type = opts.type

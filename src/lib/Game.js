@@ -7,6 +7,7 @@ const { log } = require('./util')
 const { CommandController, RoomController, /*MusicController,*/
         UserController, EnemyController, TeamController,
         BattleCharacterController } = require('./controllers')
+const { Battle } = require('./Battle')
 
 class Game {
   constructor() {
@@ -39,7 +40,7 @@ class Game {
       // Add new user to the database
       await log.info('A new user just joined! Adding them to the database...')
 
-      const battleCharacter = await this.battleCharacters.createForCharacter('player', member.id)
+      const battleCharacter = await this.battleCharacters.createForCharacter('user', member.id)
       await this.users.add(member.id, { location: 'tiny-land', battleCharacter })
 
       await log.success(chalk`Added user: {cyan ${await this.users.getName(member.id)}}`)
@@ -90,11 +91,9 @@ class Game {
       console.log('team 1:', await this.teams.getMembers(team1Id))
       console.log('team 2:', await this.teams.getMembers(team2Id))
 
-      /*
       const battle = new Battle([team1Id, team2Id])
 
-      battle.start(game)
-      */
+      battle.start(this)
     })
 
     // TODO: refactor lol

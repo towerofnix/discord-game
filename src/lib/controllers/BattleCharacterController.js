@@ -9,7 +9,7 @@ const db = new Datastore({
 })
 
 const BattleCharacterData = {
-  hp: Number,
+  hp: Number, name: String,
   characterType: String, characterId: String,
 }
 
@@ -30,13 +30,30 @@ class BattleCharacterController extends BasicDatabaseController {
     return await this.setProperty(id, 'hp', newHP)
   }
 
-  async createForCharacter(characterType, characterId) {
-    if (characterType !== 'player' && characterType !== 'ai') throw new TypeError('BattleCharacterController#createForCharacter(string ("player", "ai") characterType) expected')
+  async getCharacterType(id) {
+    return await this.getProperty(id, 'characterType')
+  }
+
+  async getCharacterId(id) {
+    return await this.getProperty(id, 'characterId')
+  }
+
+  async getName(id) {
+    return await this.getProperty(id, 'name')
+  }
+
+  async setName(id, newName) {
+    return await this.setProperty(id, 'name', newName)
+  }
+
+  async createForCharacter(characterType, characterId, name = 'Unnamed Battle Character') {
+    if (characterType !== 'user' && characterType !== 'ai') throw new TypeError('BattleCharacterController#createForCharacter(string ("user", "ai") characterType) expected')
     if (!characterId || typeof characterId !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(, string characterId) expected')
+    if (!name || typeof name !== 'string') throw new TypeError('BattleCharacterController#createForcharacter(,, optional string name) expected')
 
     const id = shortid.generate().toLowerCase()
 
-    await this.add(id, { hp: 10, characterType, characterId })
+    await this.add(id, { hp: 10, name, characterType, characterId })
 
     return id
   }

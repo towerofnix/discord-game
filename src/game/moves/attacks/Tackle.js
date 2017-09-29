@@ -1,8 +1,8 @@
 const { Attack } = require('../../../lib/Attack.js')
 
 class Tackle extends Attack {
-  constructor() {
-    super({
+  constructor(game) {
+    super(game, {
       name: 'Tackle',
       emoji: '🙄',
 
@@ -11,8 +11,8 @@ class Tackle extends Attack {
     })
   }
 
-  getActionString(user, target) {
-    return `${user.name} tackles ${target.name}!`
+  async getActionString(userId, targetId) {
+    return `${await this.game.battleCharacters.getName(userId)} tackles ${await this.game.battleCharacters.getName(targetId)}!`
   }
 }
 

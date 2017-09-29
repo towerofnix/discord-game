@@ -1,6 +1,9 @@
 class BattleMove {
-  constructor(opts) {
-    if (!opts) throw new TypeError('new BattleMove(object opts) expected')
+  constructor(game, opts) {
+    if (!game) throw new TypeError('new BattleMove(Game game) expected')
+    if (!opts || typeof opts !== 'object') throw new TypeError('new BattleMove(object opts) expected')
+
+    this.game = game
 
     if (opts.name)
       this.name = opts.name

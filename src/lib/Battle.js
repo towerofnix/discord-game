@@ -22,8 +22,8 @@ class Battle {
     this.started = false
     this.channel = null
 
-    this.currentTeamIndex = 0
-    this.currentCharacterIndex = 0
+    this.currentTeamId = null
+    this.currentCharacterId = null
   }
 
   async start(game) {
@@ -31,17 +31,21 @@ class Battle {
     if (this.started) throw new Error('Battle#start() already started')
     this.started = true
 
-    this.guild = game.guild
+    this.game = game
 
-    const everyoneRole = this.guild.id
+    const everyoneRole = this.game.guild.id
 
-    for (const team of this.teams) {
-      this.channelMap.set(team, await this.guild.createChannel(`battle-${this.id}-team-${team.id}`, 'text', [
+    for (const teamId of this.teams) {
+      const teamRole = await this.game.teams.getRole(teamId)
+
+      this.channelMap.set(teamId, await this.game.guild.createChannel(`battle-${this.id}-team-${teamId}`, 'text', [
         { id: everyoneRole, deny: 3136, allow: 0}, // @everyone -rw -react
-        { id: (await team.getRole(this.guild)).id, deny: 0, allow: 3072 }, // team +rw
+        { id: teamRole.id, deny: 0, allow: 3072 }, // team +rw
       ]))
     }
 
+    // TODO: Music
+    /*
     for (const team of this.teams) {
       for (const { entity } of team) {
         if (entity instanceof User) {
@@ -49,14 +53,19 @@ class Battle {
         }
       }
     }
+    */
 
     // TODO spectator channel?
     // TODO header image
+
+    this.currentTeamId = this.teams[0]
+    this.currentCharacterId = (await this.game.teams.getMembers(this.currentTeamId))[0]
 
     await this.runBattleLoop()
   }
 
   async runBattleLoop() {
+    console.log(this.currentCharacterId, 'of team', this.currentTeamId)
     await this.runCurrentTurn()
     this.nextBattleCharacter()
     await delay(800)
@@ -64,61 +73,69 @@ class Battle {
   }
 
   async runCurrentTurn() {
-    const action = await this.getBattleCharacterAction(this.currentBattleCharacter, this.currentTeam)
+    const action = await this.getBattleCharacterAction(this.currentCharacterId, this.currentTeamId)
 
     if (action.type === 'attack') {
-      const title = `${this.currentBattleCharacter.name} - ${action.move.name}`
+      const title = `${await this.game.battleCharacters.getName(this.currentCharacterId)} - ${action.move.name}`
 
-      await this.writeToAllChannels(0xD79999, title, action.move.getActionString(this.currentBattleCharacter, action.target))
+      await this.writeToAllChannels(0xD79999, title, await action.move.getActionString(this.currentCharacterId, action.target))
       await delay(800)
 
-      const damage = action.target.takeDamage(action.move.power)
+      //const damage = action.target.takeDamage(action.move.power)
 
-      await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
+      //await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
     }
   }
 
-  nextBattleCharacter() {
-    const currentTeam = this.currentTeam
+  async nextBattleCharacter() {
+    const currentTeamMembers = await this.game.teams.getMembers(this.currentTeamId)
+    const index = currentTeamMembers.indexOf(this.currentCharacterId)
 
-    if (this.currentCharacterIndex + 1 === currentTeam.battleCharacters.length) {
-      this.currentCharacterIndex = 0
-
-      if (this.currentTeamIndex + 1 === this.teams.length) {
-        this.currentTeamIndex = 0
-      } else {
-        this.currentTeamIndex++
-      }
+    if (index + 1 >= currentTeamMembers.length) {
+      await this.nextTeam()
     } else {
-      this.currentTeamIndex++
+      this.currentCharacterId = currentTeamMembers[index + 1]
     }
+  }
+
+  async nextTeam() {
+    const index = this.teams.indexOf(this.currentTeamId)
+
+    if (index + 1 >= this.teams.length) {
+      this.currentTeamId = this.teams[0]
+    } else {
+      this.currentTeamId = this.teams[index + 1]
+    }
+
+    const currentTeamMembers = await this.game.teams.getMembers(this.currentTeamId)
+    this.currentCharacterId = currentTeamMembers[0]
   }
 
   get currentTeam() {
-    return this.teams[this.currentTeamIndex]
+    throw new Error('get currentTeam is obsolete!')
   }
 
   get currentBattleCharacter() {
-    return this.currentTeam.battleCharacters[this.currentCharacterIndex]
+    throw new Error('get currentBattleCharacter is obsolete!')
   }
 
-  async getBattleCharacterAction(battleCharacter, team) {
-    if (!battleCharacter || battleCharacter instanceof BattleCharacter === false) throw new TypeError('Battle#getBattleCharacterAction(BattleCharacter battleCharacter) expected') // :yougotit:
-    if (!team || team instanceof Team === false) throw new TypeError('Battle#getBattleCharacterAction(, Team team) expected')
+  async getBattleCharacterAction(battleCharacterId, teamId) {
+    if (!battleCharacterId || typeof battleCharacterId !== 'string') throw new TypeError('Battle#getBattleCharacterAction(string battleCharacterId) expected')
+    if (!teamId || typeof teamId !== 'string') throw new TypeError('Battle#getBattleCharacterAction(, string teamId) expected')
 
-    const { entity } = battleCharacter
+    const characterType = await this.game.battleCharacters.getCharacterType(battleCharacterId)
 
-    if (entity instanceof User) {
-      return await this.getUserAction(entity, team)
+    if (characterType === 'user') {
+      return await this.getUserAction(battleCharacterId, teamId)
     } else {
       // TODO: AI turn picking
       return { type: 'skip turn' }
     }
   }
 
-  async getUserAction(user, team) {
-    if (!user || user instanceof User === false) throw new TypeError('Battle#getUserAction(User user) expected')
-    if (!team || team instanceof Team === false) throw new TypeError('Battle#getUserAction(, Team team) expected')
+  async getUserAction(battleCharacterId, teamId) {
+    if (!battleCharacterId || typeof battleCharacterId !== 'string') throw new TypeError('Battle#getUserAction(string battleCharacterId) expected')
+    if (!teamId || typeof teamId !== 'string') throw new TypeError('Battle#getUserAction(, string teamId) expected')
 
     const userMoves = {
       skipTurn: [ 'Skip Turn', '⚓' ],
@@ -128,19 +145,24 @@ class Battle {
     }
 
     // TEMP, user should be able to learn attacks and stuff
+    // TODO: Move to attacks map stored on game
     const userAttacks = [
-      new attacks.Tackle
+      new attacks.Tackle(this.game)
     ]
 
-    const member = await user.getMember(this.guild)
+    const userId = await this.game.battleCharacters.getCharacterId(battleCharacterId)
+    const member = await this.game.users.getDiscordMember(userId)
+    const channel = this.channelMap.get(teamId)
 
-    const channel = this.channelMap.get(team)
-
-    switch (await prompt(channel, user, `${member.displayName}'s Turn`, userMoves)) {
+    switch (await prompt(channel, userId, `${member.displayName}'s Turn`, userMoves)) {
       case 'attacks': {
+        // TODO  TODO TODO TODO TODO  TODO
+        // TODO Keep going from here! TODO
+        // TODO  TODO TODO TODO TODO  TODO
+
         const choices = new Map(userAttacks.map(atk => [atk, [atk.name, atk.emoji]]))
-        const move = await prompt(channel, user, `${member.displayName}'s Turn - Attacks`, choices)
-        const target = await this.getUserTarget(user, team, move)
+        const move = await prompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choices)
+        const target = await this.getUserTarget(userId, teamId, move)
         return { type: 'attack', move, target }
       }
 
@@ -158,31 +180,40 @@ class Battle {
     }
   }
 
-  async getUserTarget(user, team, move) {
+  async getUserTarget(userId, teamId, move) {
     // TODO: Multi-page prompt function. We can use :heart:s for five options
     // per page, but when there's more than five possible choices, that won't
     // work.
 
-    if (!user || user instanceof User === false) throw new TypeError('Battle#getUserTarget(User user) expected')
-    if (!team || team instanceof Team === false) throw new TypeError('Battle#getUserTarget(, Team team) expected')
+    if (!userId || typeof userId !== 'string') throw new TypeError('Battle#getUserTarget(string userId) expected')
+    if (!teamId || typeof teamId !== 'string') throw new TypeError('Battle#getUserTarget(, string teamId) expected')
     if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#getUserTarget(,, BattleMove move) expected')
 
     const allCharacters = this.teams.map(team => team.battleCharacters)
       .reduce((a, b) => a.concat(b), [])
 
-    const choices = new Map(allCharacters.map((char, i) => {
+    const characters = []
+    for (const teamId of this.teams) {
+      const members = await this.game.teams.getMembers(teamId)
+      for (const battleCharacterId of members) {
+        console.log(battleCharacterId)
+        characters.push([battleCharacterId, await this.game.battleCharacters.getName(battleCharacterId)])
+      }
+    }
+
+    const choices = new Map(characters.map(([ id, name ], i) => {
       return [
-        char,
-        [char.name, [
+        id,
+        [name, [
           '♥', '💙', '💚', '💛', '💜',
           '🥕', '🥔', '🍆'
         ][i]]
       ]
     }))
 
-    const channel = this.channelMap.get(team)
+    const channel = this.channelMap.get(teamId)
 
-    return await prompt(channel, user, `${await user.getName(this.guild)}'s turn - use ${move.name} on who?`, choices)
+    return await prompt(channel, userId, `${await this.game.users.getName(userId)}'s turn - use ${move.name} on who?`, choices)
   }
 
   writeToAllChannels(color, title, content) {
