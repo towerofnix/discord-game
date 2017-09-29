@@ -57,20 +57,19 @@ class TeamController extends BasicDatabaseController {
   async updateUserTeamRoles(id) {
     if (!id || typeof id !== 'string') throw new TypeError('TeamController#updateUserTeamRoles(string id) expected')
 
-    const role = await this.getRole(id)
-
     for (const battleCharacterId of await this.getMembers(id)) {
       await this._addUserToTeamRole(id, battleCharacterId)
     }
   }
 
   async _addUserToTeamRole(teamId, battleCharacterId) {
-    if (!teamId || typeof id !== 'string') throw new TypeError('TeamController#_addUserToTeamRole(string teamId) expected')
+    if (!teamId || typeof teamId !== 'string') throw new TypeError('TeamController#_addUserToTeamRole(string teamId) expected')
     if (!battleCharacterId || typeof battleCharacterId !== 'string') throw new TypeError('TeamController#_addUserToTeamRole(, string battleCharacterId) expected')
 
     const type = await this.game.battleCharacters.getCharacterType(battleCharacterId)
 
     if (type === 'user') {
+      const role = await this.getRole(teamId)
       const id = await this.game.battleCharacters.getCharacterId(battleCharacterId)
       const member = await this.game.users.getDiscordMember(id)
       await member.addRole(role)
@@ -84,11 +83,17 @@ class TeamController extends BasicDatabaseController {
   async findOrCreateForMember(member) {
     const find = await this.findByMember(member)
 
+    let id
+
     if (find.length > 0) {
-      return find[0]._id
+      id = find[0]._id
     } else {
-      return await this.createNew([member])
+      id = await this.createNew([member])
     }
+
+    await this.updateUserTeamRoles(id)
+
+    return id
   }
 
   async createNew(members = []) {

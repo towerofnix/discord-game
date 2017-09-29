@@ -97,6 +97,41 @@ class Game {
       battle.start(this)
     })
 
+    this.commands.set('duel', async (rest, message) => {
+      // ALSO TEMP
+
+      const userId = message.author.id
+      const playerBattleCharacterId = await this.users.getBattleCharacter(userId)
+      const userTeamId = await this.teams.findOrCreateForMember(playerBattleCharacterId)
+
+      const opponentUserIdList = message.mentions.members
+
+      // TODO: Use richWrite instead of message.reply.
+      if (!opponentUserIdList) {
+        message.reply('Please @-mention the user you want to duel.')
+        return false
+      }
+
+      const opponentUserId = opponentUserIdList.values().next().value.id
+      console.log(opponentUserId)
+
+      if (await this.users.has(opponentUserId) === false) {
+        message.reply('That isn\'t a user you can duel! (They aren\'t in the user database.)')
+        return false
+      }
+
+      const opponentBattleCharacterId = await this.users.getBattleCharacter(opponentUserId)
+
+      // TODO: Get a "this user only" team. (This should be a new method on TeamController.)
+      const opponentTeamId = await this.teams.findOrCreateForMember(opponentBattleCharacterId)
+
+      // Let the opponent go first! (This gives them a chance to think and look at the dueler
+      // (the person who used this command).)
+      const battle = new Battle([opponentTeamId, userTeamId])
+
+      battle.start(this)
+    })
+
     // TODO: refactor lol
     return
 
