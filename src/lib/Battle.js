@@ -65,7 +65,6 @@ class Battle {
   }
 
   async runBattleLoop() {
-    console.log(this.currentCharacterId, 'of team', this.currentTeamId)
     await this.runCurrentTurn()
     this.nextBattleCharacter()
     await delay(800)
@@ -192,7 +191,6 @@ class Battle {
     for (const teamId of this.teams) {
       const members = await this.game.teams.getMembers(teamId)
       for (const battleCharacterId of members) {
-        console.log(battleCharacterId)
         characters.push([battleCharacterId, await this.game.battleCharacters.getName(battleCharacterId)])
       }
     }
