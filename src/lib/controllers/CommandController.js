@@ -1,4 +1,3 @@
-const EventEmitter = require('events')
 const { log, promptOnMessage, richWrite } = require('../util')
 
 const PREFIX = '.'
