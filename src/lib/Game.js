@@ -104,16 +104,15 @@ class Game {
       const playerBattleCharacterId = await this.users.getBattleCharacter(userId)
       const userTeamId = await this.teams.findOrCreateForMember(playerBattleCharacterId)
 
-      const opponentUserIdList = message.mentions.members
+      const opponentUserIdList = Array.from(message.mentions.members.values())
 
       // TODO: Use richWrite instead of message.reply.
-      if (!opponentUserIdList) {
+      if (opponentUserIdList.length === 0) {
         message.reply('Please @-mention the user you want to duel.')
         return false
       }
 
-      const opponentUserId = opponentUserIdList.values().next().value.id
-      console.log(opponentUserId)
+      const opponentUserId = opponentUserIdList[0].id
 
       if (await this.users.has(opponentUserId) === false) {
         message.reply('That isn\'t a user you can duel! (They aren\'t in the user database.)')
