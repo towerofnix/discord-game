@@ -131,7 +131,7 @@ class Battle {
       return await this.getUserAction(battleCharacterId, teamId)
     } else {
       // TODO: AI turn picking
-      return { type: 'skip turn' }
+      return { type: 'use move', move: this.game.moves.get('skip-turn') }
     }
   }
 
@@ -168,13 +168,9 @@ class Battle {
       // case 'items': {}
       // case 'tactics': {}
 
-      case 'skipTurn': {
-        return { type: 'use move', move: this.game.moves.get('skip-turn') }
-      }
-
+      case 'skipTurn':
       default: {
-        log.warn('User selected a non-implemented battle action!')
-        return { type: 'skip turn' }
+        return { type: 'use move', move: this.game.moves.get('skip-turn') }
       }
     }
   }
