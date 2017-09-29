@@ -6,7 +6,7 @@ const { env } = require('./env')
 const { log } = require('./util')
 const { CommandController, RoomController, /*MusicController,*/
         UserController, EnemyController, TeamController,
-        BattleCharacterController } = require('./controllers')
+        BattleCharacterController, MoveController } = require('./controllers')
 const { Battle } = require('./Battle')
 
 class Game {
@@ -40,7 +40,7 @@ class Game {
       // Add new user to the database
       await log.info('A new user just joined! Adding them to the database...')
 
-      const battleCharacter = await this.battleCharacters.createForCharacter('user', member.id)
+      const battleCharacter = await this.battleCharacters.createForCharacter('user', member.id, member.displayName)
       await this.users.add(member.id, { location: 'tiny-land', battleCharacter })
 
       await log.success(chalk`Added user: {cyan ${await this.users.getName(member.id)}}`)
@@ -70,6 +70,7 @@ class Game {
     this.users = new UserController(this)
     this.teams = new TeamController(this)
     this.rooms = new RoomController(this)
+    this.moves = new MoveController(this)
     this.enemies = new EnemyController(this)
 
     this.commands = new CommandController(this)

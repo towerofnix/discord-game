@@ -1,2 +1,3 @@
-module.exports = Object.assign({},
-  require('./Tackle'))
+module.exports = [
+  require('./Tackle')
+]

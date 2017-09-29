@@ -9,8 +9,11 @@ const db = new Datastore({
 })
 
 const BattleCharacterData = {
-  hp: Number, name: String,
-  characterType: String, characterId: String,
+  hp: Number,
+  name: String,
+  pronoun: String, // they, he, she, it
+  characterType: String, // player, ai
+  characterId: String, // ID of player or AI-character (enemy)
 }
 
 class BattleCharacterController extends BasicDatabaseController {
@@ -46,14 +49,29 @@ class BattleCharacterController extends BasicDatabaseController {
     return await this.setProperty(id, 'name', newName)
   }
 
-  async createForCharacter(characterType, characterId, name = 'Unnamed Battle Character') {
+  async getPronoun(id) {
+    return await this.getProperty(id, 'pronoun')
+  }
+
+  async setPronoun(id, newPronoun) {
+    return await this.setProperty(id, 'pronoun', newPronoun)
+  }
+
+  async createForCharacter(characterType, characterId, name = 'Unnamed Battle Character', pronoun = 'they') {
     if (characterType !== 'user' && characterType !== 'ai') throw new TypeError('BattleCharacterController#createForCharacter(string ("user", "ai") characterType) expected')
     if (!characterId || typeof characterId !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(, string characterId) expected')
-    if (!name || typeof name !== 'string') throw new TypeError('BattleCharacterController#createForcharacter(,, optional string name) expected')
+    if (!name || typeof name !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(,, optional string name) expected')
+    if (!pronoun || typeof pronoun !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(,, optional string pronoun) expected')
 
     const id = shortid.generate().toLowerCase()
 
-    await this.add(id, { hp: 10, name, characterType, characterId })
+    await this.add(id, {
+      hp: 10,
+      name,
+      pronoun,
+      characterType,
+      characterId
+    })
 
     return id
   }

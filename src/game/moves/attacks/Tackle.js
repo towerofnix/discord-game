@@ -4,6 +4,7 @@ class Tackle extends Attack {
   constructor(game) {
     super(game, {
       name: 'Tackle',
+      id: 'tackle',
       emoji: '🙄',
 
       type: 'physical',
@@ -16,4 +17,4 @@ class Tackle extends Attack {
   }
 }
 
-module.exports = { Tackle }
+module.exports = Tackle

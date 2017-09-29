@@ -5,5 +5,6 @@ module.exports = Object.assign({},
   require('./MusicController'),
   require('./UserController'),
   require('./TeamController'),
+  require('./MoveController'),
   require('./BattleCharacterController'),
 )

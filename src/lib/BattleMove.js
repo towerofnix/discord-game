@@ -5,13 +5,17 @@ class BattleMove {
 
     this.game = game
 
-    if (opts.name)
+    if (opts.name && typeof opts.name === 'string')
       this.name = opts.name
     else throw new TypeError('new BattleMove({ string name }) expected')
 
-    if (opts.emoji)
+    if (opts.id && typeof opts.id === 'string')
+      this.id = opts.id
+    else throw new TypeError('new BattleMove({ string id }) expected')
+
+    if (opts.emoji && typeof opts.emoji === 'string')
       this.emoji = opts.emoji
-    else throw new TypeError('new BattleMove({ Emoji emoji }) expected')
+    else throw new TypeError('new BattleMove({ string emoji }) expected')
 
     // TODO: Target type -- select one multiple, multiple of same team, etc.
     // Maybe a more programmable way? E.g. select multiple or one is a flag,

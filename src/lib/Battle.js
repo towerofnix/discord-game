@@ -65,10 +65,11 @@ class Battle {
   }
 
   async runBattleLoop() {
-    await this.runCurrentTurn()
-    this.nextBattleCharacter()
-    await delay(800)
-    await this.runBattleLoop()
+    while (true) {
+      await this.runCurrentTurn()
+      this.nextBattleCharacter()
+      await delay(800)
+    }
   }
 
   async runCurrentTurn() {
@@ -145,9 +146,7 @@ class Battle {
 
     // TEMP, user should be able to learn attacks and stuff
     // TODO: Move to attacks map stored on game
-    const userAttacks = [
-      new attacks.Tackle(this.game)
-    ]
+    const userAttacks = ['tackle']
 
     const userId = await this.game.battleCharacters.getCharacterId(battleCharacterId)
     const member = await this.game.users.getDiscordMember(userId)
@@ -155,7 +154,10 @@ class Battle {
 
     switch (await prompt(channel, userId, `${member.displayName}'s Turn`, userMoves)) {
       case 'attacks': {
-        const choices = new Map(userAttacks.map(atk => [atk, [atk.name, atk.emoji]]))
+        const choices = new Map(userAttacks.map(attackId => {
+          const move = this.game.moves.get(attackId)
+          return [move, [move.name, move.emoji]]
+        }))
         const move = await prompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choices)
         const target = await this.getUserTarget(userId, teamId, move)
         return { type: 'attack', move, target }
