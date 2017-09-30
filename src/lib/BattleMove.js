@@ -24,10 +24,14 @@ class BattleMove {
     // target one.
   }
 
-  getActionString(user, target) {
-    // Takes two BattleCharacters (not entities).
+  async go(actorBattleCharacterId, targetBattleCharacterId, battleObject) {
+    const bc = this.game.battleCharacters
 
-    return `${user.name} notices that the ${this.name} move doesn't have an action string, but doesn't think too much about it and launches a sick burn at ${target.name}.`
+    if (targetBattleCharacterId) {
+      await battleObject.writeMoveMessage(this, 0xCCCCCC, `${await bc.getName(actorBattleCharacterId)} notices that the ${this.name} move doesn't have a go function, but doesn't think too much about it and launches a sick burn at ${await bc.getName(targetBattleCharacterId)}.`)
+    } else {
+      await battleObject.writeMoveMessage(this, 0xCCCCCC, `${await bc.getName(actorBattleCharacterId)} notices that the ${this.name} move doesn't have a go function, but doesn't think too much about it and does a twirl in the air.`)
+    }
   }
 }
 

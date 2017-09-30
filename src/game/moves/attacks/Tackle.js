@@ -1,19 +1,18 @@
-const { Attack } = require('../../../lib/Attack.js')
+const { BattleMove } = require('../../../lib/BattleMove.js')
 
-class Tackle extends Attack {
+class Tackle extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Tackle',
       id: 'tackle',
-      emoji: '🙄',
-
-      type: 'physical',
-      power: 2,
+      emoji: '🙄'
     })
   }
 
-  async getActionString(userId, targetId) {
-    return `${await this.game.battleCharacters.getName(userId)} tackles ${await this.game.battleCharacters.getName(targetId)}!`
+  async go(actorId, targetId, battle) {
+    const bc = this.game.battleCharacters
+    await battle.writeMoveMessage(this, 0xAA8888, `${await bc.getName(actorId)} tackles ${await bc.getName(targetId)}!`)
+    await battle.dealDamageToCharacter(this, targetId, 2)
   }
 }
 

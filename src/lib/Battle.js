@@ -4,7 +4,6 @@ const { Enemy } = require('./Enemy')
 const { BattleCharacter } = require('./BattleCharacter')
 const { Team } = require('./Team')
 const { BattleMove } = require('./BattleMove')
-const { Attack } = require('./Attack')
 
 const chalk = require('chalk')
 const shortid = require('shortid')
@@ -134,23 +133,38 @@ class Battle {
     const action = await this.getBattleCharacterAction(this.currentCharacterId, this.currentTeamId)
 
     if (action.type === 'use move') {
-      const title = `${name} - ${action.move.name}`
-
-      await this.writeToAllChannels(0xD79999, title, await action.move.getActionString(this.currentCharacterId, action.target))
-
-      if (action.move instanceof Attack) {
-        await delay(800)
-        const wasAlive = await this.game.battleCharacters.isAlive(action.target)
-        const damage = action.move.power
-        await this.game.battleCharacters.dealDamage(action.target, damage)
-        await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
-        const isDead = await this.game.battleCharacters.isDead(action.target)
-        if (wasAlive && isDead) {
-          await delay(600)
-          await this.writeToAllChannels(0xFF7777, title, `Defeated ${await this.game.battleCharacters.getName(action.target)}!`)
-        }
-      }
+      await action.move.go(this.currentCharacterId, action.target, this)
     }
+  }
+
+  async writeMoveMessage(move, color, content) {
+    if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#displayMoveMessage(BattleMove move) expected')
+    if (!color || typeof color !== 'number') throw new TypeError('Battle#displayMoveMessage(, number color) expected')
+    if (!content || typeof content !== 'string') throw new TypeError('Battle#displayMoveMessage(,, string content) expected')
+
+    await this.writeToAllChannels(color, await this.getCurrentMoveTitle(move), content)
+  }
+
+  async dealDamageToCharacter(move, targetId, damage) {
+    if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#dealDamageToCharacter(BattleMove move) expected')
+    if (!targetId || typeof targetId !== 'string') throw new TypeError('Battle#dealDamageToCharacter(string targetId) expected')
+    if (typeof damage !== 'number') throw new TypeError('Battle#dealDamageToCharacter(, number damage) expected')
+
+    const title = await this.getCurrentMoveTitle(move)
+    const wasAlive = await this.game.battleCharacters.isAlive(targetId)
+    await this.game.battleCharacters.dealDamage(targetId, damage)
+    await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
+    const isDead = await this.game.battleCharacters.isDead(targetId)
+    if (wasAlive && isDead) {
+      await delay(600)
+      await this.writeToAllChannels(0xFF7777, title, `Defeated ${await this.game.battleCharacters.getName(targetId)}!`)
+    }
+  }
+
+  async getCurrentMoveTitle(move) {
+    if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#getCurrentMoveTitle(Move move) expected')
+
+    return `${await this.game.battleCharacters.getName(this.currentCharacterId)} - ${move.name}`
   }
 
   async writeBattleStatus() {
