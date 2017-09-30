@@ -25,11 +25,11 @@ class BattleCharacterController extends BasicDatabaseController {
     this.game = game
   }
 
-  async getHp(id) {
+  async getHP(id) {
     return await this.getProperty(id, 'hp')
   }
 
-  async setHp(id, newHP) {
+  async setHP(id, newHP) {
     return await this.setProperty(id, 'hp', newHP)
   }
 
@@ -55,6 +55,16 @@ class BattleCharacterController extends BasicDatabaseController {
 
   async setPronoun(id, newPronoun) {
     return await this.setProperty(id, 'pronoun', newPronoun)
+  }
+
+  async dealDamage(id, damage) {
+    const curHP = await this.getHP(id)
+
+    if (curHP > damage) {
+      await this.setHP(id, curHP - damage)
+    } else {
+      await this.setHP(id, 0)
+    }
   }
 
   async createForCharacter(characterType, characterId, name = 'Unnamed Battle Character', pronoun = 'they') {

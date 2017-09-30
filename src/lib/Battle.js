@@ -73,18 +73,31 @@ class Battle {
   }
 
   async runCurrentTurn() {
+    const name = await this.game.battleCharacters.getName(this.currentCharacterId)
+
+    const curHP = await this.game.battleCharacters.getHP(this.currentCharacterId)
+    if (curHP <= 0) {
+      await this.writeToAllChannels(0x555555, `${name}'s turn...`, `${name} is dead and cannot act.`)
+      return
+    }
+
     const action = await this.getBattleCharacterAction(this.currentCharacterId, this.currentTeamId)
 
     if (action.type === 'use move') {
-      const title = `${await this.game.battleCharacters.getName(this.currentCharacterId)} - ${action.move.name}`
+      const title = `${name} - ${action.move.name}`
 
       await this.writeToAllChannels(0xD79999, title, await action.move.getActionString(this.currentCharacterId, action.target))
       await delay(800)
 
-      if (action instanceof Attack) {
+      if (action.move instanceof Attack) {
         // TODO: Attacks
-        // const damage = action.target.takeDamage(action.move.power)
-        // await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
+        const damage = action.move.power
+        await this.game.battleCharacters.dealDamage(action.target, damage)
+        await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
+        if (await this.game.battleCharacters.getHP(action.target) <= 0) {
+          await delay(600)
+          await this.writeToAllChannels(0xFF7777, title, `Defeated ${await this.game.battleCharacters.getName(action.target)}!`)
+        }
       }
     }
   }
