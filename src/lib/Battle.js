@@ -19,7 +19,6 @@ class Battle {
 
     this.channelMap = new Map()
     this.started = false
-    this.channel = null
 
     this.currentTeamId = null
     this.currentCharacterId = null
