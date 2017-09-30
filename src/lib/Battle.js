@@ -77,9 +77,11 @@ class Battle {
 
     const curHP = await this.game.battleCharacters.getHP(this.currentCharacterId)
     if (curHP <= 0) {
-      await this.writeToAllChannels(0x555555, `${name}'s turn...`, `${name} is dead and cannot act.`)
+      await this.writeToAllChannels(0x555555, `${name}'s turn`, `${name} is dead and cannot act.`)
       return
     }
+
+    await this.writeToAllChannels(0xBBBBBB, `${name}'s turn`, `It's ${name}'s turn.`)
 
     const action = await this.getBattleCharacterAction(this.currentCharacterId, this.currentTeamId)
 
@@ -87,10 +89,9 @@ class Battle {
       const title = `${name} - ${action.move.name}`
 
       await this.writeToAllChannels(0xD79999, title, await action.move.getActionString(this.currentCharacterId, action.target))
-      await delay(800)
 
       if (action.move instanceof Attack) {
-        // TODO: Attacks
+        await delay(800)
         const damage = action.move.power
         await this.game.battleCharacters.dealDamage(action.target, damage)
         await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
