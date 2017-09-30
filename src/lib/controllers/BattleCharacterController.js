@@ -97,7 +97,7 @@ class BattleCharacterController extends BasicDatabaseController {
     const id = shortid.generate().toLowerCase()
 
     await this.add(id, {
-      maxHP: 2, curHP: 2, // TODO: For debugging! Change to 10 later.
+      maxHP: 10, curHP: 10,
       name,
       pronoun,
       characterType,

@@ -127,6 +127,10 @@ class Battle {
 
     await this.writeToAllChannels(0xBBBBBB, `${name}'s turn`, `It's ${name}'s turn.`)
 
+    await delay(400)
+    await this.writeBattleStatus()
+    await delay(400)
+
     const action = await this.getBattleCharacterAction(this.currentCharacterId, this.currentTeamId)
 
     if (action.type === 'use move') {
@@ -146,6 +150,27 @@ class Battle {
           await this.writeToAllChannels(0xFF7777, title, `Defeated ${await this.game.battleCharacters.getName(action.target)}!`)
         }
       }
+    }
+  }
+
+  async writeBattleStatus() {
+    for (const team of this.teams) {
+      let status = ''
+      for (const member of await this.game.teams.getMembers(team)) {
+        const name = await this.game.battleCharacters.getName(member)
+        if (await this.game.battleCharacters.isAlive(member)) {
+          const curHP = await this.game.battleCharacters.getHP(member)
+          const maxHP = await this.game.battleCharacters.getMaxHP(member)
+          const hpTicks = Math.ceil((15 / maxHP) * curHP)
+          const prettyHP = '|'.repeat(hpTicks) + '.'.repeat(15 - hpTicks)
+          status += `**${name}:** \`{${prettyHP}}\` (${curHP} / ${maxHP})`
+        } else {
+          status += `${name} (Dead)`
+        }
+      }
+
+      const channel = this.channelMap.get(team)
+      await richWrite(channel, 0xBBBBBB, 'Your team\'s status', status)
     }
   }
 
@@ -191,6 +216,7 @@ class Battle {
       return await this.getUserAction(battleCharacterId, teamId)
     } else {
       // TODO: AI turn picking
+      await delay(1000)
       return { type: 'use move', move: this.game.moves.get('skip-turn') }
     }
   }
