@@ -80,6 +80,14 @@ class BattleCharacterController extends BasicDatabaseController {
     }
   }
 
+  async isAlive(id) {
+    return await this.getHP(id) > 0
+  }
+
+  async isDead(id) {
+    return await this.isAlive(id) === false
+  }
+
   async createForCharacter(characterType, characterId, name = 'Unnamed Battle Character', pronoun = 'they') {
     if (characterType !== 'user' && characterType !== 'ai') throw new TypeError('BattleCharacterController#createForCharacter(string ("user", "ai") characterType) expected')
     if (!characterId || typeof characterId !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(, string characterId) expected')
@@ -89,7 +97,7 @@ class BattleCharacterController extends BasicDatabaseController {
     const id = shortid.generate().toLowerCase()
 
     await this.add(id, {
-      maxHP: 10, curHP: 10,
+      maxHP: 2, curHP: 2, // TODO: For debugging! Change to 10 later.
       name,
       pronoun,
       characterType,

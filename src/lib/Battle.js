@@ -65,18 +65,55 @@ class Battle {
   }
 
   async runBattleLoop() {
-    while (true) {
+    while (await this.getShouldContinueBattle()) {
       await this.runCurrentTurn()
       this.nextBattleCharacter()
       await delay(800)
     }
+
+    const aliveTeams = await this.getAliveTeams()
+
+    if (aliveTeams.length === 1) {
+      const firstMember = (await this.game.teams.getMembers(aliveTeams[0]))[0]
+      const name = await this.game.battleCharacters.getName(firstMember)
+      await this.writeToAllChannels(0x4488EE, 'Battle results', `The team of ${name} won!`)
+    } else if (aliveTeams.length === 0) {
+      await this.writeToAllChannels(0x4488EE, 'Battle results', 'No teams survived.')
+    }
+  }
+
+  async getShouldContinueBattle() {
+    // The battle should continue if two characters from two different teams
+    // are alive.
+
+    const aliveTeams = await this.getAliveTeams()
+
+    if (aliveTeams.length >= 2) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  async getAliveTeams() {
+    const aliveTeams = []
+
+    for (const team of this.teams) {
+      for (const member of await this.game.teams.getMembers(team)) {
+        if (await this.game.battleCharacters.isAlive(member)) {
+          aliveTeams.push(team)
+          break
+        }
+      }
+    }
+
+    return aliveTeams
   }
 
   async runCurrentTurn() {
     const name = await this.game.battleCharacters.getName(this.currentCharacterId)
 
-    const curHP = await this.game.battleCharacters.getHP(this.currentCharacterId)
-    if (curHP <= 0) {
+    if (await this.game.battleCharacters.isDead(this.currentCharacterId)) {
       await this.writeToAllChannels(0x555555, `${name}'s turn`, `${name} is dead and cannot act.`)
       return
     }
@@ -92,10 +129,12 @@ class Battle {
 
       if (action.move instanceof Attack) {
         await delay(800)
+        const wasAlive = await this.game.battleCharacters.isAlive(action.target)
         const damage = action.move.power
         await this.game.battleCharacters.dealDamage(action.target, damage)
         await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
-        if (await this.game.battleCharacters.getHP(action.target) <= 0) {
+        const isDead = await this.game.battleCharacters.isDead(action.target)
+        if (wasAlive && isDead) {
           await delay(600)
           await this.writeToAllChannels(0xFF7777, title, `Defeated ${await this.game.battleCharacters.getName(action.target)}!`)
         }
