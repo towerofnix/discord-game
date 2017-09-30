@@ -89,8 +89,9 @@ class Game {
       const enemyBattleCharacterId = await this.battleCharacters.createForCharacter('ai', enemyId, 'Think', 'it')
       const team2Id = await this.teams.findOrCreateForMember(enemyBattleCharacterId)
 
-      console.log('team 1:', await this.teams.getMembers(team1Id))
-      console.log('team 2:', await this.teams.getMembers(team2Id))
+      for (const member of [...await this.teams.getMembers(team1Id), ...this.teams.getMembers(team2Id)]) {
+        await this.battleCharacters.restoreHP(member)
+      }
 
       const battle = new Battle([team1Id, team2Id])
 
@@ -123,6 +124,10 @@ class Game {
 
       // TODO: Get a "this user only" team. (This should be a new method on TeamController.)
       const opponentTeamId = await this.teams.findOrCreateForMember(opponentBattleCharacterId)
+
+      for (const member of [...await this.teams.getMembers(userTeamId), ...await this.teams.getMembers(opponentTeamId)]) {
+        await this.battleCharacters.restoreHP(member)
+      }
 
       // Let the opponent go first! (This gives them a chance to think and look at the dueler
       // (the person who used this command).)

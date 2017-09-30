@@ -9,7 +9,8 @@ const db = new Datastore({
 })
 
 const BattleCharacterData = {
-  hp: Number,
+  curHP: Number,
+  maxHP: Number,
   name: String,
   pronoun: String, // they, he, she, it
   characterType: String, // player, ai
@@ -26,11 +27,23 @@ class BattleCharacterController extends BasicDatabaseController {
   }
 
   async getHP(id) {
-    return await this.getProperty(id, 'hp')
+    return await this.getProperty(id, 'curHP')
   }
 
   async setHP(id, newHP) {
-    return await this.setProperty(id, 'hp', newHP)
+    return await this.setProperty(id, 'curHP', newHP)
+  }
+
+  async getMaxHP(id) {
+    return await this.getProperty(id, 'maxHP')
+  }
+
+  async setMaxHP(id, newMaxHP) {
+    return await this.setProperty(id, 'maxHP', newMaxHP)
+  }
+
+  async restoreHP(id) {
+    return await this.setHP(id, await this.getMaxHP(id))
   }
 
   async getCharacterType(id) {
@@ -76,7 +89,7 @@ class BattleCharacterController extends BasicDatabaseController {
     const id = shortid.generate().toLowerCase()
 
     await this.add(id, {
-      hp: 10,
+      maxHP: 10, curHP: 10,
       name,
       pronoun,
       characterType,
