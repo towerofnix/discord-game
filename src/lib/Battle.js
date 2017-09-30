@@ -80,6 +80,13 @@ class Battle {
     } else if (aliveTeams.length === 0) {
       await this.writeToAllChannels(0x4488EE, 'Battle results', 'No teams survived.')
     }
+
+    await delay(800)
+    await this.writeToAllChannels(0xFF8888, 'Channel to be deleted', 'This battle\'s channels will be deleted in 30 seconds.')
+
+    await delay(30 * 1000)
+
+    await Battle.deleteChannels(this.id, this.game.guild)
   }
 
   async getShouldContinueBattle() {
@@ -267,6 +274,13 @@ class Battle {
     return Promise.all(Array.from(this.channelMap.values()).map(channel => {
       richWrite(channel, color, title, content)
     }))
+  }
+
+  static async deleteChannels(battleId, guild) {
+    return await Promise.all(guild.channels
+      .filter(channel => channel.name.startsWith('battle-' + battleId))
+      .map(channel => channel.delete())
+    )
   }
 }
 
