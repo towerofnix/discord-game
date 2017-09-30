@@ -9,14 +9,18 @@ class SkipTurn extends BattleMove {
     })
   }
 
-  async getActionString(actorId) {
+  async go(actorId, _unsetTargetId, battle) {
     const name = await this.game.battleCharacters.getName(actorId)
+
+    let string
     switch (await this.game.battleCharacters.getPronoun(actorId)) {
-      case 'she': return `${name} skips her turn.`
-      case 'he': return `${name} skips his turn.`
-      case 'it': return `${name} skips its turn.`
-      case 'they': default: return `${name} skips their turn.`
+      case 'she': string = `${name} skips her turn.`; break
+      case 'he': string = `${name} skips his turn.`; break
+      case 'it': string = `${name} skips its turn.`; break
+      case 'they': default: string = `${name} skips their turn.`
     }
+
+    await battle.writeMoveMessage(this, 0x777777, string)
   }
 }
 
