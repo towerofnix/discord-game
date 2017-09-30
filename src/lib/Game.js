@@ -89,7 +89,7 @@ class Game {
       const enemyBattleCharacterId = await this.battleCharacters.createForCharacter('ai', enemyId, 'Think', 'it')
       const team2Id = await this.teams.findOrCreateForMember(enemyBattleCharacterId)
 
-      for (const member of [...await this.teams.getMembers(team1Id), ...this.teams.getMembers(team2Id)]) {
+      for (const member of [...await this.teams.getMembers(team1Id), ...await this.teams.getMembers(team2Id)]) {
         await this.battleCharacters.restoreHP(member)
       }
 
