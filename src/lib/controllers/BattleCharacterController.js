@@ -11,6 +11,8 @@ const db = new Datastore({
 const BattleCharacterData = {
   curHP: Number,
   maxHP: Number,
+  baseDefense: Number,
+  baseAttack: Number,
   name: String,
   pronoun: String, // they, he, she, it
   characterType: String, // player, ai
@@ -74,6 +76,7 @@ class BattleCharacterController extends BasicDatabaseController {
 
     await this.add(id, {
       maxHP: 10, curHP: 10,
+      baseAttack: 3, baseDefense: 2,
       name,
       pronoun,
       characterType,

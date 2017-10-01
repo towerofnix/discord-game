@@ -15,6 +15,7 @@ class Battle {
 
     this.channelMap = new Map()
     this.started = false
+    this.temporaryEffects = new Map() // Map of character ID -> {attack, defense, poison, ...} temporary effects
 
     this.currentTeamId = null
     this.currentCharacterId = null
@@ -132,6 +133,10 @@ class Battle {
     }
   }
 
+  async onNewRound() {
+    await this.tickAllTemporaryEffects()
+  }
+
   async writeMoveMessage(move, color, content) {
     if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#displayMoveMessage(BattleMove move) expected')
     if (!color || typeof color !== 'number') throw new TypeError('Battle#displayMoveMessage(, number color) expected')
@@ -173,9 +178,19 @@ class Battle {
           const hpTicks = Math.ceil((15 / maxHP) * curHP)
           const prettyHP = '█'.repeat(hpTicks) + '░'.repeat(15 - hpTicks)
           status += `**${name}:** \`{${prettyHP}}\` (${curHP} / ${maxHP})`
+
+          const tempEffects = Object.entries(this.temporaryEffects.get(member) || {})
+            .filter(([ name, value ]) => value !== 0)
+
+          if (tempEffects.length) {
+            status += ' ('
+            status += tempEffects.map(([ name, value ]) => `${name}: ${value > 0 ? '+' + value : value}`).join(', ')
+            status += ')'
+          }
         } else {
           status += `${name} (Dead)`
         }
+        status += '\n'
       }
 
       const channel = this.channelMap.get(team)
@@ -199,6 +214,7 @@ class Battle {
 
     if (index + 1 >= this.teams.length) {
       this.currentTeamId = this.teams[0]
+      await this.onNewRound()
     } else {
       this.currentTeamId = this.teams[index + 1]
     }
@@ -235,16 +251,17 @@ class Battle {
     if (!battleCharacterId || typeof battleCharacterId !== 'string') throw new TypeError('Battle#getUserAction(string battleCharacterId) expected')
     if (!teamId || typeof teamId !== 'string') throw new TypeError('Battle#getUserAction(, string teamId) expected')
 
+    // TODO: Implement tactics and items
     const userMoves = {
       skipTurn: [ 'Skip Turn', '⚓' ],
-      tactics: [ 'Tactics', '🏴' ],
-      items: [ 'Items',   '🌂' ],
+      // tactics: [ 'Tactics', '🏴' ],
+      // items: [ 'Items',   '🌂' ],
       attacks: [ 'Attacks', '🥊' ]
     }
 
     // TEMP, user should be able to learn attacks and stuff
     // TODO: Move to attacks map stored on game
-    const userAttacks = ['tackle']
+    const userAttacks = ['tackle', 'buff']
 
     const userId = await this.game.battleCharacters.getCharacterId(battleCharacterId)
     const member = await this.game.users.getDiscordMember(userId)
@@ -317,6 +334,44 @@ class Battle {
       .filter(channel => channel.name.startsWith('battle-' + battleId))
       .map(channel => channel.delete())
     )
+  }
+
+  // Battle formulas. Subject to tweaking and redefining!
+  // These should probably mostly be moved to another class at some point.
+  // (Handy so that if, for example, a user takes damage out of battle, that
+  // damage can use the same formulas as damage in-battle.)
+
+  async getBasicDamage(baseDamage, actorId, targetId) {
+    const attack = await this.game.battleCharacters.getBaseAttack(actorId) + this.getTemporaryEffect(actorId, 'attackBuff')
+    const defense = await this.game.battleCharacters.getBaseDefense(targetId) + this.getTemporaryEffect(targetId, 'defenseBuff')
+    return Math.ceil(baseDamage * attack / defense)
+  }
+
+  getTemporaryEffect(characterId, effectName) {
+    if (this.temporaryEffects.has(characterId) === false) {
+      return 0
+    }
+
+    return this.temporaryEffects.get(characterId)[effectName] || 0
+  }
+
+  setTemporaryEffect(characterId, effectName, value) {
+    if (this.temporaryEffects.has(characterId) === false) {
+      this.temporaryEffects.set(characterId, {})
+    }
+
+    this.temporaryEffects.get(characterId)[effectName] = value
+  }
+
+  tickAllTemporaryEffects() {
+    // Subtracts one from every temporary effect on every character, so that
+    // the value is moved towards zero.
+
+    for (const characterEffects of this.temporaryEffects.values()) {
+      for (const effectName of Object.keys(characterEffects)) {
+        characterEffects[effectName] -= Math.sign(characterEffects[effectName])
+      }
+    }
   }
 }
 
