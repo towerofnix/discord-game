@@ -171,7 +171,7 @@ class Battle {
           const curHP = await this.game.battleCharacters.getHP(member)
           const maxHP = await this.game.battleCharacters.getMaxHP(member)
           const hpTicks = Math.ceil((15 / maxHP) * curHP)
-          const prettyHP = '|'.repeat(hpTicks) + '.'.repeat(15 - hpTicks)
+          const prettyHP = '█'.repeat(hpTicks) + '░'.repeat(15 - hpTicks)
           status += `**${name}:** \`{${prettyHP}}\` (${curHP} / ${maxHP})`
         } else {
           status += `${name} (Dead)`
