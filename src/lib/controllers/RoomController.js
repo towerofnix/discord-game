@@ -6,29 +6,6 @@ class RoomController extends Map {
     super()
 
     this.game = game
-
-    /*
-    // TODO: Bad
-    this.game.commandController.on('.create-room-channel', async () => {
-      await this.createRoomChannelAndRole(this.getRoomById('lonely-void'))
-    })
-
-    // TODO: Also bad
-    this.game.commandController.on('.warp', async (command, rest, message) => {
-      const where = rest.trim()
-
-      if (this.hasRoomById(where) === false) {
-        message.reply('That location does not exist!')
-        return
-      }
-
-      const user = await User.getById(message.author.id)
-      await this.moveUserToRoom(where, user)
-
-      const room = this.getRoomById(user.currentRoom)
-      const { channel } = await this.getRoomChannelAndRole(room)
-    })
-    */
   }
 
   async notifyUserEntered(roomId, userId) {

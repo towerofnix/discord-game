@@ -136,6 +136,20 @@ class Game {
       battle.start(this)
     })
 
+    this.commands.set('warp', async (rest, message) => {
+      // FURTHERMORE TEMP
+      const location = rest
+
+      if (this.rooms.has(location) === false) {
+        message.reply('That location does not exist!')
+        return false
+      }
+
+      const userId = message.author.id
+      await this.users.setLocation(userId, location)
+    })
+
+
     // TODO: refactor lol
     return
 
