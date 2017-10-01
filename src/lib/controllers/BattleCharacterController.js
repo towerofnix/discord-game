@@ -26,49 +26,25 @@ class BattleCharacterController extends BasicDatabaseController {
     this.game = game
   }
 
-  async getHP(id) {
-    return await this.getProperty(id, 'curHP')
-  }
+  async getHP(id) { return await this.getProperty(id, 'curHP') }
+  async setHP(id, newHP) { return await this.setProperty(id, 'curHP', newHP) }
 
-  async setHP(id, newHP) {
-    return await this.setProperty(id, 'curHP', newHP)
-  }
+  async getMaxHP(id) { return await this.getProperty(id, 'maxHP') }
+  async setMaxHP(id, newMaxHP) { return await this.setProperty(id, 'maxHP', newMaxHP) }
 
-  async getMaxHP(id) {
-    return await this.getProperty(id, 'maxHP')
-  }
+  async restoreHP(id) { return await this.setHP(id, await this.getMaxHP(id)) }
 
-  async setMaxHP(id, newMaxHP) {
-    return await this.setProperty(id, 'maxHP', newMaxHP)
-  }
+  async getBaseDefense(id) { return await this.getProperty(id, 'baseDefense') }
+  async getBaseAttack(id) { return await this.getProperty(id, 'baseAttack') }
 
-  async restoreHP(id) {
-    return await this.setHP(id, await this.getMaxHP(id))
-  }
+  async getCharacterType(id) { return await this.getProperty(id, 'characterType') }
+  async getCharacterId(id) { return await this.getProperty(id, 'characterId') }
 
-  async getCharacterType(id) {
-    return await this.getProperty(id, 'characterType')
-  }
+  async getName(id) { return await this.getProperty(id, 'name') }
+  async setName(id, newName) { return await this.setProperty(id, 'name', newName) }
 
-  async getCharacterId(id) {
-    return await this.getProperty(id, 'characterId')
-  }
-
-  async getName(id) {
-    return await this.getProperty(id, 'name')
-  }
-
-  async setName(id, newName) {
-    return await this.setProperty(id, 'name', newName)
-  }
-
-  async getPronoun(id) {
-    return await this.getProperty(id, 'pronoun')
-  }
-
-  async setPronoun(id, newPronoun) {
-    return await this.setProperty(id, 'pronoun', newPronoun)
-  }
+  async getPronoun(id) { return await this.getProperty(id, 'pronoun') }
+  async setPronoun(id, newPronoun) { return await this.setProperty(id, 'pronoun', newPronoun) }
 
   async dealDamage(id, damage) {
     const curHP = await this.getHP(id)
