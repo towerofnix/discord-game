@@ -19,4 +19,4 @@ class Buff extends BattleMove {
   }
 }
 
-module.exports = Tackle
+module.exports = Buff
