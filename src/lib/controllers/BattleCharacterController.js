@@ -15,7 +15,7 @@ const BattleCharacterData = {
   baseAttack: Number,
   name: String,
   pronoun: String, // they, he, she, it
-  characterType: String, // player, ai
+  characterType: String, // user, ai
   characterId: String, // ID of player or AI-character (enemy)
 }
 

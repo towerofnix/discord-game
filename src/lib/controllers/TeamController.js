@@ -24,7 +24,6 @@ class TeamController extends BasicDatabaseController {
   }
 
   async addMember(id, member) {
-    console.log(id, typeof id, typeof id !== 'string')
     if (!id || typeof id !== 'string') throw new TypeError('TeamController#addMember(string id) expected')
     if (!member || typeof member !== 'string') throw new TypeError('TeamController#addMember(, string member) expected')
 

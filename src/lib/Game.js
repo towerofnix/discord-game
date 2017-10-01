@@ -98,6 +98,25 @@ class Game {
       battle.start(this)
     })
 
+    const _getUserArgFromMessage = async message => {
+      const userIdList = Array.from(message.mentions.members.values())
+
+      // TODO: Use richWrite instead of message.reply.
+      if (userIdList.length === 0) {
+        message.reply('Please @-mention the user you want to target.')
+        return false
+      }
+
+      const userId = userIdList[0].id
+
+      if (await this.users.has(userId) === false) {
+        message.reply('That isn\'t a user you can target! (They aren\'t in the user database.)')
+        return false
+      }
+
+      return userId
+    }
+
     this.commands.set('duel', async (rest, message) => {
       // ALSO TEMP
 
@@ -105,20 +124,8 @@ class Game {
       const playerBattleCharacterId = await this.users.getBattleCharacter(userId)
       const userTeamId = await this.teams.findOrCreateForMember(playerBattleCharacterId)
 
-      const opponentUserIdList = Array.from(message.mentions.members.values())
-
-      // TODO: Use richWrite instead of message.reply.
-      if (opponentUserIdList.length === 0) {
-        message.reply('Please @-mention the user you want to duel.')
-        return false
-      }
-
-      const opponentUserId = opponentUserIdList[0].id
-
-      if (await this.users.has(opponentUserId) === false) {
-        message.reply('That isn\'t a user you can duel! (They aren\'t in the user database.)')
-        return false
-      }
+      const opponentUserId = await _getUserArgFromMessage(message)
+      if (opponentUserId === false) return false
 
       const opponentBattleCharacterId = await this.users.getBattleCharacter(opponentUserId)
 
@@ -163,6 +170,24 @@ class Game {
 
       const friendBattleCharacterId = await this.battleCharacters.createForCharacter('ai', 'ai-friend', name, pronoun)
       await this.teams.addMember(teamId, friendBattleCharacterId)
+    })
+
+    this.commands.set('team', async (rest, message) => {
+      // FURTHERMORE TEMP
+
+      const userId = message.author.id
+      const battleCharacterId = await this.users.getBattleCharacter(userId)
+      const teamId = await this.teams.findOrCreateForMember(battleCharacterId)
+
+      const otherUserId = await _getUserArgFromMessage(message)
+      if (otherUserId === false) return false
+
+      const otherBattleCharacterId = await this.users.getBattleCharacter(otherUserId)
+      console.log(otherBattleCharacterId)
+
+      await this.teams.addMember(teamId, otherBattleCharacterId)
+
+      message.reply('Teamed!')
     })
 
     // TODO: refactor lol
