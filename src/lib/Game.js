@@ -149,6 +149,21 @@ class Game {
       await this.users.setLocation(userId, location)
     })
 
+    this.commands.set('summon-cool-npc-friend', async (rest, message) => {
+      // ADDITIONALLY TEMP
+
+      const userId = message.author.id
+      const battleCharacterId = await this.users.getBattleCharacter(userId)
+      const teamId = await this.teams.findOrCreateForMember(battleCharacterId)
+
+      const choose = arrlike => arrlike[Math.floor(Math.random() * arrlike.length)]
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+      const name = choose(alphabet) + (choose('AEIOU') + choose(alphabet)).toLowerCase()
+      const pronoun = choose(['she', 'he', 'they'])
+
+      const friendBattleCharacterId = await this.battleCharacters.createForCharacter('ai', 'ai-friend', name, pronoun)
+      await this.teams.addMember(teamId, friendBattleCharacterId)
+    })
 
     // TODO: refactor lol
     return
