@@ -226,7 +226,8 @@ class Battle {
     } else {
       // TODO: AI turn picking
       await delay(1000)
-      return { type: 'use move', move: this.game.moves.get('skip-turn') }
+      // return { type: 'use move', move: this.game.moves.get('skip-turn') }
+      return { type: 'use move', move: this.game.moves.get('tackle'), target: (await this.game.teams.getMembers(this.teams[0]))[0] }
     }
   }
 
