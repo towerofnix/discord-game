@@ -52,4 +52,17 @@ async function prompt(channel, userId, title, choices) {
   return { message, choice }
 }
 
-module.exports = { promptOnMessage, prompt }
+async function temporaryPrompt(channel, userId, title, choices) {
+  if (!channel) throw new TypeError('temporaryPrompt(discord.TextChannel channel) expected')
+  if (!userId || typeof userId !== 'string') throw new TypeError('temporaryPrompt(, string userId) expected')
+  if (!title || typeof title !== 'string') throw new TypeError('temporaryPrompt(,, string title) expected')
+  if (!choices || typeof choices !== 'object') throw new TypeError('temporaryPrompt(,,, object | Map<anything, array<string title, Emoji emoji>> choices) expected')
+
+  const { message, choice } = await prompt(channel, userId, title, choices)
+
+  await message.delete()
+
+  return { choice }
+}
+
+module.exports = { promptOnMessage, prompt, temporaryPrompt }

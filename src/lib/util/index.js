@@ -1,8 +1,8 @@
 // Sorry, alex! -Florrie
-const { prompt, promptOnMessage } = require('./prompt')
+const { prompt, promptOnMessage, temporaryPrompt } = require('./prompt')
 
 module.exports = {
-  prompt, promptOnMessage,
+  prompt, promptOnMessage, temporaryPrompt,
   richWrite: require('./richWrite'),
   delay: require('./delay'),
   log: Object.assign({},
