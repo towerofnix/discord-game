@@ -193,8 +193,7 @@ class Battle {
         status += '\n'
       }
 
-      const channel = this.channelMap.get(team)
-      await richWrite(channel, 0xBBBBBB, 'Your team\'s status', status)
+      await this.writeToTeamChannel(team, 0xBBBBBB, 'Your team\'s status', status)
     }
   }
 
@@ -323,10 +322,27 @@ class Battle {
     return await prompt(channel, userId, `${await this.game.users.getName(userId)}'s turn - use ${move.name} on who?`, choices)
   }
 
-  writeToAllChannels(color, title, content) {
-    return Promise.all(Array.from(this.channelMap.values()).map(channel => {
-      richWrite(channel, color, title, content)
-    }))
+  async writeToAllChannels(color, title, content) {
+    const teamIds = Array.from(this.channelMap.keys())
+    await Promise.all(teamIds.map(teamId => this.writeToTeamChannel(teamId, color, title, content)))
+  }
+
+  async writeToTeamChannel(teamId, color, title, content) {
+    // Writes a text box to the given team's channel, if that channel exists,
+    // and if there is at least one player-type character inside the channel.
+
+    if (this.channelMap.has(teamId) === false) {
+      log.warn('Battle#writeToTeamChannel called with a team ID that isn\'t in the team map?')
+      console.trace('Warning trace of writeToTeamChannel')
+      return false
+    }
+
+    const members = await this.game.teams.getMembers(teamId)
+    const types = await Promise.all(members.map(id => this.game.battleCharacters.getCharacterType(id)))
+    if (types.some(type => type === 'user')) {
+      const channel = this.channelMap.get(teamId)
+      await richWrite(channel, color, title, content)
+    }
   }
 
   static async deleteChannels(battleId, guild) {
