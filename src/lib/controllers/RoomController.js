@@ -1,5 +1,4 @@
 const { Room } = require('../Room')
-const { User } = require('../User')
 const { log } = require('../util')
 
 class RoomController extends Map {

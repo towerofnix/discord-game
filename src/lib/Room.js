@@ -1,6 +1,3 @@
-const { log } = require('./util')
-const { User } = require('./User')
-
 class Room {
   constructor(game, channelName, displayName) {
     if (!game || game instanceof require('./Game').Game === false) throw new TypeError('new Room(Game game) expected')

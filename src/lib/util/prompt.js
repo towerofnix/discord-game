@@ -1,5 +1,4 @@
 const { RichEmbed, TextChannel, Message } = require('discord.js')
-const { User } = require('../User')
 
 function objectAsMap(object) {
   if (!object || typeof object !== 'object') throw new TypeError('objectAsMap(object object) expected')

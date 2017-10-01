@@ -1,8 +1,4 @@
 const { log, prompt, richWrite, delay } = require('./util')
-const { User } = require('./User')
-const { Enemy } = require('./Enemy')
-const { BattleCharacter } = require('./BattleCharacter')
-const { Team } = require('./Team')
 const { BattleMove } = require('./BattleMove')
 
 const chalk = require('chalk')
