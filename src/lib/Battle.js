@@ -261,7 +261,7 @@ class Battle {
 
     // TEMP, user should be able to learn attacks and stuff
     // TODO: Move to attacks map stored on game
-    const userAttacks = ['tackle', 'buff']
+    const userAttacks = ['tackle', 'buff', 'sap']
 
     const userId = await this.game.battleCharacters.getCharacterId(battleCharacterId)
     const member = await this.game.users.getDiscordMember(userId)

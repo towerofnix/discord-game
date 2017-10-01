@@ -1,3 +1,4 @@
 module.exports = [
-  require('./Buff')
+  require('./Buff'),
+  require('./Sap'),
 ]
