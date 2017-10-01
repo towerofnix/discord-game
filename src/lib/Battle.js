@@ -213,8 +213,10 @@ class Battle {
         await _addMemberLine(member, true)
       }
 
+      status += '\n**Opposing teams:**\n'
+
       for (const opposingTeam of this.teams.filter(t => t !== team)) {
-        status += `\n**${opposingTeam}:**\n`
+        status += `\n`
         for (const member of await this.game.teams.getMembers(opposingTeam)) {
           await _addMemberLine(member, false)
         }
