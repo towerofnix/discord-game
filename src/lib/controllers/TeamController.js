@@ -27,11 +27,10 @@ class TeamController extends BasicDatabaseController {
     if (!id || typeof id !== 'string') throw new TypeError('TeamController#addMember(string id) expected')
     if (!member || typeof member !== 'string') throw new TypeError('TeamController#addMember(, string member) expected')
 
-    const ret = await this.update(id, { $push: { members: member } })
-
-    await this._addUserToTeamRole(id, member)
-
-    return ret
+    if (await this.hasMember(id, member) === false) {
+      await this.update(id, { $push: { members: member } })
+      await this._addUserToTeamRole(id, member)
+    }
   }
 
   async getRoleName(id) {
@@ -73,6 +72,11 @@ class TeamController extends BasicDatabaseController {
       const member = await this.game.users.getDiscordMember(id)
       await member.addRole(role)
     }
+  }
+
+  async hasMember(id, member) {
+    const members = await this.getMembers(id)
+    return members.includes(member)
   }
 
   async findByMember(member) {
