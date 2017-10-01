@@ -175,14 +175,25 @@ class Battle {
   async writeBattleStatus() {
     for (const team of this.teams) {
       let status = ''
-      for (const member of await this.game.teams.getMembers(team)) {
+
+      status += '**Your team:**\n'
+
+      const _addMemberLine = async (member, fromThisTeam) => {
         const name = await this.game.battleCharacters.getName(member)
         if (await this.game.battleCharacters.isAlive(member)) {
           const curHP = await this.game.battleCharacters.getHP(member)
           const maxHP = await this.game.battleCharacters.getMaxHP(member)
           const hpTicks = Math.ceil((15 / maxHP) * curHP)
           const prettyHP = '█'.repeat(hpTicks) + '░'.repeat(15 - hpTicks)
-          status += `**${name}:** \`{${prettyHP}}\` (${curHP} / ${maxHP})`
+
+          status += `**${name}:**`
+          status += `\`{${prettyHP}}\``
+
+          // Only display accurate HP values if this member is on the current
+          // team.
+          if (fromThisTeam) {
+            status += `(${curHP} / ${maxHP})`
+          }
 
           const tempEffects = Object.entries(this.temporaryEffects.get(member) || {})
             .filter(([ name, value ]) => value !== 0)
@@ -198,7 +209,18 @@ class Battle {
         status += '\n'
       }
 
-      await this.writeToTeamChannel(team, 0xBBBBBB, 'Your team\'s status', status)
+      for (const member of await this.game.teams.getMembers(team)) {
+        await _addMemberLine(member, true)
+      }
+
+      for (const opposingTeam of this.teams.filter(t => t !== team)) {
+        status += `\n**${opposingTeam}:**\n`
+        for (const member of await this.game.teams.getMembers(opposingTeam)) {
+          await _addMemberLine(member, false)
+        }
+      }
+
+      await this.writeToTeamChannel(team, 0xBBBBBB, 'Battle status', status)
     }
   }
 
