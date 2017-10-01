@@ -17,13 +17,24 @@ async function promptOnMessage(message, choices, userId) {
 
   const choiceMap = objectAsMap(choices)
 
-  for (let [ name, emoji ] of Array.from(choiceMap.values())) {
-    await message.react(emoji)
-  }
+  let chose = false
+
+  // And you thought you'd never see another IIFE?!
+  const addReactsMap = (async () => {
+    for (let [ name, emoji ] of Array.from(choiceMap.values())) {
+      await message.react(emoji)
+
+      if (chose) {
+        break
+      }
+    }
+  })()
 
   const reactions = await message.awaitReactions(reaction => {
     return reaction.users.find('id', userId)
   }, {max: 1})
+
+  chose = true
 
   const reaction = reactions.first()
 
