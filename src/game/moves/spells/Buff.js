@@ -1,6 +1,6 @@
 const { BattleMove } = require('../../../lib/BattleMove.js')
 
-class Tackle extends BattleMove {
+class Buff extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Buff',
