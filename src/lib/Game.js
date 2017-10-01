@@ -41,7 +41,7 @@ class Game {
       await log.info('A new user just joined! Adding them to the database...')
 
       const battleCharacter = await this.battleCharacters.createForCharacter('user', member.id, member.displayName)
-      await this.users.add(member.id, { location: 'tiny-land', battleCharacter })
+      await this.users.add(member.id, { location: 'lonely-void', battleCharacter })
 
       await log.success(chalk`Added user: {cyan ${await this.users.getName(member.id)}}`)
     }
@@ -183,7 +183,6 @@ class Game {
       if (otherUserId === false) return false
 
       const otherBattleCharacterId = await this.users.getBattleCharacter(otherUserId)
-      console.log(otherBattleCharacterId)
 
       await this.teams.addMember(teamId, otherBattleCharacterId)
 
