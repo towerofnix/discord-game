@@ -120,7 +120,12 @@ class Battle {
       return
     }
 
-    await this.writeToAllChannels(0xBBBBBB, `${name}'s turn`, `It's ${name}'s turn.`)
+    if (await this.game.battleCharacters.getCharacterType(this.currentCharacterId) === 'user') {
+      const userId = await this.game.battleCharacters.getCharacterId(this.currentCharacterId)
+      await this.writeToAllChannels(0xBBBBBB, `${name}'s turn`, `It's ${name}'s (<@${userId}>) turn.`)
+    } else {
+      await this.writeToAllChannels(0xBBBBBB, `${name}'s turn`, `It's ${name}'s turn.`)
+    }
 
     await delay(400)
     await this.writeBattleStatus()
