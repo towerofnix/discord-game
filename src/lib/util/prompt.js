@@ -31,7 +31,7 @@ async function promptOnMessage(message, choices, userId) {
     ([ key, [ name, emoji ] ]) => emoji === reaction.emoji.name
   )
 
-  return key
+  return { message, choice: key }
 }
 
 async function prompt(channel, userId, title, choices) {
@@ -47,9 +47,9 @@ async function prompt(channel, userId, title, choices) {
 
   const message = await channel.send(embed)
 
-  const choice = await promptOnMessage(message, choices, userId)
+  const { choice } = await promptOnMessage(message, choices, userId)
 
-  return choice
+  return { message, choice }
 }
 
 module.exports = { promptOnMessage, prompt }

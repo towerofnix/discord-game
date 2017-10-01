@@ -271,13 +271,15 @@ class Battle {
     const member = await this.game.users.getDiscordMember(userId)
     const channel = this.channelMap.get(teamId)
 
-    switch (await prompt(channel, userId, `${member.displayName}'s Turn`, userMoves)) {
+    const { choice: actionChoice } = await prompt(channel, userId, `${member.displayName}'s Turn`, userMoves)
+    console.log(actionChoice)
+    switch (actionChoice) {
       case 'attacks': {
         const choices = new Map(userAttacks.map(attackId => {
           const move = this.game.moves.get(attackId)
           return [move, [move.name, move.emoji]]
         }))
-        const move = await prompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choices)
+        const { choice: move } = await prompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choices)
         const target = await this.getUserTarget(userId, teamId, move)
         return { type: 'use move', move, target }
       }
@@ -324,7 +326,7 @@ class Battle {
 
     const channel = this.channelMap.get(teamId)
 
-    return await prompt(channel, userId, `${await this.game.users.getName(userId)}'s turn - use ${move.name} on who?`, choices)
+    return (await prompt(channel, userId, `${await this.game.users.getName(userId)}'s turn - use ${move.name} on who?`, choices)).choice
   }
 
   async writeToAllChannels(color, title, content) {
