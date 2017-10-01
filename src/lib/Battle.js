@@ -5,6 +5,9 @@ const chalk = require('chalk')
 const shortid = require('shortid')
 const discord = require('discord.js')
 
+// Stupid fix for alex :)
+const promptColor = 0x00AE86
+
 class Battle {
   constructor(teams) {
     if (!teams || !Array.isArray(teams)) throw new TypeError('new Battle(array<Team> teams) expected')
@@ -122,9 +125,9 @@ class Battle {
 
     if (await this.game.battleCharacters.getCharacterType(this.currentCharacterId) === 'user') {
       const userId = await this.game.battleCharacters.getCharacterId(this.currentCharacterId)
-      await this.writeToAllChannels(0xBBBBBB, `${name}'s turn`, `It's ${name}'s (<@${userId}>) turn.`)
+      await this.writeToAllChannels(promptColor, `${name}'s turn`, `It's ${name}'s (<@${userId}>) turn.`)
     } else {
-      await this.writeToAllChannels(0xBBBBBB, `${name}'s turn`, `It's ${name}'s turn.`)
+      await this.writeToAllChannels(promptColor, `${name}'s turn`, `It's ${name}'s turn.`)
     }
 
     await delay(400)
@@ -222,7 +225,7 @@ class Battle {
         }
       }
 
-      await this.writeToTeamChannel(team, 0xBBBBBB, 'Battle status', status)
+      await this.writeToTeamChannel(team, promptColor, 'Battle status', status)
     }
   }
 
