@@ -85,15 +85,22 @@ class Game {
       const playerBattleCharacterId = await this.users.getBattleCharacter(userId)
       const team1Id = await this.teams.findOrCreateForMember(playerBattleCharacterId)
 
-      const enemyId = 'think'
-      const enemyBattleCharacterId = await this.battleCharacters.createForCharacter('ai', enemyId, 'Think', 'it')
-      const team2Id = await this.teams.findOrCreateForMember(enemyBattleCharacterId)
-
-      for (const member of [...await this.teams.getMembers(team1Id), ...await this.teams.getMembers(team2Id)]) {
+      for (const member of await this.teams.getMembers(team1Id)) {
         await this.battleCharacters.restoreHP(member)
       }
 
-      const battle = new Battle([team1Id, team2Id])
+      const teams = [team1Id]
+      for (const teamString of (rest || 'think').split(' ')) {
+        const enemies = []
+        for (const enemyAI of teamString.split(',')) {
+          const ai = this.battleAIs.get(enemyAI)
+          // TODO: Store enemy pronoun in AI type?
+          enemies.push(await this.battleCharacters.createForCharacter('ai', enemyAI, ai && ai.name, 'it'))
+        }
+        teams.push(await this.teams.createNew(enemies))
+      }
+
+      const battle = new Battle(teams)
 
       battle.start(this)
     })
