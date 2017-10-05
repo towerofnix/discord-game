@@ -2,7 +2,7 @@ module.exports = Object.assign({},
   require('./CommandController'),
   require('./RoomController'),
   require('./BattleAIController'),
-  // require('./MusicController'), // TODO: Refactor this!
+  require('./MusicController'),
   require('./UserController'),
   require('./TeamController'),
   require('./MoveController'),

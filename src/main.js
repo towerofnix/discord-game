@@ -3,6 +3,7 @@ const { log, checkTypes } = require('./lib/util')
 const { LonelyVoid } = require('./game/rooms/LonelyVoid')
 const { TinyLand } = require('./game/rooms/TinyLand')
 const battleAIs = require('./game/ais')
+const music = require('./game/music')
 const moves = require('./game/moves')
 
 async function main() {
@@ -31,6 +32,10 @@ async function main() {
   }
 
   await game.go()
+
+  for (const [ song, path ] of music) {
+    await game.music.register(song, path)
+  }
 }
 
 module.exports = { main }

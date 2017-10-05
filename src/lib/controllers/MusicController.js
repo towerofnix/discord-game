@@ -1,5 +1,3 @@
-const { Battle } = require('../Battle')
-const { User } = require('../User')
 const { env } = require('../env')
 const { log } = require('../util')
 
@@ -12,18 +10,27 @@ class MusicController {
     this.game = game
   }
 
-  // TODO actually play music in channels using _more_ bot accounts!
+  async register(song, path) {
+    if (!song || typeof song !== 'string') throw new TypeError('MusicController#register(string song) expected')
+    if (!path || typeof path !== 'string') throw new TypeError('MusicController#register(, string path) expected')
 
-  async getSongRoleAndChannel(song, guild) {
+    log.info('Registering song: ' + song)
+
+    if (await env('music_enabled', 'boolean') === true) {
+      // TODO actually play music in channels using _more_ bot accounts!
+      await this.getSongRoleAndChannel(song) // create channel/role
+    }
+  }
+
+  async getSongRoleAndChannel(song) {
     // Gets the Discord role and channel for a given song. Creates them,
     // if they don't already exist.
 
     if (!song || typeof song !== 'string') throw new TypeError('MusicController#getSongRoleAndChannel(string song) expected')
-    if (!guild /* TODO: Type-check */) throw new TypeError('MusicController#getSongRoleAndChannel(, discord.Guild guild) expected')
 
     if (env('music_enabled', 'boolean') === false) {
-      log.warn(chalk`{yellow music_enabled} is {purple false} but MusicController#getSongRoleAndChannel() was called anyway`)
-      return false
+      log.warn(chalk`{yellow music_enabled} is {magenta false} but MusicController#getSongRoleAndChannel() was called anyway`)
+      return {role: null, channel: null}
     }
 
     // Music channels will probably be named the same as some room channels
@@ -32,9 +39,11 @@ class MusicController {
     const roleName = `listening to: ${song}`
     const channelName = `music-${song}`
 
+    const guild = this.game.guild
     let role = guild.roles.find('name', roleName)
 
     if (role === null) {
+      await log.success(chalk`Created {magenta ${roleName}} role`)
       role = await guild.createRole({ name: roleName })
     }
 
@@ -47,14 +56,16 @@ class MusicController {
         { id: everyoneRole, deny: 1115136, allow: 0 }, // Deny connect, read, view message history (TODO: check whether those last two do anything)
         { id: role.id, deny: 0, allow: 9437184 } // Allow connect
       ])
+
+      await log.success(chalk`Created {magenta ${channelName}} chnanel`)
     }
 
     return {role, channel}
   }
 
-  async play(song, user) {
-    if (!song || typeof song !== 'string') throw new TypeError('MusicController#play(string song) expected')
-    if (!user || !(user instanceof User)) throw new TypeError('MusicController#play(, User user) expected')
+  async play(song, userId) {
+    if (!song || (typeof song !== 'string' || song === null)) throw new TypeError('MusicController#play(string | null song) expected')
+    if (!userId) throw new TypeError('MusicController#play(, string userId) expected')
 
     if (env('music_enabled', 'boolean') === false) {
       log.warn(chalk`{yellow music_enabled} is {purple false} but MusicController#play() was called anyway`)
@@ -62,16 +73,18 @@ class MusicController {
     }
 
     const guild = this.game.guild
-    const { role, channel } = await this.getSongRoleAndChannel(song, guild)
-    const member = await user.getMember(guild)
+    const { role, channel } = await this.getSongRoleAndChannel(song)
+    const member = await this.game.users.getDiscordMember(userId)
 
-    // give user the "listening to: <song>" role so they can actually join the channel
-    await member.addRole(role)
+    if (song !== null) {
+      // give user the "listening to: <song>" role so they can actually join the channel
+      await member.addRole(role)
 
-    // move them to the voice channel
-    // (note: setVoiceChannel cannot *put* people in voice channels if they aren't
-    // already in one! no idea why that doesnt throw an error, though...)
-    await member.setVoiceChannel(channel)
+      // move them to the voice channel
+      // (note: setVoiceChannel cannot *put* people in voice channels if they aren't
+      // already in one! no idea why that doesnt throw an error, though...)
+      await member.setVoiceChannel(channel)
+    }
 
     // remove previous "listening to" role
     const newRoleName = role.name

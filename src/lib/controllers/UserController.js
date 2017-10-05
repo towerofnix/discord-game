@@ -83,6 +83,18 @@ class UserController extends BasicDatabaseController {
   async getDiscordMember(id) {
     return await this.game.guild.members.find('id', id)
   }
+
+  async getListeningTo(id) {
+    let member = await this.getDiscordMember(id)
+
+    for (let [ id, role ] of member.roles) {
+      if (role.name.startsWith('listening to:')) {
+        return role.name.substr(14)
+      }
+    }
+
+    return null
+  }
 }
 
 module.exports = { UserController, UserData }

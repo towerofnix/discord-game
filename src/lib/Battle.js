@@ -1,4 +1,5 @@
 const { log, temporaryPrompt, richWrite, delay } = require('./util')
+const { env } = require('./env')
 const { BattleMove } = require('./BattleMove')
 
 const chalk = require('chalk')
@@ -15,6 +16,7 @@ class Battle {
 
     this.id = shortid.generate().toLowerCase()
     this.teams = teams
+    this.originallyPlayingSongs = {} // Object userId -> song
 
     this.channelMap = new Map()
     this.started = false
@@ -44,16 +46,17 @@ class Battle {
       ]))
     }
 
-    // TODO: Music
-    /*
-    for (const team of this.teams) {
-      for (const { entity } of team) {
-        if (entity instanceof User) {
-          await game.musicController.play('battle', entity)
+    if (await env('music_enabled', 'boolean') === true) {
+      for (const team of this.teams) {
+        for (const character of await this.game.teams.getMembers(team)) {
+          if (await this.game.battleCharacters.getCharacterType(character) === 'user') {
+            let id = await this.game.battleCharacters.getCharacterId(character)
+            this.originallyPlayingSongs[id] = await this.game.users.getListeningTo(id)
+            await this.game.music.play('battle', id)
+          }
         }
       }
     }
-    */
 
     // TODO spectator channel?
     // TODO header image
@@ -82,6 +85,10 @@ class Battle {
       await this.writeToAllChannels(0x4488EE, 'Battle results', `The team of ${name} won!`)
     } else if (aliveTeams.length === 0) {
       await this.writeToAllChannels(0x4488EE, 'Battle results', 'No teams survived.')
+    }
+
+    for (let [ id, song ] of Object.entries(this.originallyPlayingSongs)) {
+      await this.game.music.play(song, id)
     }
 
     await delay(800)

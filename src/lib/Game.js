@@ -4,7 +4,7 @@ const chalk = require('chalk')
 //const { User } = require('./User')
 const { env } = require('./env')
 const { log } = require('./util')
-const { CommandController, RoomController, /*MusicController,*/
+const { CommandController, RoomController, MusicController,
         UserController, BattleAIController, TeamController,
         BattleCharacterController, MoveController } = require('./controllers')
 const { Battle } = require('./Battle')
@@ -71,15 +71,23 @@ class Game {
     this.teams = new TeamController(this)
     this.rooms = new RoomController(this)
     this.moves = new MoveController(this)
+    this.music = new MusicController(this)
     this.battleAIs = new BattleAIController(this)
 
     this.commands = new CommandController(this)
     this.commands.setupMessageListener()
     this.commands.addVerb('examine')
 
+    this.commands.set('play', async (rest, message) => {
+      // TEMP
+
+      const userId = message.author.id
+      await this.music.play(rest, userId)
+    })
+
     this.commands.set('battle', async (rest, message) => {
       // TEMP
-      console.log('Battle!')
+      log.info('Battle!')
 
       const userId = message.author.id
       const playerBattleCharacterId = await this.users.getBattleCharacter(userId)
@@ -199,11 +207,6 @@ class Game {
 
       message.reply('Teamed!')
     })
-
-    // TODO: refactor lol
-    return
-
-    this.musicController = new MusicController(this)
   }
 
   async go() {
@@ -216,33 +219,72 @@ class Game {
     await this.client.login(token)
 
     await this.cleanDiscordServer()
+    await log.success('Ready')
   }
 
   async cleanDiscordServer() {
-    await log.info('Removing battle-related channels...')
+    // Battle-related channels
+    {
+      await log.info('Removing battle-related channels...')
 
-    const battlesRemoved = (await Promise.all(this.guild.channels
-      .filter(channel => channel.name.startsWith('battle-'))
-      .map(channel => channel.delete())
-    )).length
+      const removed = (await Promise.all(this.guild.channels
+        .filter(channel => channel.name.startsWith('battle-'))
+        .map(channel => channel.delete())
+      )).length
 
-    if (battlesRemoved > 0) {
-      await log.success(`Removed (${battlesRemoved}) battle channels`)
-    } else {
-      await log.info('No battle channels to remove')
+      if (removed > 0) {
+        await log.success(`Removed (${removed}) battle channels`)
+      } else {
+        await log.info('No battle channels to remove')
+      }
     }
 
-    await log.info('Removing team-related roles...')
+    // Team-related roles
+    {
+      await log.info('Removing team-related roles...')
 
-    const rolesRemoved = (await Promise.all(this.guild.roles
-      .filter(role => role.name.startsWith('in team:'))
-      .map(role => role.delete())
-    )).length
+      const removed = (await Promise.all(this.guild.roles
+        .filter(role => role.name.startsWith('in team:'))
+        .map(role => role.delete())
+      )).length
 
-    if (rolesRemoved > 0) {
-      await log.success(`Removed (${rolesRemoved}) role channels`)
-    } else {
-      await log.info('No team roles to remove')
+      if (removed > 0) {
+        await log.success(`Removed (${removed}) team roles`)
+      } else {
+        await log.info('No team roles to remove')
+      }
+    }
+
+    // Music-related channels
+    {
+      await log.info('Removing music-related channels...')
+
+      const removed = (await Promise.all(this.guild.channels
+        .filter(channel => channel.name.startsWith('music-'))
+        .map(channel => channel.delete())
+      )).length
+
+      if (removed > 0) {
+        await log.success(`Removed (${removed}) music channels`)
+      } else {
+        await log.info('No music channels to remove')
+      }
+    }
+
+    // Music-related roles
+    {
+      await log.info('Removing music-related roles...')
+
+      const removed = (await Promise.all(this.guild.roles
+        .filter(role => role.name.startsWith('listening to:'))
+        .map(role => role.delete())
+      )).length
+
+      if (removed > 0) {
+        await log.success(`Removed (${removed}) music roles`)
+      } else {
+        await log.info('No music roles to remove')
+      }
     }
   }
 }
