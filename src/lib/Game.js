@@ -168,8 +168,12 @@ class Game {
       const name = choose(alphabet) + (choose('AEIOU') + choose(alphabet)).toLowerCase()
       const pronoun = choose(['she', 'he', 'they'])
 
-      const friendBattleCharacterId = await this.battleCharacters.createForCharacter('ai', 'cool-npc-friend', name, pronoun)
+      const aiId = rest || 'cool-npc-friend'
+
+      const friendBattleCharacterId = await this.battleCharacters.createForCharacter('ai', rest || 'cool-npc-friend', name, pronoun)
       await this.teams.addMember(teamId, friendBattleCharacterId)
+
+      message.reply(name + ' joins your team!')
     })
 
     this.commands.set('team', async (rest, message) => {
