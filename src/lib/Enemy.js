@@ -10,6 +10,10 @@ class Enemy {
       this.name = opts.name
     else throw new TypeError('new Enemy({ string name }) expected')
   }
+
+  async chooseAction(myBattleCharacterId, myTeamId, battle) {
+    return { type: 'use move', move: battle.game.moves.get('skip-turn') }
+  }
 }
 
 module.exports = { Enemy }

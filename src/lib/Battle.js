@@ -138,6 +138,9 @@ class Battle {
 
     if (action.type === 'use move') {
       await action.move.go(this.currentCharacterId, action.target, this)
+    } else {
+      await log.warn('Invalid action type:', action.type)
+      await log.warn(`..acted by battle character ${this.currentCharacterId} (${name})`)
     }
   }
 
@@ -151,6 +154,10 @@ class Battle {
     if (!content || typeof content !== 'string') throw new TypeError('Battle#displayMoveMessage(,, string content) expected')
 
     await this.writeToAllChannels(color, await this.getCurrentMoveTitle(move), content)
+  }
+
+  async getAllCharacters() {
+    return (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
   }
 
   async dealDamageToCharacter(move, targetId, damage) {
@@ -270,11 +277,22 @@ class Battle {
 
     if (characterType === 'user') {
       return await this.getUserAction(battleCharacterId, teamId)
-    } else {
+    } else if (characterType === 'ai') {
       // TODO: AI turn picking
+
       await delay(1000)
-      // return { type: 'use move', move: this.game.moves.get('skip-turn') }
-      return { type: 'use move', move: this.game.moves.get('tackle'), target: (await this.game.teams.getMembers(this.teams[0]))[0] }
+
+      const aiType = await this.game.battleCharacters.getCharacterId(battleCharacterId)
+
+      if (this.game.enemies.has(aiType) === false) {
+        await log.warn(`Invalid AI type: "${aiType}" (Skipping turn)`)
+        await log.warn(`..on battle character ${battleCharacterId} (${await this.game.battleCharacters.getName(battleCharacterId)})`)
+        return { type: 'use move', move: this.game.moves.get('skip-turn') }
+      }
+
+      const ai = this.game.enemies.get(aiType)
+
+      return await ai.chooseAction(battleCharacterId, teamId, this)
     }
   }
 
@@ -328,8 +346,7 @@ class Battle {
     if (!teamId || typeof teamId !== 'string') throw new TypeError('Battle#getUserTarget(, string teamId) expected')
     if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#getUserTarget(,, BattleMove move) expected')
 
-    const allCharacters = this.teams.map(team => team.battleCharacters)
-      .reduce((a, b) => a.concat(b), [])
+    const allCharacters = await this.getAllCharacters()
 
     const characters = []
     for (const teamId of this.teams) {
@@ -364,7 +381,7 @@ class Battle {
     // and if there is at least one player-type character inside the channel.
 
     if (this.channelMap.has(teamId) === false) {
-      log.warn('Battle#writeToTeamChannel called with a team ID that isn\'t in the team map?')
+      await log.warn('Battle#writeToTeamChannel called with a team ID that isn\'t in the team map?')
       console.trace('Warning trace of writeToTeamChannel')
       return false
     }

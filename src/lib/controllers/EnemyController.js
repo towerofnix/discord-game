@@ -13,7 +13,7 @@ class EnemyController extends Map {
 
   async register(enemyObject) {
     await log.info(`Registering enemy: ${enemyObject.name} (ID: ${enemyObject.id})`)
-    this.set(enemyObject.id, enemyObject.name)
+    this.set(enemyObject.id, enemyObject)
   }
 }
 

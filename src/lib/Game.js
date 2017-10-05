@@ -168,7 +168,7 @@ class Game {
       const name = choose(alphabet) + (choose('AEIOU') + choose(alphabet)).toLowerCase()
       const pronoun = choose(['she', 'he', 'they'])
 
-      const friendBattleCharacterId = await this.battleCharacters.createForCharacter('ai', 'ai-friend', name, pronoun)
+      const friendBattleCharacterId = await this.battleCharacters.createForCharacter('ai', 'cool-npc-friend', name, pronoun)
       await this.teams.addMember(teamId, friendBattleCharacterId)
     })
 
