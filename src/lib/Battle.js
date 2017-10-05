@@ -22,6 +22,8 @@ class Battle {
 
     this.currentTeamId = null
     this.currentCharacterId = null
+
+    this.battleStatuses = []
   }
 
   async start(game) {
@@ -59,6 +61,8 @@ class Battle {
     this.currentTeamId = this.teams[0]
     this.currentCharacterId = (await this.game.teams.getMembers(this.currentTeamId))[0]
 
+    this.battleStatuses = await this.writeBattleStatuses()
+
     await this.runBattleLoop()
   }
 
@@ -69,6 +73,7 @@ class Battle {
       await delay(800)
     }
 
+    await this.updateBattleStatuses()
     const aliveTeams = await this.getAliveTeams()
 
     if (aliveTeams.length === 1) {
@@ -80,9 +85,25 @@ class Battle {
     }
 
     await delay(800)
-    await this.writeToAllChannels(0xFF8888, 'Channel to be deleted', 'This battle\'s channels will be deleted in 30 seconds.')
+    const msgs = await this.writeToAllChannels(0xFF8888, 'Channel to be deleted', 'This battle\'s channels will be deleted in 30 seconds.')
 
-    await delay(30 * 1000)
+    for (let secs = 29; secs > 0; secs--) {
+      let editPromises = []
+      const embed = new discord.RichEmbed()
+        .setTitle('Channel to be deleted')
+        .setColor(0xFF8888)
+        .setDescription(`This battle\'s channels will be deleted in ${secs} second${secs == 1 ? '' : 's'}.`)
+
+      for (let msg of msgs) {
+        editPromises.push(
+          msg.edit('', embed))
+      }
+
+      await Promise.all([
+        delay(1000),
+        ...editPromises,
+      ])
+    }
 
     await Battle.deleteChannels(this.id, this.game.guild)
   }
@@ -125,14 +146,20 @@ class Battle {
 
     if (await this.game.battleCharacters.getCharacterType(this.currentCharacterId) === 'user') {
       const userId = await this.game.battleCharacters.getCharacterId(this.currentCharacterId)
-      await this.writeToAllChannels(promptColor, `${name}'s turn`, `It's ${name}'s (<@${userId}>) turn.`)
+      const { displayColor } = await this.game.users.getDiscordMember(userId)
+
+      await this.writeToAllChannels(displayColor, `${name}'s turn`, `It's <@${userId}>'s turn.`)
     } else {
       await this.writeToAllChannels(promptColor, `${name}'s turn`, `It's ${name}'s turn.`)
     }
 
+    await this.updateBattleStatuses()
+
+    /*
     await delay(400)
-    await this.writeBattleStatus()
+    await this.writeBattleStatuses()
     await delay(400)
+    */
 
     const action = await this.getBattleCharacterAction(this.currentCharacterId, this.currentTeamId)
 
@@ -150,7 +177,7 @@ class Battle {
 
   async writeMoveMessage(move, color, content) {
     if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#displayMoveMessage(BattleMove move) expected')
-    if (!color || typeof color !== 'number') throw new TypeError('Battle#displayMoveMessage(, number color) expected')
+    if (!color) throw new TypeError('Battle#displayMoveMessage(, ColorResolvable color) expected')
     if (!content || typeof content !== 'string') throw new TypeError('Battle#displayMoveMessage(,, string content) expected')
 
     await this.writeToAllChannels(color, await this.getCurrentMoveTitle(move), content)
@@ -168,11 +195,11 @@ class Battle {
     const title = await this.getCurrentMoveTitle(move)
     const wasAlive = await this.game.battleCharacters.isAlive(targetId)
     await this.game.battleCharacters.dealDamage(targetId, damage)
-    await this.writeToAllChannels(0xD79999, title, `Deals ${damage} damage.`)
+    await this.writeToAllChannels('RED', title, `Deals ${damage} damage.`)
     const isDead = await this.game.battleCharacters.isDead(targetId)
     if (wasAlive && isDead) {
       await delay(600)
-      await this.writeToAllChannels(0xFF7777, title, `Defeated ${await this.game.battleCharacters.getName(targetId)}!`)
+      await this.writeToAllChannels('DARK_RED', title, `Defeated ${await this.game.battleCharacters.getName(targetId)}!`)
     }
   }
 
@@ -182,57 +209,83 @@ class Battle {
     return `${await this.game.battleCharacters.getName(this.currentCharacterId)} - ${move.name}`
   }
 
-  async writeBattleStatus() {
+  async getBattleStatusForTeam(team) {
+    if (!team) throw new TypeError('Battle#getBattleStatusForTeam(Team team) expected')
+
+    let status = '**Your team:**\n'
+
+    const _addMemberLine = async (member, fromThisTeam) => {
+      const name = await this.game.battleCharacters.getName(member)
+      if (await this.game.battleCharacters.isAlive(member)) {
+        const curHP = await this.game.battleCharacters.getHP(member)
+        const maxHP = await this.game.battleCharacters.getMaxHP(member)
+        const hpTicks = Math.ceil((15 / maxHP) * curHP)
+        const prettyHP = '█'.repeat(hpTicks) + '░'.repeat(15 - hpTicks)
+
+        status += `**${name}:**`
+        status += `\`{${prettyHP}}\``
+
+        // Only display accurate HP values if this member is on the current
+        // team.
+        if (fromThisTeam) {
+          status += `(${curHP} / ${maxHP})`
+        }
+
+        const tempEffects = Object.entries(this.temporaryEffects.get(member) || {})
+          .filter(([ name, value ]) => value !== 0)
+
+        if (tempEffects.length) {
+          status += ' ('
+          status += tempEffects.map(([ name, value ]) => `${name}: ${value > 0 ? '+' + value : value}`).join(', ')
+          status += ')'
+        }
+      } else {
+        status += `~~${name}~~ (Dead)`
+      }
+      status += '\n'
+    }
+
+    for (const member of await this.game.teams.getMembers(team)) {
+      await _addMemberLine(member, true)
+    }
+
+    status += '\n**Opposing teams:**\n'
+
+    for (const opposingTeam of this.teams.filter(t => t !== team)) {
+      status += `\n`
+      for (const member of await this.game.teams.getMembers(opposingTeam)) {
+        await _addMemberLine(member, false)
+      }
+    }
+
+    return status
+  }
+
+  async writeBattleStatuses() {
+    let battleStatuses = []
+
     for (const team of this.teams) {
-      let status = ''
+      const status = await this.getBattleStatusForTeam(team)
+      const msg = await this.writeToTeamChannel(team, 'DEFAULT', 'Battle status', status)
 
-      status += '**Your team:**\n'
-
-      const _addMemberLine = async (member, fromThisTeam) => {
-        const name = await this.game.battleCharacters.getName(member)
-        if (await this.game.battleCharacters.isAlive(member)) {
-          const curHP = await this.game.battleCharacters.getHP(member)
-          const maxHP = await this.game.battleCharacters.getMaxHP(member)
-          const hpTicks = Math.ceil((15 / maxHP) * curHP)
-          const prettyHP = '█'.repeat(hpTicks) + '░'.repeat(15 - hpTicks)
-
-          status += `**${name}:**`
-          status += `\`{${prettyHP}}\``
-
-          // Only display accurate HP values if this member is on the current
-          // team.
-          if (fromThisTeam) {
-            status += `(${curHP} / ${maxHP})`
-          }
-
-          const tempEffects = Object.entries(this.temporaryEffects.get(member) || {})
-            .filter(([ name, value ]) => value !== 0)
-
-          if (tempEffects.length) {
-            status += ' ('
-            status += tempEffects.map(([ name, value ]) => `${name}: ${value > 0 ? '+' + value : value}`).join(', ')
-            status += ')'
-          }
-        } else {
-          status += `${name} (Dead)`
-        }
-        status += '\n'
+      if (msg) {
+        await msg.pin()
+        battleStatuses.push([ msg, team ])
       }
+    }
 
-      for (const member of await this.game.teams.getMembers(team)) {
-        await _addMemberLine(member, true)
-      }
+    return battleStatuses
+  }
 
-      status += '\n**Opposing teams:**\n'
+  async updateBattleStatuses() {
+    for (const [ msg, team ] of this.battleStatuses) {
+      const status = await this.getBattleStatusForTeam(team)
+      const embed = new discord.RichEmbed()
+        .setTitle('Battle status')
+        .setColor('DEFAULT')
+        .setDescription(status)
 
-      for (const opposingTeam of this.teams.filter(t => t !== team)) {
-        status += `\n`
-        for (const member of await this.game.teams.getMembers(opposingTeam)) {
-          await _addMemberLine(member, false)
-        }
-      }
-
-      await this.writeToTeamChannel(team, promptColor, 'Battle status', status)
+      await msg.edit('', embed)
     }
   }
 
@@ -316,13 +369,13 @@ class Battle {
     const member = await this.game.users.getDiscordMember(userId)
     const channel = this.channelMap.get(teamId)
 
-    switch ((await temporaryPrompt(channel, userId, `${member.displayName}'s Turn`, userMoves)).choice) {
+    switch ((await temporaryPrompt(channel, userId, `${member.displayName}'s Turn`, userMoves, member.displayColor)).choice) {
       case 'attacks': {
         const choices = new Map(userAttacks.map(attackId => {
           const move = this.game.moves.get(attackId)
           return [move, [move.name, move.emoji]]
         }))
-        const { choice: move } = await temporaryPrompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choices)
+        const { choice: move } = await temporaryPrompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choices, member.displayColor)
         const target = await this.getUserTarget(userId, teamId, move)
         return { type: 'use move', move, target }
       }
@@ -368,12 +421,15 @@ class Battle {
 
     const channel = this.channelMap.get(teamId)
 
-    return (await temporaryPrompt(channel, userId, `${await this.game.users.getName(userId)}'s turn - use ${move.name} on who?`, choices)).choice
+    return (await temporaryPrompt(channel, userId, `${await this.game.users.getName(userId)}'s turn - use ${move.name} on who?`, choices, await this.game.users.getDiscordMember(userId).then(m => m.displayColor))).choice
   }
 
   async writeToAllChannels(color, title, content) {
     const teamIds = Array.from(this.channelMap.keys())
-    await Promise.all(teamIds.map(teamId => this.writeToTeamChannel(teamId, color, title, content)))
+    const msgs = await Promise.all(
+      teamIds.map(teamId => this.writeToTeamChannel(teamId, color, title, content)))
+
+    return msgs.filter(msg => !!msg) // remove falsey values
   }
 
   async writeToTeamChannel(teamId, color, title, content) {
@@ -390,8 +446,10 @@ class Battle {
     const types = await Promise.all(members.map(id => this.game.battleCharacters.getCharacterType(id)))
     if (types.some(type => type === 'user')) {
       const channel = this.channelMap.get(teamId)
-      await richWrite(channel, color, title, content)
+      return await richWrite(channel, color, title, content)
     }
+
+    return null
   }
 
   static async deleteChannels(battleId, guild) {

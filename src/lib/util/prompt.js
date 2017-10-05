@@ -45,15 +45,16 @@ async function promptOnMessage(message, choices, userId) {
   return { message, choice: key }
 }
 
-async function prompt(channel, userId, title, choices) {
+async function prompt(channel, userId, title, choices, color = 'GREY') {
   if (!channel) throw new TypeError('prompt(discord.TextChannel channel) expected')
   if (!userId || typeof userId !== 'string') throw new TypeError('prompt(, string userId) expected')
   if (!title || typeof title !== 'string') throw new TypeError('prompt(,, string title) expected')
   if (!choices || typeof choices !== 'object') throw new TypeError('prompt(,,, object | Map<anything, array<string title, Emoji emoji>> choices) expected')
+  if (!color) throw new TypeError('prompt(,,,, ColorResolvable color) expected')
 
   const embed = new RichEmbed()
     .setTitle(title)
-    .setColor(0x00AE86)
+    .setColor(color)
     .setDescription(Array.from(objectAsMap(choices).values()).map(([ name, emoji ]) => `${emoji} ${name}`))
 
   const message = await channel.send(embed)
@@ -63,13 +64,14 @@ async function prompt(channel, userId, title, choices) {
   return { message, choice }
 }
 
-async function temporaryPrompt(channel, userId, title, choices) {
+async function temporaryPrompt(channel, userId, title, choices, color = 'GREY') {
   if (!channel) throw new TypeError('temporaryPrompt(discord.TextChannel channel) expected')
   if (!userId || typeof userId !== 'string') throw new TypeError('temporaryPrompt(, string userId) expected')
   if (!title || typeof title !== 'string') throw new TypeError('temporaryPrompt(,, string title) expected')
   if (!choices || typeof choices !== 'object') throw new TypeError('temporaryPrompt(,,, object | Map<anything, array<string title, Emoji emoji>> choices) expected')
+  if (!color) throw new TypeError('prompt(,,,, ColorResolvable color) expected')
 
-  const { message, choice } = await prompt(channel, userId, title, choices)
+  const { message, choice } = await prompt(channel, userId, title, choices, color)
 
   await message.delete()
 

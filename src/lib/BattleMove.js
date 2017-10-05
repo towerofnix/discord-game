@@ -28,9 +28,9 @@ class BattleMove {
     const bc = this.game.battleCharacters
 
     if (targetBattleCharacterId) {
-      await battleObject.writeMoveMessage(this, 0xCCCCCC, `${await bc.getName(actorBattleCharacterId)} notices that the ${this.name} move doesn't have a go function, but doesn't think too much about it and launches a sick burn at ${await bc.getName(targetBattleCharacterId)}.`)
+      await battleObject.writeMoveMessage(this, 'RED', `${await bc.getName(actorBattleCharacterId)} notices that the ${this.name} move doesn't have a go function, but doesn't think too much about it and launches a sick burn at ${await bc.getName(targetBattleCharacterId)}.`)
     } else {
-      await battleObject.writeMoveMessage(this, 0xCCCCCC, `${await bc.getName(actorBattleCharacterId)} notices that the ${this.name} move doesn't have a go function, but doesn't think too much about it and does a twirl in the air.`)
+      await battleObject.writeMoveMessage(this, 'PURPLE', `${await bc.getName(actorBattleCharacterId)} notices that the ${this.name} move doesn't have a go function, but doesn't think too much about it and does a twirl in the air.`)
     }
   }
 }
