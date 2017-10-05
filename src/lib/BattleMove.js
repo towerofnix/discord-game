@@ -1,3 +1,5 @@
+const { log } = require('./util')
+
 class BattleMove {
   constructor(game, opts) {
     if (!game) throw new TypeError('new BattleMove(Game game) expected')
@@ -26,6 +28,8 @@ class BattleMove {
 
   async go(actorBattleCharacterId, targetBattleCharacterId, battleObject) {
     const bc = this.game.battleCharacters
+
+    await log.warn(`Move ${this.name} has no go function`)
 
     if (targetBattleCharacterId) {
       await battleObject.writeMoveMessage(this, 'RED', `${await bc.getName(actorBattleCharacterId)} notices that the ${this.name} move doesn't have a go function, but doesn't think too much about it and launches a sick burn at ${await bc.getName(targetBattleCharacterId)}.`)

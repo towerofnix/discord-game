@@ -20,7 +20,7 @@ async function promptOnMessage(message, choices, userId) {
   // And you thought you'd never see another IIFE?!
   const addReactsMap = (async () => {
     for (const item of Array.from(choiceMap.values())) {
-      if (!item[1]) item[1] = '🔣' // :sneezing:
+      if (!item[1]) item[1] = '🔣' // FIXME :sneezing:
 
       const [ name, emoji ] = item
 
