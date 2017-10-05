@@ -18,7 +18,6 @@ class Think extends BattleAI {
     }
 
     const target = validTargets[Math.floor(Math.random() * validTargets.length)]
-    console.log(target, validTargets)
 
     return { type: 'use move', move: battle.game.moves.get('tackle'), target }
   }
