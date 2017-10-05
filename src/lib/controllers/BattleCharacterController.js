@@ -19,6 +19,10 @@ const BattleCharacterData = {
   characterId: String, // ID of player or AI-character (enemy)
 }
 
+// TODO: "Destroy character" method (probably override .delete), which is
+// hooked into a clean-up (which deletes old un-deleted enemies when called..
+// or at least, temporary ones).
+
 class BattleCharacterController extends BasicDatabaseController {
   constructor(game) {
     if (!game) throw new TypeError('new BattleCharacterController(Game game) expected')

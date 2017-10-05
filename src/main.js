@@ -2,7 +2,7 @@ const { Game } = require('./lib/Game')
 const { log, checkTypes } = require('./lib/util')
 const { LonelyVoid } = require('./game/rooms/LonelyVoid')
 const { TinyLand } = require('./game/rooms/TinyLand')
-const enemies = require('./game/enemies')
+const battleAIs = require('./game/ais')
 const moves = require('./game/moves')
 
 async function main() {
@@ -26,8 +26,8 @@ async function main() {
     }
   }
 
-  for (const enemyClass of enemies) {
-    await game.enemies.register(new enemyClass(game))
+  for (const aiClass of battleAIs) {
+    await game.battleAIs.register(new aiClass(game))
   }
 
   await game.go()

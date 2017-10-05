@@ -1,4 +1,4 @@
-class Enemy {
+class BattleAI {
   constructor(opts) {
     if (!opts || typeof opts !== 'object') throw new TypeError('new Enemy(object opts) expected')
 
@@ -16,4 +16,4 @@ class Enemy {
   }
 }
 
-module.exports = { Enemy }
+module.exports = { BattleAI }

@@ -5,7 +5,7 @@ const chalk = require('chalk')
 const { env } = require('./env')
 const { log } = require('./util')
 const { CommandController, RoomController, /*MusicController,*/
-        UserController, EnemyController, TeamController,
+        UserController, BattleAIController, TeamController,
         BattleCharacterController, MoveController } = require('./controllers')
 const { Battle } = require('./Battle')
 
@@ -71,7 +71,7 @@ class Game {
     this.teams = new TeamController(this)
     this.rooms = new RoomController(this)
     this.moves = new MoveController(this)
-    this.enemies = new EnemyController(this)
+    this.battleAIs = new BattleAIController(this)
 
     this.commands = new CommandController(this)
     this.commands.setupMessageListener()

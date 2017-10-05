@@ -284,13 +284,13 @@ class Battle {
 
       const aiType = await this.game.battleCharacters.getCharacterId(battleCharacterId)
 
-      if (this.game.enemies.has(aiType) === false) {
+      if (this.game.battleAIs.has(aiType) === false) {
         await log.warn(`Invalid AI type: "${aiType}" (Skipping turn)`)
         await log.warn(`..on battle character ${battleCharacterId} (${await this.game.battleCharacters.getName(battleCharacterId)})`)
         return { type: 'use move', move: this.game.moves.get('skip-turn') }
       }
 
-      const ai = this.game.enemies.get(aiType)
+      const ai = this.game.battleAIs.get(aiType)
 
       return await ai.chooseAction(battleCharacterId, teamId, this)
     }

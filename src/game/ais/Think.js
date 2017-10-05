@@ -1,6 +1,6 @@
-const { Enemy } = require('../../lib/Enemy')
+const { BattleAI } = require('../../lib/BattleAI')
 
-class Think extends Enemy {
+class Think extends BattleAI {
   constructor() {
     super({
       name: 'Think',
