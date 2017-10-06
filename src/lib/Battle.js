@@ -146,8 +146,17 @@ class Battle {
   async runCurrentTurn() {
     const name = await this.game.battleCharacters.getName(this.currentCharacterId)
 
+    if (await this.getTemporaryEffect(this.currentCharacterId, 'silentIdle') > 0) {
+      return
+    }
+
     if (await this.game.battleCharacters.isDead(this.currentCharacterId)) {
       await this.writeToAllChannels(0x555555, `${name}'s turn`, `${name} is dead and cannot act.`)
+      return
+    }
+
+    if (await this.getTemporaryEffect(this.currentCharacterId, 'idle') > 0) {
+      await this.writeToAllChannels(0x555555, `${name}'s turn`, `${name} is idled and does not act.`)
       return
     }
 
