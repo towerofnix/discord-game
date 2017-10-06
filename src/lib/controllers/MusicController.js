@@ -64,7 +64,7 @@ class MusicController {
   }
 
   async play(song, userId) {
-    if (!song || (typeof song !== 'string' || song === null)) throw new TypeError('MusicController#play(string | null song) expected')
+    if (typeof song !== 'string' && song !== null) throw new TypeError('MusicController#play(string | null song) expected')
     if (!userId) throw new TypeError('MusicController#play(, string userId) expected')
 
     if (env('music_enabled', 'boolean') === false) {
@@ -72,11 +72,13 @@ class MusicController {
       return false
     }
 
-    const guild = this.game.guild
-    const { role, channel } = await this.getSongRoleAndChannel(song)
     const member = await this.game.users.getDiscordMember(userId)
 
+    let newRoleName = ''
+
     if (song !== null) {
+      const { role, channel } = await this.getSongRoleAndChannel(song)
+
       // give user the "listening to: <song>" role so they can actually join the channel
       await member.addRole(role)
 
@@ -84,10 +86,12 @@ class MusicController {
       // (note: setVoiceChannel cannot *put* people in voice channels if they aren't
       // already in one! no idea why that doesnt throw an error, though...)
       await member.setVoiceChannel(channel)
+
+      // set the new role name, so that this role won't be removed next
+      newRoleName = role.name
     }
 
     // remove previous "listening to" role
-    const newRoleName = role.name
     for (let [ id, role ] of member.roles) {
       if (role.name.startsWith('listening to:') && role.name !== newRoleName) {
         await member.removeRole(id)
