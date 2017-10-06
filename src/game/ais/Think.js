@@ -14,12 +14,12 @@ class Think extends BattleAI {
       .then(chars => chars.filter(char => char !== false))
 
     if (validTargets.length === 0) {
-      return { type: 'use move', move: battle.game.moves.get('skip-turn') }
+      return { type: 'use move', move: 'skip-turn' }
     }
 
     const target = validTargets[Math.floor(Math.random() * validTargets.length)]
 
-    return { type: 'use move', move: battle.game.moves.get('tackle'), target }
+    return { type: 'use move', move: 'tackle', target }
   }
 }
 

@@ -171,7 +171,13 @@ class Battle {
     const action = await this.getBattleCharacterAction(this.currentCharacterId, this.currentTeamId)
 
     if (action.type === 'use move') {
-      await action.move.go(this.currentCharacterId, action.target, this)
+      const moveId = action.move
+      if (this.game.moves.has(moveId)) {
+        await (this.game.moves.get(moveId)).go(this.currentCharacterId, action.target, this)
+      } else {
+        await log.warn(`Invalid action move ID: ${moveId}`)
+        await log.warn(`..acted by battle character ${this.currentCharacterId} (${name})`)
+      }
     } else {
       await log.warn('Invalid action type:', action.type)
       await log.warn(`..acted by battle character ${this.currentCharacterId} (${name})`)
@@ -379,8 +385,8 @@ class Battle {
     switch ((await temporaryPrompt(channel, userId, `${member.displayName}'s Turn`, userMoves, member.displayColor)).choice) {
       case 'attacks': {
         const choices = new Map(userAttacks.map(attackId => {
-          const move = this.game.moves.get(attackId)
-          return [move, [move.name, move.emoji]]
+          const { id, name, emoji } = this.game.moves.get(attackId)
+          return [id, [name, emoji]]
         }))
         const { choice: move } = await temporaryPrompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choices, member.displayColor)
         const target = await this.getUserTarget(userId, teamId, move)
@@ -392,19 +398,19 @@ class Battle {
 
       case 'skipTurn':
       default: {
-        return { type: 'use move', move: this.game.moves.get('skip-turn') }
+        return { type: 'use move', move: 'skip-turn' }
       }
     }
   }
 
-  async getUserTarget(userId, teamId, move) {
+  async getUserTarget(userId, teamId, moveId) {
     // TODO: Multi-page prompt function. We can use :heart:s for five options
     // per page, but when there's more than five possible choices, that won't
     // work.
 
     if (!userId || typeof userId !== 'string') throw new TypeError('Battle#getUserTarget(string userId) expected')
     if (!teamId || typeof teamId !== 'string') throw new TypeError('Battle#getUserTarget(, string teamId) expected')
-    if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#getUserTarget(,, BattleMove move) expected')
+    if (!moveId || typeof moveId !== 'string') throw new TypeError('Battle#getUserTarget(,, string moveId) expected')
 
     const allCharacters = await this.getAllCharacters()
 
@@ -428,7 +434,9 @@ class Battle {
 
     const channel = this.channelMap.get(teamId)
 
-    return (await temporaryPrompt(channel, userId, `${await this.game.users.getName(userId)}'s turn - use ${move.name} on who?`, choices, await this.game.users.getDiscordMember(userId).then(m => m.displayColor))).choice
+    const { name: moveName } = await this.game.moves.get(moveId)
+
+    return (await temporaryPrompt(channel, userId, `${await this.game.users.getName(userId)}'s turn - use ${moveName} on who?`, choices, await this.game.users.getDiscordMember(userId).then(m => m.displayColor))).choice
   }
 
   async writeToAllChannels(color, title, content) {
