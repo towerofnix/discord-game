@@ -3,7 +3,7 @@ let outEnabled = true // XXX ew but it works :D
 
 function out(msg) {
   if (!outEnabled) return
-  console.error(chalk`{bgRed [fatal]} ${msg}`)
+  console.error(chalk`{bgRed [typecheck]} ${msg}`)
 }
 
 function checkTypes(obj, typedef, all) {

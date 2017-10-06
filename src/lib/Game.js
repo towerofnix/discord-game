@@ -74,6 +74,11 @@ class Game {
     this.music = new MusicController(this)
     this.battleAIs = new BattleAIController(this)
 
+    // check existing db schemas
+    await this.battleCharacters.typecheckAll()
+    await this.users.typecheckAll()
+    await this.teams.typecheckAll()
+
     this.commands = new CommandController(this)
     this.commands.setupMessageListener()
     this.commands.addVerb('examine')

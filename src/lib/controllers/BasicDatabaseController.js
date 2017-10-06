@@ -12,6 +12,18 @@ class BasicDatabaseController {
     this.dataSchema = dataSchema
   }
 
+  async typecheckAll() {
+    const items = await this.list()
+
+    for (const id of items) {
+      const item = await this.get(id)
+
+      if (checkTypes(item, this.dataSchema, true) === false) {
+        throw new TypeError(`${this.constructor.name} type check failed! `)
+      }
+    }
+  }
+
   async list() {
     return (await this.db.find({}, { _id: 1 })).map(item => item._id)
   }
