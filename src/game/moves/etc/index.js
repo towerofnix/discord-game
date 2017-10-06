@@ -1,3 +1,4 @@
 module.exports = [
-  require('./SkipTurn')
+  require('./SkipTurn'),
+  require('./AirRatSummonAllies'),
 ]
