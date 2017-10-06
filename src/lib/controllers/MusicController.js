@@ -53,8 +53,8 @@ class MusicController {
       const everyoneRole = guild.id
 
       channel = await guild.createChannel(channelName, 'voice', [
-        { id: everyoneRole, deny: 1115136, allow: 0 }, // Deny connect, read, view message history (TODO: check whether those last two do anything)
-        { id: role.id, deny: 0, allow: 9437184 } // Allow connect
+        { id: everyoneRole, deny: 3212288, allow: 0 }, // -conn -view -speak
+        { id: role.id, deny: 0, allow: 1049600 } // +conn +view
       ])
 
       await log.success(chalk`Created {magenta ${channelName}} chnanel`)
