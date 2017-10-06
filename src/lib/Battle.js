@@ -146,8 +146,17 @@ class Battle {
   async runCurrentTurn() {
     const name = await this.game.battleCharacters.getName(this.currentCharacterId)
 
+    if (await this.getTemporaryEffect(this.currentCharacterId, 'silentIdle') > 0) {
+      return
+    }
+
     if (await this.game.battleCharacters.isDead(this.currentCharacterId)) {
       await this.writeToAllChannels(0x555555, `${name}'s turn`, `${name} is dead and cannot act.`)
+      return
+    }
+
+    if (await this.getTemporaryEffect(this.currentCharacterId, 'idle') > 0) {
+      await this.writeToAllChannels(0x555555, `${name}'s turn`, `${name} is idled and does not act.`)
       return
     }
 
@@ -173,7 +182,7 @@ class Battle {
     if (action.type === 'use move') {
       const moveId = action.move
       if (this.game.moves.has(moveId)) {
-        await (this.game.moves.get(moveId)).go(this.currentCharacterId, action.target, this)
+        await (this.game.moves.get(moveId)).go(this.currentCharacterId, this.currentTeamId, action.target, this)
       } else {
         await log.warn(`Invalid action move ID: ${moveId}`)
         await log.warn(`..acted by battle character ${this.currentCharacterId} (${name})`)

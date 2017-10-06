@@ -1,3 +1,5 @@
 module.exports = [
-  require('./Think')
+  require('./Think'),
+  require('./Carnivine'),
+  require('./AirRat'),
 ]

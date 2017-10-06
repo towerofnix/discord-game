@@ -1,17 +1,20 @@
 const { BattleMove } = require('../../../lib/BattleMove.js')
 
-class Tackle extends BattleMove {
+class AirRatBite extends BattleMove {
   constructor(game) {
     super(game, {
-      name: 'Tackle',
-      id: 'tackle',
+      name: 'Bite',
+      id: 'air-rat-bite',
       emoji: '🙄'
     })
   }
 
   async go(actorId, actorTeamId, targetId, battle) {
     const bc = this.game.battleCharacters
-    await battle.writeMoveMessage(this, 'RED', `${await bc.getName(actorId)} tackles ${await bc.getName(targetId)}!`)
+    const aName = await bc.getName(actorId)
+    const tName = await bc.getName(targetId)
+
+    await battle.writeMoveMessage(this, 'RED', `${aName} bites ${tName}!`)
 
     const baseDamage = 2
     const damage = await battle.getBasicDamage(baseDamage, actorId, targetId)
@@ -19,4 +22,4 @@ class Tackle extends BattleMove {
   }
 }
 
-module.exports = Tackle
+module.exports = AirRatBite

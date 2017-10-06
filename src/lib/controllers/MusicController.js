@@ -57,7 +57,7 @@ class MusicController {
         { id: role.id, deny: 0, allow: 1049600 } // +conn +view
       ])
 
-      await log.success(chalk`Created {magenta ${channelName}} chnanel`)
+      await log.success(chalk`Created {magenta ${channelName}} channel`)
     }
 
     return {role, channel}

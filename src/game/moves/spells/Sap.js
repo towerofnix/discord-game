@@ -9,7 +9,7 @@ class Sap extends BattleMove {
     })
   }
 
-  async go(actorId, targetId, battle) {
+  async go(actorId, actorTeamId, targetId, battle) {
     const bc = this.game.battleCharacters
     await battle.writeMoveMessage(this, /*FD*/0x996699, `${await bc.getName(actorId)} casts Sap.`)
 
