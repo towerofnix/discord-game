@@ -54,7 +54,7 @@ async function prompt(channel, userId, title, choices, color = 'GREY') {
   if (!userId || typeof userId !== 'string') throw new TypeError('prompt(, string userId) expected')
   if (!title || typeof title !== 'string') throw new TypeError('prompt(,, string title) expected')
   if (!choices || typeof choices !== 'object') throw new TypeError('prompt(,,, object | Map<anything, array<string title, Emoji emoji>> choices) expected')
-  if (!color) throw new TypeError('prompt(,,,, ColorResolvable color) expected')
+  if (typeof color !== 'string' && typeof color !== 'number') throw new TypeError('prompt(,,,, string | color color) expected')
 
   const embed = new RichEmbed()
     .setTitle(title)
@@ -73,7 +73,7 @@ async function temporaryPrompt(channel, userId, title, choices, color = 'GREY') 
   if (!userId || typeof userId !== 'string') throw new TypeError('temporaryPrompt(, string userId) expected')
   if (!title || typeof title !== 'string') throw new TypeError('temporaryPrompt(,, string title) expected')
   if (!choices || typeof choices !== 'object') throw new TypeError('temporaryPrompt(,,, object | Map<anything, array<string title, Emoji emoji>> choices) expected')
-  if (!color) throw new TypeError('prompt(,,,, ColorResolvable color) expected')
+  if (typeof color !== 'string' && typeof color !== 'number') throw new TypeError('prompt(,,,, string | number color) expected')
 
   const { message, choice } = await prompt(channel, userId, title, choices, color)
 
