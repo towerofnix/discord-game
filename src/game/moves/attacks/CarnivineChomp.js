@@ -9,7 +9,7 @@ class CarnivineChomp extends BattleMove {
     })
   }
 
-  async go(actorId, targetId, battle) {
+  async go(actorId, actorTeamId, targetId, battle) {
     const bc = this.game.battleCharacters
     const aName = await bc.getName(actorId)
     const tName = await bc.getName(targetId)

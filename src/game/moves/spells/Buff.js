@@ -9,7 +9,7 @@ class Buff extends BattleMove {
     })
   }
 
-  async go(actorId, targetId, battle) {
+  async go(actorId, actorTeamId, targetId, battle) {
     const bc = this.game.battleCharacters
     await battle.writeMoveMessage(this, 0x22CC55, `${await bc.getName(actorId)} casts Buff.`)
 

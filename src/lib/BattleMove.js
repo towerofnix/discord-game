@@ -26,7 +26,7 @@ class BattleMove {
     // target one.
   }
 
-  async go(actorBattleCharacterId, targetBattleCharacterId, battleObject) {
+  async go(actorBattleCharacterId, actorTeamId, targetBattleCharacterId, battleObject) {
     const bc = this.game.battleCharacters
 
     await log.warn(`Move ${this.name} has no go function`)

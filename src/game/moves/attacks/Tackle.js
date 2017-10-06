@@ -9,7 +9,7 @@ class Tackle extends BattleMove {
     })
   }
 
-  async go(actorId, targetId, battle) {
+  async go(actorId, actorTeamId, targetId, battle) {
     const bc = this.game.battleCharacters
     await battle.writeMoveMessage(this, 'RED', `${await bc.getName(actorId)} tackles ${await bc.getName(targetId)}!`)
 

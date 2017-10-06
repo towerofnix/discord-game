@@ -9,7 +9,7 @@ class SkipTurn extends BattleMove {
     })
   }
 
-  async go(actorId, _unsetTargetId, battle) {
+  async go(actorId, actorTeamId, targetId, battle) {
     const name = await this.game.battleCharacters.getName(actorId)
 
     let string
