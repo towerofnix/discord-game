@@ -3,34 +3,43 @@ const { env } = require('../env')
 const nodeUtil = require('util')
 
 const log = {
-  async info(message) {
+  async info(...messages) {
     if (await env('loglevel', 'number', 0) > 0) return
 
-    console.log(chalk`{blue [info]} ${message}`)
+    console.log(chalk`{blue [info]} ${messages.join(', ')}`)
   },
 
-  async success(message) {
+  async success(...messages) {
     if (await env('loglevel', 'number', 0) > 1) return
 
-    console.log(chalk`{green [success]} ${message}`)
+    console.log(chalk`{green [success]} ${messages.join(', ')}`)
   },
 
-  async warn(message) {
+  async warn(...messages) {
     if (await env('loglevel', 'number', 0) > 2) return
 
-    console.error(chalk`{yellow [warn]} ${message}`)
+    console.error(chalk`{yellow [warn]} ${messages.join(', ')}`)
   },
 
   // fatal() is defined in logFatal.js
 
-  async inspect(object, opts = {}) {
+  async debug(...messages) {
+    if (await env('loglevel', 'number', 0) > -1) return
+
+    console.log(chalk`{dim [debug]} ${messages.join(', ')}`)
+  },
+
+  async inspect(...objects) {
     if (await env('loglevel', 'number', 0) > -1) return
 
     process.stdout.write(chalk`{dim [inspect]} `)
-    console.log(nodeUtil.inspect(object, Object.assign({
-      depth: null,
-      colors: true,
-    }, opts)))
+
+    for (let object of objects) {
+      console.log(nodeUtil.inspect(object, {
+        depth: null,
+        colors: true,
+      }))
+    }
   }
 }
 
