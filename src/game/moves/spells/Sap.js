@@ -1,4 +1,4 @@
-const { BattleMove } = require('../../../lib/BattleMove.js')
+const { BattleMove, aliveOnly } = require('../../../lib/BattleMove.js')
 
 class Sap extends BattleMove {
   constructor(game) {
@@ -6,6 +6,7 @@ class Sap extends BattleMove {
       name: 'Sap',
       id: 'sap',
       emoji: '😬', // :grimacing:
+      targetFilter: aliveOnly,
     })
   }
 

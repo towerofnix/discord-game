@@ -63,6 +63,12 @@ class BattleCharacterController extends BasicDatabaseController {
     }
   }
 
+  async heal(id, amount) {
+    const curHP = await this.getHP(id)
+    const maxHP = await this.getMaxHP(id)
+    await this.setHP(id, Math.min(maxHP, curHP + amount))
+  }
+
   async isAlive(id) {
     return await this.getHP(id) > 0
   }

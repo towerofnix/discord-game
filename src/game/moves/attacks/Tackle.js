@@ -1,11 +1,12 @@
-const { BattleMove } = require('../../../lib/BattleMove.js')
+const { BattleMove, aliveOnly } = require('../../../lib/BattleMove.js')
 
 class Tackle extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Tackle',
       id: 'tackle',
-      emoji: '🙄'
+      emoji: '🙄',
+      targetFilter: aliveOnly,
     })
   }
 

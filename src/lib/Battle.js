@@ -52,7 +52,7 @@ class Battle {
           if (await this.game.battleCharacters.getCharacterType(character) === 'user') {
             let id = await this.game.battleCharacters.getCharacterId(character)
             this.originallyPlayingSongs[id] = await this.game.users.getListeningTo(id)
-            await this.game.music.play('battle', id)
+            await this.game.users.setListeningTo(id, 'battle')
           }
         }
       }
@@ -88,7 +88,7 @@ class Battle {
     }
 
     for (let [ id, song ] of Object.entries(this.originallyPlayingSongs)) {
-      await this.game.music.play(song, id)
+      await this.game.users.setListeningTo(id, song)
     }
 
     await delay(800)
@@ -155,8 +155,8 @@ class Battle {
       return
     }
 
-    if (await this.getTemporaryEffect(this.currentCharacterId, 'idle') > 0) {
-      await this.writeToAllChannels(0x555555, `${name}'s turn`, `${name} is idled and does not act.`)
+    if (await this.getTemporaryEffect(this.currentCharacterId, 'rest') > 0) {
+      await this.writeToAllChannels(0x555555, `${name}'s turn`, `${name} is resting and cannot act.`)
       return
     }
 
@@ -174,8 +174,8 @@ class Battle {
     /*
     await delay(400)
     await this.writeBattleStatuses()
-    await delay(400)
     */
+    await delay(400)
 
     const action = await this.getBattleCharacterAction(this.currentCharacterId, this.currentTeamId)
 
@@ -209,16 +209,24 @@ class Battle {
     return (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
   }
 
-  async getAllAliveCharacters() {
+  async getAllCharactersFilter(filter) {
+    if (!filter || typeof filter !== 'function') throw new TypeError('Battle#getAllCharactersFilter(function filter) expected')
+
     let all = (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
-    let alive = []
+    let filtered = []
 
     for (let id of all) {
-      let isAlive = await this.game.battleCharacters.isAlive(id)
-      if (isAlive) alive.push(id)
+      let ok = await filter(id, this.game)
+      if (ok) filtered.push(id)
     }
 
-    return alive
+    return filtered
+  }
+
+  async getAllAliveCharacters() {
+    return this.getAllCharactersFilter(async id => {
+      return await this.game.battleCharacters.isAlive(id)
+    })
   }
 
   async dealDamageToCharacter(move, targetId, damage) {
@@ -229,12 +237,23 @@ class Battle {
     const title = await this.getCurrentMoveTitle(move)
     const wasAlive = await this.game.battleCharacters.isAlive(targetId)
     await this.game.battleCharacters.dealDamage(targetId, damage)
-    await this.writeToAllChannels('RED', title, `Deals ${damage} damage.`)
+    await this.writeToAllChannels('RED', title, `Deals ${damage} damage to ${await this.game.battleCharacters.getName(targetId)}.`)
     const isDead = await this.game.battleCharacters.isDead(targetId)
     if (wasAlive && isDead) {
       await delay(600)
       await this.writeToAllChannels('DARK_RED', title, `Defeated ${await this.game.battleCharacters.getName(targetId)}!`)
     }
+  }
+
+  async healCharacter(move, targetId, amount) {
+    if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#healCharacter(BattleMove move) expected')
+    if (!targetId || typeof targetId !== 'string') throw new TypeError('Battle#healCharacter(string targetId) expected')
+    if (!amount || typeof amount !== 'number') throw new TypeError('Battle#healCharacter(, number amount) expected')
+
+    const title = await this.getCurrentMoveTitle(move)
+    await this.game.battleCharacters.heal(targetId, amount)
+    await
+    await this.writeToAllChannels(0xD96FCA, title, `Heals ${await this.game.battleCharacters.getName(targetId)} for ${amount} HP.`)
   }
 
   async getCurrentMoveTitle(move) {
@@ -267,10 +286,14 @@ class Battle {
 
         const tempEffects = Object.entries(this.temporaryEffects.get(member) || {})
           .filter(([ name, value ]) => value !== 0)
+          .filter(([ name ]) => !name.startsWith('silent') )
 
         if (tempEffects.length) {
           status += ' ('
-          status += tempEffects.map(([ name, value ]) => `${name}: ${value > 0 ? '+' + value : value}`).join(', ')
+          status += tempEffects.map(([ name, value ]) => {
+            if (name === 'rest') return `${name}: ${value} turns`
+            else return `${name}: ${value > 0 ? '+' + value : value}`
+          }).join(', ')
           status += ')'
         }
       } else {
@@ -365,8 +388,6 @@ class Battle {
     if (characterType === 'user') {
       return await this.getUserAction(battleCharacterId, teamId)
     } else if (characterType === 'ai') {
-      // TODO: AI turn picking
-
       await delay(1000)
 
       const aiType = await this.game.battleCharacters.getCharacterId(battleCharacterId)
@@ -397,19 +418,29 @@ class Battle {
 
     // TEMP, user should be able to learn attacks and stuff
     // TODO: Move to attacks map stored on game
-    const userAttacks = ['tackle', 'buff', 'sap']
+    const userAttacks = ['tackle', 'buff', 'sap', 'revive']
 
     const userId = await this.game.battleCharacters.getCharacterId(battleCharacterId)
     const member = await this.game.users.getDiscordMember(userId)
     const channel = this.channelMap.get(teamId)
 
-    switch ((await temporaryPrompt(channel, userId, `${member.displayName}'s Turn`, userMoves, member.displayColor)).choice) {
+    switch ((await temporaryPrompt(channel, userId, `${member.displayName}'s turn`, userMoves, member.displayColor)).choice) {
       case 'attacks': {
-        const choices = new Map(userAttacks.map(attackId => {
+        const choices = []
+        for (const id of userAttacks) {
+          const move = this.game.moves.get(id)
+          const targets = await this.getAllCharactersFilter(move.targetFilter)
+
+          // don't show attacks with no targets
+          if (targets.length > 0) choices.push(id)
+        }
+
+        const choicesMap = new Map(choices.map(attackId => {
           const { id, name, emoji } = this.game.moves.get(attackId)
           return [id, [name, emoji]]
         }))
-        const { choice: move } = await temporaryPrompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choices, member.displayColor)
+
+        const { choice: move } = await temporaryPrompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choicesMap, member.displayColor)
         const target = await this.getUserTarget(userId, teamId, move)
         return { type: 'use move', move, target }
       }
@@ -434,16 +465,14 @@ class Battle {
     if (!moveId || typeof moveId !== 'string') throw new TypeError('Battle#getUserTarget(,, string moveId) expected')
 
     const move = this.game.moves.get(moveId)
-    const allCharacters = move.canTargetDead
-      ? await this.getAllCharacters()
-      : await this.getAllAliveCharacters()
+    const characterIds = await this.getAllCharactersFilter(move.targetFilter)
 
     const characters = []
-    for (const teamId of this.teams) {
-      const members = await this.game.teams.getMembers(teamId)
-      for (const battleCharacterId of members) {
-        characters.push([battleCharacterId, await this.game.battleCharacters.getName(battleCharacterId)])
-      }
+    for (const id of characterIds) {
+      characters.push([
+        id,
+        await this.game.battleCharacters.getName(id),
+      ])
     }
 
     const choices = new Map(characters.map(([ id, name ], i) => {

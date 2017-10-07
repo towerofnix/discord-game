@@ -1,4 +1,5 @@
-const { log } = require('./util')
+const { log, checkTypes } = require('./util')
+const { Maybe } = checkTypes
 
 class BattleMove {
   constructor(game, opts) {
@@ -7,23 +8,17 @@ class BattleMove {
 
     this.game = game
 
-    if (opts.name && typeof opts.name === 'string')
-      this.name = opts.name
-    else throw new TypeError('new BattleMove({ string name }) expected')
+    if (!checkTypes(opts, {
+      name: String,
+      id: String,
+      emoji: String,
+      targetFilter: Maybe(Function), // only applies to user moves
+    }, true)) throw new TypeError('new BattleMove(opts) typecheck failed')
 
-    if (opts.id && typeof opts.id === 'string')
-      this.id = opts.id
-    else throw new TypeError('new BattleMove({ string id }) expected')
-
-    if (opts.emoji && typeof opts.emoji === 'string')
-      this.emoji = opts.emoji
-    else throw new TypeError('new BattleMove({ string emoji }) expected')
-
-    if (typeof opts.canTargetDead === 'boolean')
-      this.canTargetDead = opts.canTargetDead
-    else if (typeof opts.canTargetDead === 'undefined')
-      this.canTargetDead = false
-    else throw new TypeError('new BattleMove({ boolean? canTargetDead }) expected')
+    this.name = opts.name
+    this.id = opts.id
+    this.emoji = opts.emoji
+    this.targetFilter = opts.targetFilter || (() => Promise.resolve(true))
 
     // TODO: Target type -- select one multiple, multiple of same team, etc.
     // Maybe a more programmable way? E.g. select multiple or one is a flag,
@@ -45,4 +40,14 @@ class BattleMove {
   }
 }
 
-module.exports = { BattleMove }
+async function deadOnly(id, game) {
+  let isAlive = await game.battleCharacters.isAlive(id)
+  return !isAlive
+}
+
+async function aliveOnly(id, game) {
+  let isAlive = await game.battleCharacters.isAlive(id)
+  return isAlive
+}
+
+module.exports = { BattleMove, deadOnly, aliveOnly }

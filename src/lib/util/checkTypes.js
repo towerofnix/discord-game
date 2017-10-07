@@ -39,6 +39,7 @@ function stringify(T) {
     case String: return "String"
     case Boolean: return "Boolean"
     case Array: return "Array"
+    case Function: return "Function"
     case null: return "null"
   }
 
@@ -51,31 +52,45 @@ function stringify(T) {
   return '?'
 }
 
+function stringifyValue(v) {
+  switch (typeof v) {
+    case 'string': return `"${v.replace(/"/g, '\\"')}"`
+    case 'function': return `<function ${v.name}>`
+  }
+
+  return v
+}
+
 function checkType(def, value, all) {
   switch (def) {
     case Number:
       if (typeof value !== 'number') {
-        out(`Expected ${value} to be Number`)
+        out(`Expected ${stringifyValue(value)} to be Number`)
         return false
       } else break
     case String:
       if (typeof value !== 'string') {
-        out(`Expected ${value} to be String`)
+        out(`Expected ${stringifyValue(value)} to be String`)
         return false
       } else break
     case Boolean:
       if (typeof value !== 'boolean') {
-        out(`Expected ${value} to be Boolean`)
+        out(`Expected ${stringifyValue(value)} to be Boolean`)
         return false
       } else break
     case Array:
       if (!Array.isArray(value)) {
-        out(`Expected ${value} to be Array`)
+        out(`Expected ${stringifyValue(value)} to be Array`)
+        return false
+      } else break
+    case Function:
+      if (typeof value !== 'function') {
+        out(`Expected ${stringifyValue(value)} to be Function`)
         return false
       } else break
     case null:
       if (value !== null) {
-        out(`Expected ${value} to be null`)
+        out(`Expected ${stringifyValue(value)} to be null`)
         return false
       } else break
     default:
@@ -92,7 +107,7 @@ function checkType(def, value, all) {
 
           outEnabled = true
 
-          out(`Expected ${value} to be Either(${def.types.map(stringify).join(', ')})`)
+          out(`Expected ${stringifyValue(value)} to be Either(${def.types.map(stringify).join(', ')})`)
 
           return false
         case 'maybe':
@@ -103,7 +118,7 @@ function checkType(def, value, all) {
           outEnabled = false
           if (!checkType(def.T, value, all)) {
             outEnabled = true
-            out(`Expected ${value} to be Maybe(${stringify(def.T)})`)
+            out(`Expected ${stringifyValue(value)} to be Maybe(${stringify(def.T)})`)
 
             return false
           }
@@ -111,7 +126,7 @@ function checkType(def, value, all) {
           break
         case 'value':
           if (def.value !== value) {
-            out(`Expected ${value} === ${def.value}`)
+            out(`Expected ${stringifyValue(value)} === ${def.value}`)
             return false
           } else break
         case 'any':
