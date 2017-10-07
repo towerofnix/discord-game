@@ -19,6 +19,7 @@ const log = {
     if (await env('loglevel', 'number', 0) > 2) return
 
     console.error(chalk`{yellow [warn]} ${messages.join(', ')}`)
+    console.trace('Stack trace')
   },
 
   // fatal() is defined in logFatal.js
