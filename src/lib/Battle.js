@@ -6,9 +6,6 @@ const chalk = require('chalk')
 const shortid = require('shortid')
 const discord = require('discord.js')
 
-// Stupid fix for alex :)
-const promptColor = 0x00AE86
-
 class Battle {
   constructor(teams) {
     if (!teams || !Array.isArray(teams)) throw new TypeError('new Battle(array<Team> teams) expected')
@@ -166,7 +163,7 @@ class Battle {
 
       await this.writeToAllChannels(displayColor, `${name}'s turn`, `It's <@${userId}>'s turn.`)
     } else {
-      await this.writeToAllChannels(promptColor, `${name}'s turn`, `It's ${name}'s turn.`)
+      await this.writeToAllChannels(0x00AE86, `${name}'s turn`, `It's ${name}'s turn.`)
     }
 
     await this.updateBattleStatuses()
@@ -318,6 +315,43 @@ class Battle {
     return status
   }
 
+
+  async getShortBattleStatusForTeam(team) {
+    if (!team) throw new TypeError('Battle#getShortBattleStatusForTeam(Team team) expected')
+
+    let status = ''
+
+    const _addMemberLine = async (member, fromThisTeam) => {
+      const name = await this.game.battleCharacters.getName(member)
+      if (await this.game.battleCharacters.isAlive(member)) {
+        const curHP = await this.game.battleCharacters.getHP(member)
+        const maxHP = await this.game.battleCharacters.getMaxHP(member)
+
+        status += `**${name}**`
+
+        // Only display accurate HP values if this member is on the current
+        // team.
+        if (fromThisTeam) status += ` ${curHP}/${maxHP}`
+      } else {
+        status += `~~${name}~~`
+      }
+      status += ' '
+    }
+
+    for (const member of await this.game.teams.getMembers(team)) {
+      await _addMemberLine(member, true)
+    }
+
+    for (const opposingTeam of this.teams.filter(t => t !== team)) {
+      status += '~ '
+      for (const member of await this.game.teams.getMembers(opposingTeam)) {
+        await _addMemberLine(member, false)
+      }
+    }
+
+    return status
+  }
+
   async writeBattleStatuses() {
     let battleStatuses = []
 
@@ -337,12 +371,14 @@ class Battle {
   async updateBattleStatuses() {
     for (const [ msg, team ] of this.battleStatuses) {
       const status = await this.getBattleStatusForTeam(team)
+      const statusShort = await this.getShortBattleStatusForTeam(team)
       const embed = new discord.RichEmbed()
         .setTitle('Battle status')
         .setColor('DEFAULT')
         .setDescription(status)
 
       await msg.edit('', embed)
+      await this.channelMap.get(team).setTopic(statusShort)
     }
   }
 
