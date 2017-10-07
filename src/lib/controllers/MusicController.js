@@ -1,6 +1,7 @@
 const { env } = require('../env')
 const { log } = require('../util')
 
+const discord = require('discord.js')
 const chalk = require('chalk')
 
 class MusicController {
@@ -16,15 +17,55 @@ class MusicController {
     if (!path || typeof path !== 'string') throw new TypeError('MusicController#register(, string path) expected')
 
     log.debug('Registering song: ' + song)
-    this.songs.set(song, path)
+    this.songs.set(song, { path, bot: null })
   }
 
   async playMusic() {
-    for (const song of this.songs.keys()) {
-      const path = this.songs.get(song)
-      const { role, channel } = this.getSongRoleAndChannel(song)
-      // TODO actually play music in channels using _more_ bot accounts!
-    }
+    const tokens = await env('music_bots', 'object')
+
+    if (tokens.length < this.songs.size)
+      throw new TypeError(`Environment music_bots array is too short (there are ${this.songs.size} songs, but only ${tokens.length} music bots available)`)
+
+    await Promise.all(Array.from(this.songs.keys()).map((song, n) => new Promise((resolve, reject) => {
+      const { path } = this.songs.get(song)
+      const bot = new discord.Client()
+
+      bot.on('ready', async () => {
+        const { speakRole, role, channel } = await this.getSongRoleAndChannel(song)
+        const botMemberAsAdmin = this.game.guild.members.find('id', bot.user.id)
+        const channelAsAdmin = this.game.guild.channels.find('id', channel)
+        const channelAsBot = bot.guilds.first().channels.find('id', channel)
+
+        await botMemberAsAdmin.setNickname('bot')
+        await botMemberAsAdmin.addRole(role)
+        await channelAsAdmin.overwritePermissions(bot.user.id, {
+          // holy crap
+          SPEAK: true,
+        })
+
+        let voiceConn = await channelAsBot.join()
+
+        this.songs.set(song, { path, bot, voiceConn })
+        resolve()
+
+        async function loop() {
+          await log.debug(`music-${song}: loop`)
+
+          // FIXME doesnt loop properly
+          let dispatcher = voiceConn.playFile(path, {
+            bitrate: 4000, // 48000 default
+          })
+
+          dispatcher.once('end', loop)
+          dispatcher.once('error', loop)
+        }
+
+        loop()
+      })
+
+      bot.login(tokens[n])
+        .catch(reject)
+    })))
   }
 
   async getSongRoleAndChannel(song) {
@@ -61,6 +102,8 @@ class MusicController {
         { id: everyoneRole, deny: 3212288, allow: 0 }, // -conn -view -speak
         { id: role.id, deny: 0, allow: 1049600 } // +conn +view
       ])
+
+      channel = channel.id
 
       await log.success(chalk`Created {magenta ${channelName}} channel`)
     }
