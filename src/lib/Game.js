@@ -54,17 +54,20 @@ class Game {
   async createUsersForNewMembers() {
     let numAdded = 0
 
-    for (const [ id, member ] of this.guild.members) {
-      // if this user is a bot, ignore it
-      if (member.user.bot === true)
-        continue
+    await Promise.all(
+      Array.from(this.guild.members.entries()).map(async ([ id, member ]) => {
+        // if this user is a bot, ignore it
+        if (member.user.bot === true) {
+          return
+        }
 
-      // is this user in the database?
-      if (await this.users.has(id) === false) {
-        await this.createUserForMember(member)
-        numAdded++
-      }
-    }
+        // is this user in the database?
+        if (await this.users.has(id) === false) {
+          await this.createUserForMember(member)
+          numAdded++
+        }
+      })
+    )
 
     return numAdded
   }
