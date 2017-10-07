@@ -31,11 +31,11 @@ async function main() {
     await game.battleAIs.register(new aiClass(game))
   }
 
-  await game.go()
-
   for (const [ song, path ] of music) {
     await game.music.register(song, path)
   }
+
+  await game.go()
 }
 
 module.exports = { main }

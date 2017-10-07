@@ -8,17 +8,22 @@ class MusicController {
     if (!game) throw new TypeError('new MusicController(Game game) expected')
 
     this.game = game
+    this.songs = new Map()
   }
 
   async register(song, path) {
     if (!song || typeof song !== 'string') throw new TypeError('MusicController#register(string song) expected')
     if (!path || typeof path !== 'string') throw new TypeError('MusicController#register(, string path) expected')
 
-    log.info('Registering song: ' + song)
+    log.debug('Registering song: ' + song)
+    this.songs.set(song, path)
+  }
 
-    if (await env('music_enabled', 'boolean') === true) {
+  async playMusic() {
+    for (const song of this.songs.keys()) {
+      const path = this.songs.get(song)
+      const { role, channel } = this.getSongRoleAndChannel(song)
       // TODO actually play music in channels using _more_ bot accounts!
-      await this.getSongRoleAndChannel(song) // create channel/role
     }
   }
 
@@ -28,7 +33,7 @@ class MusicController {
 
     if (!song || typeof song !== 'string') throw new TypeError('MusicController#getSongRoleAndChannel(string song) expected')
 
-    if (env('music_enabled', 'boolean') === false) {
+    if (await env('music_enabled', 'boolean') === false) {
       log.warn(chalk`{yellow music_enabled} is {magenta false} but MusicController#getSongRoleAndChannel() was called anyway`)
       return {role: null, channel: null}
     }
@@ -43,8 +48,8 @@ class MusicController {
     let role = guild.roles.find('name', roleName)
 
     if (role === null) {
-      await log.success(chalk`Created {magenta ${roleName}} role`)
       role = await guild.createRole({ name: roleName })
+      await log.success(chalk`Created {magenta ${roleName}} role`)
     }
 
     let channel = guild.channels.findKey('name', channelName)
@@ -63,14 +68,44 @@ class MusicController {
     return {role, channel}
   }
 
+  async giveRoles() {
+    if (await env('music_enabled', 'boolean') === false) return
+
+    const users = await this.game.users.list()
+
+    for (const id of users) {
+      const song = await this.game.users.getListeningTo(id)
+
+      if (song !== null) {
+        await log.debug(`Giving user ${id} listening-to role`)
+        const { role } = await this.getSongRoleAndChannel(song)
+
+        // give user the "listening to: <song>" role
+        const member = await this.game.users.getDiscordMember(id)
+          .then(member => member.addRole(role))
+
+        // remove previous "listening to" role
+        for (let [ id, mRole ] of member.roles) {
+          if (role.name.startsWith('listening to:') && mRole.name !== mRole.name) {
+            await member.removeRole(id)
+          }
+        }
+      }
+    }
+  }
+
+  // DEPRECATED use UserController#setListeningTo(id, song) instead
   async play(song, userId) {
     if (typeof song !== 'string' && song !== null) throw new TypeError('MusicController#play(string | null song) expected')
     if (!userId) throw new TypeError('MusicController#play(, string userId) expected')
 
     if (env('music_enabled', 'boolean') === false) {
-      log.warn(chalk`{yellow music_enabled} is {purple false} but MusicController#play() was called anyway`)
+      log.warn(chalk`{yellow music_enabled} is {magenta false} but MusicController#play() was called anyway`)
+      console.stack('deprecation stack')
       return false
     }
+
+    await log.warn(chalk`{red MusicControler#play} is deprecated; use {red UserController#setListeningTo} instead`)
 
     const member = await this.game.users.getDiscordMember(userId)
 
@@ -97,6 +132,9 @@ class MusicController {
         await member.removeRole(id)
       }
     }
+
+    // persist the song to the db
+    await this.game.users.setListeningTo(userId, song)
 
     return true
   }

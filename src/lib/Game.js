@@ -41,7 +41,11 @@ class Game {
       await log.info('A new user just joined! Adding them to the database...')
 
       const battleCharacter = await this.battleCharacters.createForCharacter('user', member.id, member.displayName)
-      await this.users.add(member.id, { location: 'lonely-void', battleCharacter })
+      await this.users.add(member.id, {
+        location: 'lonely-void',
+        listeningTo: 'lonely-void',
+        battleCharacter,
+      })
 
       await log.success(chalk`Added user: {cyan ${await this.users.getName(member.id)}}`)
     }
@@ -66,6 +70,8 @@ class Game {
   }
 
   async setup() {
+    await log.debug('Game#setup()')
+
     this.battleCharacters = new BattleCharacterController(this)
     this.users = new UserController(this)
     this.teams = new TeamController(this)
@@ -215,6 +221,8 @@ class Game {
   }
 
   async go() {
+    await log.debug('Game#go()')
+
     const clientId = await env('discord_client_id', 'string')
     const perms = 0x00000008 // ADMINISTRATOR; bitwise OR with others if need be
     const addToServerURL = `https://discordapp.com/oauth2/authorize?&client_id=${clientId}&scope=bot&permissions=${perms}&response_type=code`
@@ -224,6 +232,8 @@ class Game {
     await this.client.login(token)
 
     await this.cleanDiscordServer()
+    if (await env('music_enabled', 'boolean') === true) await this.music.playMusic()
+    await this.music.giveRoles()
     await log.success('Ready')
   }
 
@@ -266,6 +276,7 @@ class Game {
 
       const removed = (await Promise.all(this.guild.channels
         .filter(channel => channel.name.startsWith('music-'))
+        .filter(channel => !this.music.songs.has(channel.name.substr(6)))
         .map(channel => channel.delete())
       )).length
 
@@ -282,6 +293,7 @@ class Game {
 
       const removed = (await Promise.all(this.guild.roles
         .filter(role => role.name.startsWith('listening to:'))
+        .filter(role => !this.music.songs.has(role.name.substr(14)))
         .map(role => role.delete())
       )).length
 

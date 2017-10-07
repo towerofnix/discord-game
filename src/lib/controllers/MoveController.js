@@ -8,7 +8,7 @@ class MoveController extends Map {
   }
 
   register(move) {
-    log.info(`Registering move: ${move.name} (ID: ${move.id})`)
+    log.debug(`Registering move: ${move.name} (ID: ${move.id})`)
     this.set(move.id, move)
   }
 }

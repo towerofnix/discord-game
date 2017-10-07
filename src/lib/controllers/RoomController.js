@@ -32,7 +32,7 @@ class RoomController extends Map {
   async register(roomObject) {
     if (!roomObject || !(roomObject instanceof Room)) throw new TypeError('RoomController#register(Room roomObject) expected')
 
-    await log.info(`Registering room: ${roomObject.displayName} #${roomObject.channelName}`)
+    await log.debug(`Registering room: ${roomObject.displayName} #${roomObject.channelName}`)
     this.set(roomObject.channelName, roomObject)
   }
 

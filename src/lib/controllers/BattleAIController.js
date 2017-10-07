@@ -12,7 +12,7 @@ class BattleAIController extends Map {
   }
 
   async register(battleAI) {
-    await log.info(`Registering battle AI: ${battleAI.name} (ID: ${battleAI.id})`)
+    await log.debug(`Registering battle AI: ${battleAI.name} (ID: ${battleAI.id})`)
     this.set(battleAI.id, battleAI)
   }
 }

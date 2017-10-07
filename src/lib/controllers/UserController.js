@@ -1,4 +1,5 @@
 const { BasicDatabaseController } = require('./BasicDatabaseController')
+const { Either } = require('../util/checkTypes')
 
 const Datastore = require('nedb-promise')
 const db = new Datastore({
@@ -6,7 +7,11 @@ const db = new Datastore({
   autoload: true,
 })
 
-const UserData = { location: String, battleCharacter: String }
+const UserData = {
+  location: String,
+  battleCharacter: String,
+  listeningTo: Either(String, null),
+}
 
 class UserController extends BasicDatabaseController {
   constructor(game) {
@@ -29,12 +34,15 @@ class UserController extends BasicDatabaseController {
   async set(id, data) {
     const ret = await super.set(id, data)
 
+    // TODO refactor these into a BasicDatabaseController#onSetProperty(prop, fn).
     // We update the data before running _setLocation, since _setLocation might
     // give the user ID to functions in other part of the game, which could be
     // expecting that the user's database entry already be updated (or behave
     // differently if it isn't).
     if (data.location)
       await this._setLocation(id, data.location)
+    if (data.listeningTo)
+      await this._setListeningTo(id, data.listeningTo)
 
     return ret
   }
@@ -52,6 +60,45 @@ class UserController extends BasicDatabaseController {
 
   async getBattleCharacter(id) {
     return await this.getProperty(id, 'battleCharacter')
+  }
+
+  async getListeningTo(id) {
+    return await this.getProperty(id, 'listeningTo')
+  }
+
+  async setListeningTo(id, song) {
+    // _setListeningTo is called by set, so we don't need to call it here.
+    return await this.setProperty(id, 'listeningTo', song)
+  }
+
+  async _setListeningTo(id, song) {
+    // Peform setListeningTo side-effects
+
+    const member = await this.getDiscordMember(id)
+
+    let newRoleName = ''
+
+    if (song !== null) {
+      const { role, channel } = await this.game.music.getSongRoleAndChannel(song)
+
+      // give user the "listening to: <song>" role so they can actually join the channel
+      await member.addRole(role)
+
+      // move them to the voice channel
+      // (note: setVoiceChannel cannot *put* people in voice channels if they aren't
+      // already in one! no idea why that doesnt throw an error, though...)
+      await member.setVoiceChannel(channel)
+
+      // set the new role name, so that this role won't be removed next
+      newRoleName = role.name
+    }
+
+    // remove previous "listening to" role
+    for (let [ id, role ] of member.roles) {
+      if (role.name.startsWith('listening to:') && role.name !== newRoleName) {
+        await member.removeRole(id)
+      }
+    }
   }
 
   async setLocation(id, newLocation) {
@@ -82,18 +129,6 @@ class UserController extends BasicDatabaseController {
 
   async getDiscordMember(id) {
     return await this.game.guild.members.find('id', id)
-  }
-
-  async getListeningTo(id) {
-    let member = await this.getDiscordMember(id)
-
-    for (let [ id, role ] of member.roles) {
-      if (role.name.startsWith('listening to:')) {
-        return role.name.substr(14)
-      }
-    }
-
-    return null
   }
 }
 
