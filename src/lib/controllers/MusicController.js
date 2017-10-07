@@ -49,9 +49,6 @@ class MusicController {
         resolve()
 
         async function loop() {
-          await log.debug(`music-${song}: loop`)
-
-          // FIXME doesnt loop properly
           let dispatcher = voiceConn.playFile(path, {
             bitrate: 4000, // 48000 default
           })
