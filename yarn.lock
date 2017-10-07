@@ -332,15 +332,15 @@ delegates@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
 
-discord.js@^11.2.1:
-  version "11.2.1"
-  resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-11.2.1.tgz#bfc0f5a8b6398dc372d026e503592646456053fc"
+"discord.js@git+https://git@github.com/hydrabolt/discord.js.git":
+  version "12.0.0-dev"
+  resolved "git+https://git@github.com/hydrabolt/discord.js.git#97823bc3761bea0bfba34fc2f8b85765084d9d0d"
   dependencies:
-    long "^3.2.0"
+    long "^3.0.0"
     prism-media "^0.0.1"
-    snekfetch "^3.3.0"
+    snekfetch "^3.0.0"
     tweetnacl "^1.0.0"
-    ws "^3.1.0"
+    ws "^3.0.0"
 
 dot-prop@^4.1.0:
   version "4.2.0"
@@ -927,7 +927,7 @@ lodash.restparam@^3.0.0:
   version "3.6.1"
   resolved "https://registry.yarnpkg.com/lodash.restparam/-/lodash.restparam-3.6.1.tgz#936a4e309ef330a7645ed4145986c85ae5b20805"
 
-long@^3.2.0:
+long@^3.0.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/long/-/long-3.2.0.tgz#d821b7138ca1cb581c172990ef14db200b5c474b"
 
@@ -1386,9 +1386,9 @@ signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
 
-snekfetch@^3.3.0:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/snekfetch/-/snekfetch-3.3.1.tgz#adde572c4d4675753dfe75b2f5c069dd1c35910a"
+snekfetch@^3.0.0:
+  version "3.4.5"
+  resolved "https://registry.yarnpkg.com/snekfetch/-/snekfetch-3.4.5.tgz#c28deb5e5d04988ea6915ca6f67c6e3429c0e52f"
 
 sntp@1.x.x:
   version "1.0.9"
@@ -1674,7 +1674,7 @@ write-file-atomic@^2.0.0:
     imurmurhash "^0.1.4"
     signal-exit "^3.0.2"
 
-ws@^3.1.0:
+ws@^3.0.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-3.2.0.tgz#d5d3d6b11aff71e73f808f40cc69d52bb6d4a185"
   dependencies:
