@@ -20,7 +20,7 @@ class AirRat extends BattleAI {
     }
 
     if (move === 'air-rat-tail-whip' || move === 'air-rat-bite') {
-      const validTargets = await battle.getAllCharacters()
+      const validTargets = await battle.getAllAliveCharacters()
         .then(chars => Promise.all(chars.map(async char => await battle.game.teams.hasMember(myTeamId, char) ? false : char)))
         .then(chars => chars.filter(char => char !== false))
 

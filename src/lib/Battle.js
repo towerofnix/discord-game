@@ -209,6 +209,18 @@ class Battle {
     return (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
   }
 
+  async getAllAliveCharacters() {
+    let all = (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
+    let alive = []
+
+    for (let id of all) {
+      let isAlive = await this.game.battleCharacters.isAlive(id)
+      if (isAlive) alive.push(id)
+    }
+
+    return alive
+  }
+
   async dealDamageToCharacter(move, targetId, damage) {
     if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#dealDamageToCharacter(BattleMove move) expected')
     if (!targetId || typeof targetId !== 'string') throw new TypeError('Battle#dealDamageToCharacter(string targetId) expected')
@@ -421,7 +433,10 @@ class Battle {
     if (!teamId || typeof teamId !== 'string') throw new TypeError('Battle#getUserTarget(, string teamId) expected')
     if (!moveId || typeof moveId !== 'string') throw new TypeError('Battle#getUserTarget(,, string moveId) expected')
 
-    const allCharacters = await this.getAllCharacters()
+    const move = this.game.moves.get(moveId)
+    const allCharacters = move.canTargetDead
+      ? await this.getAllCharacters()
+      : await this.getAllAliveCharacters()
 
     const characters = []
     for (const teamId of this.teams) {

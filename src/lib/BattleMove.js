@@ -19,6 +19,12 @@ class BattleMove {
       this.emoji = opts.emoji
     else throw new TypeError('new BattleMove({ string emoji }) expected')
 
+    if (typeof opts.canTargetDead === 'boolean')
+      this.canTargetDead = opts.canTargetDead
+    else if (typeof opts.canTargetDead === 'undefined')
+      this.canTargetDead = false
+    else throw new TypeError('new BattleMove({ boolean? canTargetDead }) expected')
+
     // TODO: Target type -- select one multiple, multiple of same team, etc.
     // Maybe a more programmable way? E.g. select multiple or one is a flag,
     // then there's an array of characters that can be picked from (maybe
@@ -29,7 +35,7 @@ class BattleMove {
   async go(actorBattleCharacterId, actorTeamId, targetBattleCharacterId, battleObject) {
     const bc = this.game.battleCharacters
 
-    await log.warn(`Move ${this.name} has no go function`)
+    await log.warn(`BattleMove ${this.name} has no #go() function`)
 
     if (targetBattleCharacterId) {
       await battleObject.writeMoveMessage(this, 'RED', `${await bc.getName(actorBattleCharacterId)} notices that the ${this.name} move doesn't have a go function, but doesn't think too much about it and launches a sick burn at ${await bc.getName(targetBattleCharacterId)}.`)
