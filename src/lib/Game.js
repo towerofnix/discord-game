@@ -1,7 +1,6 @@
 const discord = require('discord.js')
 const chalk = require('chalk')
 
-//const { User } = require('./User')
 const { env } = require('./env')
 const { log, showMenu } = require('./util')
 const { CommandController, RoomController, MusicController,
