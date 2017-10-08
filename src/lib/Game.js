@@ -120,8 +120,15 @@ class Game {
               {title: 'Get outta here!', emoji: '🐻', action: {run: async () => {
                 await message.reply('Awww.')
                 return {to: 'finalRegrets'}
-              }}}
+              }}},
+              {title: 'Memeland', emoji: '💡', action: {to: 'memeland'}}
             ]
+          },
+          memeland: {
+            title: 'Memeland',
+            options: () => ['FACE', 'nah'].map((item, index) => {
+              return {title: item, emoji: ['🎨', '📝'][index], action: {to: 'memeland'}}
+            }).concat({title: 'Back to the past', emoji: '🔙', action: {history: 'back'}})
           },
           finalRegrets: {
             title: 'Final regrets?',
