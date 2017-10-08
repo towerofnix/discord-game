@@ -3,7 +3,7 @@ const chalk = require('chalk')
 
 //const { User } = require('./User')
 const { env } = require('./env')
-const { log } = require('./util')
+const { log, showMenu } = require('./util')
 const { CommandController, RoomController, MusicController,
         UserController, BattleAIController, TeamController,
         BattleCharacterController, MoveController } = require('./controllers')
@@ -97,6 +97,42 @@ class Game {
 
       const userId = message.author.id
       await this.music.play(rest, userId)
+    })
+
+    this.commands.set('menu', async (rest, message) => {
+      // TEMP AGAIN
+
+      const userId = message.author.id
+
+      showMenu(message.channel, userId, {
+        start: 'root',
+        dialogs: {
+          root: {
+            title: 'Root',
+            action: {run: async () => {
+              await message.reply('Welcome to my AMAZING menu maze!')
+            }},
+            options: [
+              {title: 'Reference self', emoji: '🔄', action: {to: 'root'}},
+              {title: 'Run-action', emoji: '🍔', action: {run: async () => {
+                await message.reply('Yeah, right!')
+                return {to: 'root'}
+              }}},
+              {title: 'Get outta here!', emoji: '🐻', action: {run: async () => {
+                await message.reply('Awww.')
+                return {to: 'finalRegrets'}
+              }}}
+            ]
+          },
+          finalRegrets: {
+            title: 'Final regrets?',
+            options: [
+              {title: 'I hate this stupid menu, let me leave.', emoji: '🔥'},
+              {title: 'Actually...', emoji: '🤔', action: {to: 'root'}}
+            ]
+          }
+        }
+      })
     })
 
     this.commands.set('battle', async (rest, message) => {
