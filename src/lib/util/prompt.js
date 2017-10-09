@@ -54,17 +54,29 @@ async function promptOnMessage(message, choices, userId) {
 
     const str = message.content
 
-    const textPart = (str.startsWith(';') || str.startsWith(':')) ? str.slice(1).trim() : ''
+    const matches = Array.from(choiceMap.entries()).filter(([ key, [ name, emoji ]]) => {
+      if (str.startsWith(';') || str.startsWith(':')) {
+        const textPart = str.slice(1).trim().toLowerCase()
+        const lowerName = name.toLowerCase()
 
-    const choice = Array.from(choiceMap.entries()).find(([ key, [ name, emoji ]]) => {
-      return (
-        name.toLowerCase() === textPart.toLowerCase() ||
-        str === emoji
-      )
+        if (textPart.length === 0) {
+          return false
+        }
+
+        for (let i = 0; i < textPart.length; i++) {
+          if (textPart[i] !== lowerName[i]) {
+            return false
+          }
+        }
+
+        return true
+      }
+
+      return str === emoji
     })
 
-    if (choice) {
-      const key = choice[0]
+    if (matches.length === 1) {
+      const key = matches[0][0]
       return key
     } else {
       return false
