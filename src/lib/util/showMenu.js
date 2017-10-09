@@ -29,13 +29,9 @@ async function showMenu(channel, userId, spec) {
     const options = await evaluateProperty(dialog, 'options')
 
     if (options) {
-      const processedOptions = new Map(options.map(opt => {
-        return [opt, [opt.title, opt.emoji]]
-      }))
-
       const title = await evaluateProperty(dialog, 'title')
 
-      const { choice } = await temporaryPrompt(channel, userId, title, processedOptions)
+      const { choice } = await temporaryPrompt(channel, userId, title, options)
 
       const action = await evaluateProperty(choice, 'action')
 

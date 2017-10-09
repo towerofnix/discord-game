@@ -1,31 +1,45 @@
 const { RichEmbed, TextChannel, Message } = require('discord.js')
 
-function objectAsMap(object) {
-  if (!object || typeof object !== 'object') throw new TypeError('objectAsMap(object object) expected')
+function parseChoiceText(str, options) {
+  const matches = Object.entries(options).filter(([ key, { title, emoji }]) => {
+    if (str.startsWith(';') || str.startsWith(':')) {
+      const textPart = str.slice(1).trim().toLowerCase()
+      const lowerTitle = title.toLowerCase()
 
-  if (object instanceof Map) {
-    return object
+      if (textPart.length === 0) {
+        return false
+      }
+
+      for (let i = 0; i < textPart.length; i++) {
+        if (textPart[i] !== lowerTitle[i]) {
+          return false
+        }
+      }
+
+      return true
+    }
+
+    return str === emoji
+  })
+
+  if (matches.length === 1) {
+    const choice = matches[0][1]
+    return choice
   } else {
-    return new Map(Object.entries(object))
+    return false
   }
 }
 
-async function promptOnMessage(message, choices, userId) {
+async function promptOnMessage(message, options, userId) {
   if (!message || message instanceof Message === false) throw new TypeError('promptOnMessage(discord.Message message) expected')
-  if (!choices || typeof choices !== 'object') throw new TypeError('promptOnMessage(, object | Map<anything, array<string title, Emoji emoji>> choices) expected')
+  if (!options || typeof options !== 'object') throw new TypeError('promptOnMessage(, Array<object<string title, string emoji>>) expected')
   if (!userId || typeof userId !== 'string') throw new TypeError('prompt(,, string userId) expected')
-
-  const choiceMap = objectAsMap(choices)
 
   // And you thought you'd never see another IIFE?!
   void (async () => {
-    for (const item of Array.from(choiceMap.values())) {
-      if (!item[1]) item[1] = '🔣' // FIXME :symbols:
-
-      const [ name, emoji ] = item
-
+    for (const item of options) {
       try {
-        await message.react(emoji)
+        await message.react(item.emoji || '🔣') // FIXME :symbols:
       } catch(err) {
         if (err.message === 'Unknown Message') {
           return
@@ -41,86 +55,51 @@ async function promptOnMessage(message, choices, userId) {
   }, {max: 1})
     .then(reactions => reactions.first())
     .then(reaction => {
-      const [ key ] = Array.from(choiceMap.entries()).find(
-        ([ key, [ name, emoji ] ]) => emoji === reaction.emoji.name
-      )
-      return key
+      return options.find(choice => choice.emoji === reaction.emoji.name)
     })
 
-  const parseChoiceMessage = message => {
+  const messagePromise = message.channel.awaitMessages(message => {
     if (message.author.id !== userId) {
       return false
     }
 
-    const str = message.content
-
-    const matches = Array.from(choiceMap.entries()).filter(([ key, [ name, emoji ]]) => {
-      if (str.startsWith(';') || str.startsWith(':')) {
-        const textPart = str.slice(1).trim().toLowerCase()
-        const lowerName = name.toLowerCase()
-
-        if (textPart.length === 0) {
-          return false
-        }
-
-        for (let i = 0; i < textPart.length; i++) {
-          if (textPart[i] !== lowerName[i]) {
-            return false
-          }
-        }
-
-        return true
-      }
-
-      return str === emoji
-    })
-
-    if (matches.length === 1) {
-      const key = matches[0][0]
-      return key
-    } else {
-      return false
-    }
-  }
-
-  const messagePromise = message.channel.awaitMessages(parseChoiceMessage, {max: 1})
+    return parseChoiceText(message.content, options)
+  }, {max: 1})
     .then(messages => messages.first())
-    .then(parseChoiceMessage)
+    .then(message => parseChoiceText(message.content, options))
 
   const choice = await Promise.race([reactionPromise, messagePromise])
-
-  console.log(choice)
 
   return { message, choice }
 }
 
-async function prompt(channel, userId, title, choices, color = 'GREY') {
+async function prompt(channel, userId, title, options, color = 'GREY') {
   if (!channel) throw new TypeError('prompt(discord.TextChannel channel) expected')
   if (!userId || typeof userId !== 'string') throw new TypeError('prompt(, string userId) expected')
   if (!title || typeof title !== 'string') throw new TypeError('prompt(,, string title) expected')
-  if (!choices || typeof choices !== 'object') throw new TypeError('prompt(,,, object | Map<anything, array<string title, Emoji emoji>> choices) expected')
+  if (!options || typeof options !== 'object') throw new TypeError('prompt(,,, object | Map<anything, array<string title, Emoji emoji>> options) expected')
   if (typeof color !== 'string' && typeof color !== 'number') throw new TypeError('prompt(,,,, string | color color) expected')
 
   const embed = new RichEmbed()
     .setTitle(title)
     .setColor(color)
-    .setDescription(Array.from(objectAsMap(choices).values()).map(([ name, emoji ]) => `${emoji} ${name}`))
+    .setDescription(options.map(({ title, emoji }) => `${emoji} ${title}`))
 
   const message = await channel.send(embed)
 
-  const { choice } = await promptOnMessage(message, choices, userId)
+  const { choice } = await promptOnMessage(message, options, userId)
 
   return { message, choice }
 }
 
-async function temporaryPrompt(channel, userId, title, choices, color = 'GREY') {
+async function temporaryPrompt(channel, userId, title, options, color = 'GREY') {
   if (!channel) throw new TypeError('temporaryPrompt(discord.TextChannel channel) expected')
   if (!userId || typeof userId !== 'string') throw new TypeError('temporaryPrompt(, string userId) expected')
   if (!title || typeof title !== 'string') throw new TypeError('temporaryPrompt(,, string title) expected')
-  if (!choices || typeof choices !== 'object') throw new TypeError('temporaryPrompt(,,, object | Map<anything, array<string title, Emoji emoji>> choices) expected')
+  if (!options || typeof options !== 'object') throw new TypeError('temporaryPrompt(,,, object | Map<anything, array<string title, Emoji emoji>> options) expected')
   if (typeof color !== 'string' && typeof color !== 'number') throw new TypeError('prompt(,,,, string | number color) expected')
 
-  const { message, choice } = await prompt(channel, userId, title, choices, color)
+  const { message, choice } = await prompt(channel, userId, title, options, color)
 
   await message.delete()
 
