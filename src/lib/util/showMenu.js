@@ -1,6 +1,6 @@
 // High-level prompt-based menu system.
 
-const { temporaryPrompt } = require('./prompt')
+const { temporaryPrompt, parseChoiceText } = require('./prompt')
 
 async function evaluateProperty(obj, prop) {
   if (prop in obj) {
@@ -17,7 +17,7 @@ async function evaluateProperty(obj, prop) {
 async function showMenu(channel, userId, spec) {
   let history = []
 
-  const showDialog = async function(dialogId) {
+  const showDialog = async function(dialogId, autoInput = '') {
     const dialog = spec.dialogs[dialogId]
 
     const dialogAction = await evaluateProperty(dialog, 'action')
@@ -29,22 +29,38 @@ async function showMenu(channel, userId, spec) {
     const options = await evaluateProperty(dialog, 'options')
 
     if (options) {
-      const title = await evaluateProperty(dialog, 'title')
+      let choice = null, rest = ''
 
-      const { choice } = await temporaryPrompt(channel, userId, title, options)
+      if (autoInput.length > 0) {
+        console.log('Waahoa!!', autoInput)
+
+        const match = parseChoiceText(autoInput, options)
+        if (match) {
+          choice = match.choice
+          rest = match.rest
+        }
+      }
+
+      if (choice === null) {
+        const title = await evaluateProperty(dialog, 'title')
+
+        const match = await temporaryPrompt(channel, userId, title, options)
+        choice = match.choice
+        rest = match.rest
+      }
 
       const action = await evaluateProperty(choice, 'action')
 
       if (action) {
-        await handleAction(action)
+        await handleAction(action, rest)
       }
     }
   }
 
-  const handleAction = async function(action) {
+  const handleAction = async function(action, autoInput) {
     if ('to' in action) {
       history.push(action.to)
-      await showDialog(action.to)
+      await showDialog(action.to, autoInput)
     }
 
     if ('history' in action) {
@@ -52,7 +68,7 @@ async function showMenu(channel, userId, spec) {
       const previous = history.pop()
       if (previous) {
         history.push(previous)
-        await showDialog(previous)
+        await showDialog(previous, autoInput)
       }
     }
   }

@@ -1,32 +1,58 @@
 const { RichEmbed, TextChannel, Message } = require('discord.js')
 
 function parseChoiceText(str, options) {
-  const matches = options.filter(({ title, emoji }) => {
-    if (str.startsWith(';') || str.startsWith(':')) {
-      const textPart = str.slice(1).trim().toLowerCase()
-      const lowerTitle = title.toLowerCase()
+  if (str.startsWith(';') || str.startsWith(':')) {
+    str = str.slice(1)
+  }
 
-      if (textPart.length === 0) {
-        return false
-      }
+  const matches = options.map(option => {
+    const { title, emoji } = option
 
-      for (let i = 0; i < textPart.length; i++) {
-        if (textPart[i] !== lowerTitle[i]) {
+    // Test for an emoji match, first.
+    const firstChar = String.fromCodePoint(str.codePointAt(0))
+    if (firstChar === emoji) {
+      return { rest: str.slice(firstChar.length), choice: option }
+    }
+
+    // If there's no emoji match, we'll see if there's any text match between
+    // the input and the title.
+
+    const textPart = str.trim().toLowerCase()
+    const lowerTitle = title.toLowerCase()
+
+    if (textPart.length === 0) {
+      return false
+    }
+
+    for (let i = 0; i < textPart.length; i++) {
+      // If the current input character is not the same as the corresponding
+      // character in the title, then we'll PROBABLY stop here, but..
+      if (textPart[i] !== lowerTitle[i]) {
+        // ..But, if we've just found a space, or we are currently on a
+        // space and we just passed the length of the title, the user
+        // probably meant to pass this new title to something later in a
+        // menu. So, we stop here, and return the text past the current
+        // character index, so that the prompt caller will know where to
+        // continue if it wants to use that.
+        if (textPart[i] === ' ' || i >= lowerTitle.length) {
+          return { rest: textPart.slice(i), choice: option }
+        } else {
           return false
         }
       }
-
-      return true
     }
 
-    return str === emoji
-  })
+    // We made it past! The title completely matches the input. Since we got
+    // all the way past the string, we can say we stopped at the end, so we
+    // don't put anything in the rest string.
+    return { rest: '', choice: option }
+  }).filter(x => x !== false)
 
   if (matches.length === 1) {
-    const choice = matches[0]
-    return choice
+    matches[0].rest = matches[0].rest.trim()
+    return matches[0]
   } else {
-    return false
+    return null
   }
 }
 
@@ -55,7 +81,7 @@ async function promptOnMessage(message, options, userId) {
   }, {max: 1})
     .then(reactions => reactions.first())
     .then(reaction => {
-      return options.find(choice => choice.emoji === reaction.emoji.name)
+      return { choice: options.find(choice => choice.emoji === reaction.emoji.name) }
     })
 
   const messagePromise = message.channel.awaitMessages(message => {
@@ -63,14 +89,18 @@ async function promptOnMessage(message, options, userId) {
       return false
     }
 
-    return parseChoiceText(message.content, options)
+    if (
+      /^([:;]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDE4F])/.test(message.content)
+    ) {
+      return parseChoiceText(message.content, options)
+    }
   }, {max: 1})
     .then(messages => messages.first())
     .then(message => parseChoiceText(message.content, options))
 
-  const choice = await Promise.race([reactionPromise, messagePromise])
+  const ret = await Promise.race([reactionPromise, messagePromise])
 
-  return { message, choice }
+  return Object.assign({ message }, ret)
 }
 
 async function prompt(channel, userId, title, options, color = 'GREY') {
@@ -87,9 +117,7 @@ async function prompt(channel, userId, title, options, color = 'GREY') {
 
   const message = await channel.send(embed)
 
-  const { choice } = await promptOnMessage(message, options, userId)
-
-  return { message, choice }
+  return await promptOnMessage(message, options, userId)
 }
 
 async function temporaryPrompt(channel, userId, title, options, color = 'GREY') {
@@ -99,11 +127,12 @@ async function temporaryPrompt(channel, userId, title, options, color = 'GREY') 
   if (!options || typeof options !== 'object') throw new TypeError('temporaryPrompt(,,, object | Map<anything, array<string title, Emoji emoji>> options) expected')
   if (typeof color !== 'string' && typeof color !== 'number') throw new TypeError('prompt(,,,, string | number color) expected')
 
-  const { message, choice } = await prompt(channel, userId, title, options, color)
+  const ret = await prompt(channel, userId, title, options, color)
 
-  await message.delete()
+  await ret.message.delete()
+  delete ret.message
 
-  return { choice }
+  return ret
 }
 
-module.exports = { promptOnMessage, prompt, temporaryPrompt }
+module.exports = { promptOnMessage, prompt, temporaryPrompt, parseChoiceText }
