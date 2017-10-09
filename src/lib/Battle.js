@@ -1,4 +1,4 @@
-const { log, temporaryPrompt, richWrite, delay } = require('./util')
+const { log, showMenu, richWrite, delay } = require('./util')
 const { env } = require('./env')
 const { BattleMove } = require('./BattleMove')
 
@@ -185,8 +185,9 @@ class Battle {
         await log.warn(`..acted by battle character ${this.currentCharacterId} (${name})`)
       }
     } else {
-      await log.warn('Invalid action type:', action.type)
-      await log.warn(`..acted by battle character ${this.currentCharacterId} (${name})`)
+      await log.warn(
+        `Invalid action type: "${action.type}" acted by battle character ${this.currentCharacterId} (${name})`
+      )
     }
   }
 
@@ -460,72 +461,80 @@ class Battle {
     const member = await this.game.users.getDiscordMember(userId)
     const channel = this.channelMap.get(teamId)
 
-    switch ((await temporaryPrompt(channel, userId, `${member.displayName}'s turn`, userMoves, member.displayColor)).choice) {
-      case 'attacks': {
-        const choices = []
-        for (const id of userAttacks) {
-          const move = this.game.moves.get(id)
-          const targets = await this.getAllCharactersFilter(move.targetFilter)
+    const actorName = await this.game.battleCharacters.getName(battleCharacterId)
+    const turnTitle = `${actorName}'s Turn`
 
-          // don't show attacks with no targets
-          if (targets.length > 0) choices.push(id)
+    const userAction = {}
+
+    const backOption = {title: 'Back', emoji: '⬅', action: {history: 'back'}}
+
+    await showMenu(channel, userId, {
+      start: 'choose action',
+      dialogs: {
+        'choose action': {
+          title: turnTitle,
+          options: [
+            {title: 'Skip Turn', emoji: '⚓', action: () => {
+              userAction.type = 'use move'
+              userAction.move = 'skip-turn'
+            }},
+            {title: 'Attacks', emoji: '🥊', action: {to: 'pick attack'}}
+          ]
+        },
+        'pick attack': {
+          action: () => {
+            userAction.type = 'use move'
+            delete userAction.move
+          },
+          title: turnTitle + ' - Attacks',
+          options: async () => {
+            const options = [backOption]
+
+            for (const id of userAttacks) {
+              const move = this.game.moves.get(id)
+              const targets = await this.getAllCharactersFilter(move.targetFilter)
+
+              if (targets.length > 0) {
+                options.push({title: move.name, emoji: move.emoji, action: () => {
+                  userAction.move = move.id
+                  return {to: 'pick target'}
+                }})
+              }
+            }
+
+            return options
+          }
+        },
+        'pick target': {
+          action: () => {
+            delete userAction.target
+          },
+          title: () => `${turnTitle} - Use ${this.game.moves.get(userAction.move).name} on who?`,
+          options: async () => {
+            const options = [backOption]
+
+            const emojis = [
+              '♥', '💙', '💚', '💛', '💜',
+              '🥕', '🥔', '🍆'
+            ]
+
+            const move = this.game.moves.get(userAction.move)
+            const characterIds = await this.getAllCharactersFilter(move.targetFilter)
+
+            for (let i = 0; i < characterIds.length; i++) {
+              const id = characterIds[i]
+              options.push({title: await this.game.battleCharacters.getName(id), emoji: emojis[i], action: () => {
+                userAction.target = id
+              }})
+            }
+
+            return options
+          }
         }
-
-        const choicesMap = new Map(choices.map(attackId => {
-          const { id, name, emoji } = this.game.moves.get(attackId)
-          return [id, [name, emoji]]
-        }))
-
-        const { choice: move } = await temporaryPrompt(channel, userId, `${member.displayName}'s Turn - Attacks`, choicesMap, member.displayColor)
-        const target = await this.getUserTarget(userId, teamId, move)
-        return { type: 'use move', move, target }
       }
+    })
 
-      // case 'items': {}
-      // case 'tactics': {}
-
-      case 'skipTurn':
-      default: {
-        return { type: 'use move', move: 'skip-turn' }
-      }
-    }
-  }
-
-  async getUserTarget(userId, teamId, moveId) {
-    // TODO: Multi-page prompt function. We can use :heart:s for five options
-    // per page, but when there's more than five possible choices, that won't
-    // work.
-
-    if (!userId || typeof userId !== 'string') throw new TypeError('Battle#getUserTarget(string userId) expected')
-    if (!teamId || typeof teamId !== 'string') throw new TypeError('Battle#getUserTarget(, string teamId) expected')
-    if (!moveId || typeof moveId !== 'string') throw new TypeError('Battle#getUserTarget(,, string moveId) expected')
-
-    const move = this.game.moves.get(moveId)
-    const characterIds = await this.getAllCharactersFilter(move.targetFilter)
-
-    const characters = []
-    for (const id of characterIds) {
-      characters.push([
-        id,
-        await this.game.battleCharacters.getName(id),
-      ])
-    }
-
-    const choices = new Map(characters.map(([ id, name ], i) => {
-      return [
-        id,
-        [name, [
-          '♥', '💙', '💚', '💛', '💜',
-          '🥕', '🥔', '🍆'
-        ][i]]
-      ]
-    }))
-
-    const channel = this.channelMap.get(teamId)
-
-    const { name: moveName } = await this.game.moves.get(moveId)
-
-    return (await temporaryPrompt(channel, userId, `${await this.game.users.getName(userId)}'s turn - use ${moveName} on who?`, choices, await this.game.users.getDiscordMember(userId).then(m => m.displayColor))).choice
+    return userAction
   }
 
   async writeToAllChannels(color, title, content) {
