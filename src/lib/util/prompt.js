@@ -1,7 +1,7 @@
 const { RichEmbed, TextChannel, Message } = require('discord.js')
 
 function parseChoiceText(str, options) {
-  const matches = Object.entries(options).filter(([ key, { title, emoji }]) => {
+  const matches = options.filter(({ title, emoji }) => {
     if (str.startsWith(';') || str.startsWith(':')) {
       const textPart = str.slice(1).trim().toLowerCase()
       const lowerTitle = title.toLowerCase()
@@ -23,7 +23,7 @@ function parseChoiceText(str, options) {
   })
 
   if (matches.length === 1) {
-    const choice = matches[0][1]
+    const choice = matches[0]
     return choice
   } else {
     return false
