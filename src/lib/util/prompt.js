@@ -18,7 +18,7 @@ async function promptOnMessage(message, choices, userId) {
   const choiceMap = objectAsMap(choices)
 
   // And you thought you'd never see another IIFE?!
-  const addReactsMap = (async () => {
+  void (async () => {
     for (const item of Array.from(choiceMap.values())) {
       if (!item[1]) item[1] = '🔣' // FIXME :symbols:
 
@@ -36,17 +36,50 @@ async function promptOnMessage(message, choices, userId) {
     }
   })()
 
-  const reactions = await message.awaitReactions(reaction => {
+  const reactionPromise = message.awaitReactions(reaction => {
     return reaction.users.find('id', userId)
   }, {max: 1})
+    .then(reactions => reactions.first())
+    .then(reaction => {
+      const [ key ] = Array.from(choiceMap.entries()).find(
+        ([ key, [ name, emoji ] ]) => emoji === reaction.emoji.name
+      )
+      return key
+    })
 
-  const reaction = reactions.first()
+  const parseChoiceMessage = message => {
+    if (message.author.id !== userId) {
+      return false
+    }
 
-  const [ key ] = Array.from(choiceMap.entries()).find(
-    ([ key, [ name, emoji ] ]) => emoji === reaction.emoji.name
-  )
+    const str = message.content
 
-  return { message, choice: key }
+    const textPart = (str.startsWith(';') || str.startsWith(':')) ? str.slice(1).trim() : ''
+
+    const choice = Array.from(choiceMap.entries()).find(([ key, [ name, emoji ]]) => {
+      return (
+        name.toLowerCase() === textPart.toLowerCase() ||
+        str === emoji
+      )
+    })
+
+    if (choice) {
+      const key = choice[0]
+      return key
+    } else {
+      return false
+    }
+  }
+
+  const messagePromise = message.channel.awaitMessages(parseChoiceMessage, {max: 1})
+    .then(messages => messages.first())
+    .then(parseChoiceMessage)
+
+  const choice = await Promise.race([reactionPromise, messagePromise])
+
+  console.log(choice)
+
+  return { message, choice }
 }
 
 async function prompt(channel, userId, title, choices, color = 'GREY') {
