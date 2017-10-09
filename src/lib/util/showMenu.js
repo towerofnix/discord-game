@@ -61,7 +61,7 @@ async function showMenu(channel, userId, spec) {
     }
   }
 
-  handleAction({to: spec.start})
+  await handleAction({to: spec.start})
 }
 
 module.exports = showMenu
