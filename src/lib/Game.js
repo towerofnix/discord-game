@@ -95,7 +95,7 @@ class Game {
       // TEMP
 
       const userId = message.author.id
-      await this.music.play(rest, userId)
+      await this.users.setListeningTo(userId, rest)
     })
 
     this.commands.set('menu', async (rest, message) => {

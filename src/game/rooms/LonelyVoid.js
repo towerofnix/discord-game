@@ -7,7 +7,7 @@ class LonelyVoid extends Room {
   }
 
   async handleUserEntered(userId) {
-    await this.game.music.play('lonely-void', userId)
+    await this.game.users.setListeningTo(userId, 'lonely-void')
 
     const { channel } = await this.game.rooms.getChannelAndRole(this.id)
 
