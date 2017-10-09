@@ -2,49 +2,50 @@
 
 const { temporaryPrompt } = require('./prompt')
 
-async function showMenu(channel, userId, spec) {
-  console.log('Gooo!~')
+async function evaluateProperty(obj, prop) {
+  if (prop in obj) {
+    if (obj[prop] instanceof Function) {
+      return obj[prop]()
+    } else {
+      return obj[prop]
+    }
+  } else {
+    return undefined
+  }
+}
 
+async function showMenu(channel, userId, spec) {
   let history = []
 
   const showDialog = async function(dialogId) {
     const dialog = spec.dialogs[dialogId]
 
-    if ('action' in dialog) {
-      await handleAction(dialog.action)
+    const dialogAction = await evaluateProperty(dialog, 'action')
+
+    if (dialogAction) {
+      await handleAction(dialogAction)
     }
 
-    let options
-    if ('options' in dialog) {
-      if (Array.isArray(dialog.options)) {
-        options = dialog.options
-      } else if (dialog.options instanceof Function) {
-        options = dialog.options()
-      }
-    }
+    const options = await evaluateProperty(dialog, 'options')
 
     if (options) {
       const processedOptions = new Map(options.map(opt => {
         return [opt, [opt.title, opt.emoji]]
       }))
 
-      const { choice } = await temporaryPrompt(channel, userId, dialog.title, processedOptions)
+      const title = await evaluateProperty(dialog, 'title')
 
-      if ('action' in choice) {
-        await handleAction(choice.action)
+      const { choice } = await temporaryPrompt(channel, userId, title, processedOptions)
+
+      const action = await evaluateProperty(choice, 'action')
+
+      if (action) {
+        await handleAction(action)
       }
     }
   }
 
   const handleAction = async function(action) {
-    if ('run' in action) {
-      const nextAction = await action.run()
-
-      if (nextAction) {
-        await handleAction(nextAction)
-      }
-    }
-
     if ('to' in action) {
       history.push(action.to)
       await showDialog(action.to)

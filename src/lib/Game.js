@@ -108,19 +108,19 @@ class Game {
         dialogs: {
           root: {
             title: 'Root',
-            action: {run: async () => {
+            action: async () => {
               await message.reply('Welcome to my AMAZING menu maze!')
-            }},
+            },
             options: [
               {title: 'Reference self', emoji: '🔄', action: {to: 'root'}},
-              {title: 'Run-action', emoji: '🍔', action: {run: async () => {
+              {title: 'Run-action', emoji: '🍔', action: async () => {
                 await message.reply('Yeah, right!')
                 return {to: 'root'}
-              }}},
-              {title: 'Get outta here!', emoji: '🐻', action: {run: async () => {
+              }},
+              {title: 'Get outta here!', emoji: '🐻', action: async () => {
                 await message.reply('Awww.')
                 return {to: 'finalRegrets'}
-              }}},
+              }},
               {title: 'Memeland', emoji: '💡', action: {to: 'memeland'}}
             ]
           },
