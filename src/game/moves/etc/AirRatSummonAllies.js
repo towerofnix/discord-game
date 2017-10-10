@@ -21,6 +21,9 @@ class AirRatSummonAllies extends BattleMove {
             return false
           }
         }
+        if (await this.game.battleCharacters.getHP(char) <= 0) {
+          return false
+        }
         return char
       })))
       .then(chars => chars.filter(char => char !== false))
