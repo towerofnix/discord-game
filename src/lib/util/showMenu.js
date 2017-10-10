@@ -2,6 +2,10 @@
 
 const { temporaryPrompt, parseChoiceText } = require('./prompt')
 
+const autopageEmoji = [
+  '❤', '💙', '💚', '💛', '💜', '💝', '💟', '💗'
+]
+
 async function evaluateProperty(obj, prop) {
   if (prop in obj) {
     if (obj[prop] instanceof Function) {
@@ -48,6 +52,12 @@ async function showMenu(channel, userId, spec) {
       }
     }
 
+    const autopageOptions = await evaluateProperty(dialog, 'autopageOptions')
+
+    if (autopageOptions) {
+      allOptions.push(...autopageOptions)
+    }
+
     let choice = null, rest = ''
 
     if (autoInput.length > 0) {
@@ -79,6 +89,30 @@ async function showMenu(channel, userId, spec) {
         renderedOptions.push(...options)
       }
 
+      // If the dialog has auto-page options, these should be converted into pages.
+      // (Auto-page options are options that are automatically filled into pages.
+      // They don't have emojis; those are also automatically set.)
+
+      const renderPages = (pages || []).slice(0)
+
+      if (autopageOptions) {
+        let lastPage = []
+
+        for (const option of autopageOptions) {
+          const emoji = autopageEmoji[lastPage.length]
+          lastPage.push(Object.assign({}, option, { emoji }))
+
+          if (lastPage.length === autopageEmoji.length) {
+            renderPages.push(lastPage)
+            lastPage = []
+          }
+        }
+
+        if (lastPage.length > 0) {
+          renderPages.push(lastPage)
+        }
+      }
+
       // If the dialog is multipage, show page navigation controls and the options
       // for the current page.
       //
@@ -86,20 +120,20 @@ async function showMenu(channel, userId, spec) {
       // pressing the back button (if visible) will take the user away from the
       // multipage prompt, which practically acts as one dialog.
 
-      if (pages) {
+      if (renderPages) {
         if (pageIndex > 0) {
           renderedOptions.push({title: 'Previous page', emoji: '◀', action: async () => {
             await showDialog(dialogId, { pageIndex: pageIndex - 1 })
           }})
         }
 
-        const currentPage = pages[pageIndex]
+        const currentPage = renderPages[pageIndex]
 
         if (currentPage) {
           renderedOptions.push(...currentPage)
         }
 
-        if (pageIndex < pages.length - 1) {
+        if (pageIndex < renderPages.length - 1) {
           renderedOptions.push({title: 'Next page', emoji: '▶', action: async () => {
             await showDialog(dialogId, { pageIndex: pageIndex + 1 })
           }})

@@ -509,36 +509,15 @@ class Battle {
             delete userAction.target
           },
           title: () => `${turnTitle} - Use ${this.game.moves.get(userAction.move).name} on who?`,
-          pages: async () => {
-            const pages = []
-
-            const emojis = [
-              '♥', '💙', '💚', '💛', '💜',
-              '🥕', '🥔', '🍆'
-            ]
-
+          autopageOptions: async () => {
             const move = this.game.moves.get(userAction.move)
             const characterIds = await this.getAllCharactersFilter(move.targetFilter)
 
-            let lastPage = []
-
-            for (let i = 0; i < characterIds.length; i++) {
-              const id = characterIds[i]
-              lastPage.push({title: await this.game.battleCharacters.getName(id), emoji: emojis[lastPage.length], action: () => {
+            return await Promise.all(characterIds.map(
+              async id => ({title: await this.game.battleCharacters.getName(id), action: () => {
                 userAction.target = id
               }})
-
-              if (lastPage.length === emojis.length) {
-                pages.push(lastPage)
-                lastPage = []
-              }
-            }
-
-            if (lastPage.length > 0) {
-              pages.push(lastPage)
-            }
-
-            return pages
+            ))
           }
         }
       }
