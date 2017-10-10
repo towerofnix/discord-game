@@ -17,6 +17,8 @@ async function evaluateProperty(obj, prop) {
 async function showMenu(channel, userId, spec) {
   let history = []
 
+  const showBack = await evaluateProperty(spec, 'showBack')
+
   const showDialog = async function(dialogId, { autoInput = '', pageIndex = 0 } = {}) {
     const dialog = spec.dialogs[dialogId]
 
@@ -64,7 +66,14 @@ async function showMenu(channel, userId, spec) {
 
       const renderedOptions = []
 
-      // Start with the actual options array.
+      // Show the back button, if the menu is configured to show it, and there is
+      // history to go back to.
+
+      if (showBack === true && history.length > 1) {
+        renderedOptions.push({title: 'Back', emoji: '⏪', action: {history: 'back'}})
+      }
+
+      // Show the actual options array.
 
       if (options) {
         renderedOptions.push(...options)
@@ -72,6 +81,10 @@ async function showMenu(channel, userId, spec) {
 
       // If the dialog is multipage, show page navigation controls and the options
       // for the current page.
+      //
+      // Note that we don't add the new page to the history array; this is so that
+      // pressing the back button (if visible) will take the user away from the
+      // multipage prompt, which practically acts as one dialog.
 
       if (pages) {
         if (pageIndex > 0) {

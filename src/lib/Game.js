@@ -135,6 +135,7 @@ class Game {
 
       showMenu(message.channel, userId, {
         start: 'root',
+        showBack: true,
         dialogs: {
           root: {
             title: 'Root',
