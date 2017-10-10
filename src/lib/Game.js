@@ -110,6 +110,9 @@ class Game {
         dialogs: {
           'multipage': {
             title: 'Multi-page dialog',
+            options: [
+              {title: 'Spaghetti!', emoji: '🍝', action: reply('Spaghetti!')}
+            ],
             pages: [
               [
                 {title: 'P1 O1', emoji: '🔄', action: reply('P1 O1')},

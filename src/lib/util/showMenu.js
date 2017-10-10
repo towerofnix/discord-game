@@ -59,9 +59,43 @@ async function showMenu(channel, userId, spec) {
     // If auto-input found no choice, then pass control back to the user.
 
     if (choice === null) {
-      const title = await evaluateProperty(dialog, 'title')
 
-      const match = await temporaryPrompt(channel, userId, title, options)
+      // Get rendered options (the buttons displayed below the temporary prompt).
+
+      const renderedOptions = []
+
+      // Start with the actual options array.
+
+      if (options) {
+        renderedOptions.push(...options)
+      }
+
+      // If the dialog is multipage, show page navigation controls and the options
+      // for the current page.
+
+      if (pages) {
+        if (pageIndex > 0) {
+          renderedOptions.push({title: 'Previous page', emoji: '◀', action: async () => {
+            await showDialog(dialogId, { pageIndex: pageIndex - 1 })
+          }})
+        }
+
+        const currentPage = pages[pageIndex]
+
+        if (currentPage) {
+          renderedOptions.push(...currentPage)
+        }
+
+        if (pageIndex < pages.length - 1) {
+          renderedOptions.push({title: 'Next page', emoji: '▶', action: async () => {
+            await showDialog(dialogId, { pageIndex: pageIndex + 1 })
+          }})
+        }
+      }
+
+      const title = await evaluateProperty(dialog, 'title')
+      const match = await temporaryPrompt(channel, userId, title, renderedOptions)
+
       choice = match.choice
       rest = match.rest
     }
