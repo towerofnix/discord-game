@@ -98,6 +98,33 @@ class Game {
       await this.users.setListeningTo(userId, rest)
     })
 
+    this.commands.set('pages', async (rest, message) => {
+      // TEMP ONCE MORE
+
+      const userId = message.author.id
+
+      const reply = text => () => message.reply(text)
+
+      showMenu(message.channel, userId, {
+        start: 'multipage',
+        dialogs: {
+          'multipage': {
+            title: 'Multi-page dialog',
+            pages: [
+              [
+                {title: 'P1 O1', emoji: '🔄', action: reply('P1 O1')},
+                {title: 'P1 O2', emoji: '🍔', action: reply('P1 O2')}
+              ],
+              [
+                {title: 'P2 O1', emoji: '🐻', action: reply('P2 O1')},
+                {title: 'P2 O2', emoji: '💡', action: reply('P2 O2')}
+              ]
+            ]
+          }
+        }
+      })
+    })
+
     this.commands.set('menu', async (rest, message) => {
       // TEMP AGAIN
 
