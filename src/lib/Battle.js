@@ -466,10 +466,9 @@ class Battle {
 
     const userAction = {}
 
-    const backOption = {title: 'Back', emoji: '⬅', action: {history: 'back'}}
-
     await showMenu(channel, userId, {
       start: 'choose action',
+      showBack: true,
       dialogs: {
         'choose action': {
           title: turnTitle,
@@ -488,7 +487,7 @@ class Battle {
           },
           title: turnTitle + ' - Attacks',
           options: async () => {
-            const options = [backOption]
+            const options = []
 
             for (const id of userAttacks) {
               const move = this.game.moves.get(id)
@@ -511,7 +510,7 @@ class Battle {
           },
           title: () => `${turnTitle} - Use ${this.game.moves.get(userAction.move).name} on who?`,
           options: async () => {
-            const options = [backOption]
+            const options = []
 
             const emojis = [
               '♥', '💙', '💚', '💛', '💜',
