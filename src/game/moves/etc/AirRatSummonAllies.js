@@ -36,7 +36,16 @@ class AirRatSummonAllies extends BattleMove {
       await battle.dealDamageToCharacter(this, targetId, damage)
     }
 
-    const summoned = Math.round(Math.random() * 3)
+    let summoned = Math.round(Math.random() * 3)
+
+    const members = await this.game.teams.getMembers(actorTeamId)
+
+    // FIXME: Don't use a hard-coded limit here! Probably store the constant
+    // on TeamController, e.g. this.game.teams.MAX_MEMBERS. Also, enforce the
+    // limit inside of TeamController.
+    if (members.length + summoned > 8) {
+      summoned = 8 - members.length
+    }
 
     if (summoned === 0) {
       await battle.writeMoveMessage(this, 'RED', 'But no air rats appear.')
