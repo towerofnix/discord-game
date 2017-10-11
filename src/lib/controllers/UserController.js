@@ -67,7 +67,10 @@ class UserController extends BasicDatabaseController {
 
   async getLocation(id) { return await this.getProperty(id, 'location') }
   async setLocation(id, newLocation) { return await this.setProperty(id, 'location', newLocation) }
-  async findByLocation(location) { return await this.findByProperty('location', location) }
+
+  async findByLocation(location) {
+    return await this.filterByLiveDiscordMembers(await this.findByProperty('location', location))
+  }
 
   async getBattleCharacter(id) { return await this.getProperty(id, 'battleCharacter') }
 
