@@ -141,7 +141,10 @@ async function showMenu(channel, userId, spec) {
       }
 
       const title = await evaluateProperty(dialog, 'title')
-      const match = await temporaryPrompt(channel, userId, title, renderedOptions)
+      const color = await evaluateProperty(dialog, 'color')
+      const description = await evaluateProperty(dialog, 'description')
+
+      const match = await temporaryPrompt(channel, userId, title, renderedOptions, color, description)
 
       choice = match.choice
       rest = match.rest

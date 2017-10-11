@@ -103,31 +103,36 @@ async function promptOnMessage(message, options, userId) {
   return Object.assign({ message }, ret)
 }
 
-async function prompt(channel, userId, title, options, color = 'GREY') {
+async function prompt(channel, userId, title, options, color = 'GREY', description = '') {
   if (!channel) throw new TypeError('prompt(discord.TextChannel channel) expected')
   if (!userId || typeof userId !== 'string') throw new TypeError('prompt(, string userId) expected')
   if (!title || typeof title !== 'string') throw new TypeError('prompt(,, string title) expected')
   if (!options || typeof options !== 'object') throw new TypeError('prompt(,,, object | Map<anything, array<string title, Emoji emoji>> options) expected')
   if (typeof color !== 'string' && typeof color !== 'number') throw new TypeError('prompt(,,,, string | color color) expected')
+  if (typeof description !== 'string') throw new TypeError('prompt(,,,,, string description) expected')
+
+  if (description !== '')
+    description += '\n\n'
 
   const embed = new RichEmbed()
     .setTitle(title)
     .setColor(color)
-    .setDescription(options.map(({ title, emoji }) => `${emoji} ${title}`))
+    .setDescription(description + options.map(({ title, emoji }) => `${emoji} ${title}`).join('\n'))
 
   const message = await channel.send(embed)
 
   return await promptOnMessage(message, options, userId)
 }
 
-async function temporaryPrompt(channel, userId, title, options, color = 'GREY') {
+async function temporaryPrompt(channel, userId, title, options, color = 'GREY', description = '') {
   if (!channel) throw new TypeError('temporaryPrompt(discord.TextChannel channel) expected')
   if (!userId || typeof userId !== 'string') throw new TypeError('temporaryPrompt(, string userId) expected')
   if (!title || typeof title !== 'string') throw new TypeError('temporaryPrompt(,, string title) expected')
   if (!options || typeof options !== 'object') throw new TypeError('temporaryPrompt(,,, object | Map<anything, array<string title, Emoji emoji>> options) expected')
-  if (typeof color !== 'string' && typeof color !== 'number') throw new TypeError('prompt(,,,, string | number color) expected')
+  if (typeof color !== 'string' && typeof color !== 'number') throw new TypeError('temporaryPrompt(,,,, string | number color) expected')
+  if (typeof description !== 'string') throw new TypeError('temporaryPrompt(,,,,, string description) expected')
 
-  const ret = await prompt(channel, userId, title, options, color)
+  const ret = await prompt(channel, userId, title, options, color, description)
 
   await ret.message.delete()
   delete ret.message

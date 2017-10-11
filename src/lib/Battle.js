@@ -472,6 +472,8 @@ class Battle {
       dialogs: {
         'choose action': {
           title: turnTitle,
+          description: 'Foo bar!!!',
+          color: 'RED',
           options: [
             {title: 'Skip Turn', emoji: '⚓', action: () => {
               userAction.type = 'use move'
