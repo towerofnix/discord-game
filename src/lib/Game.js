@@ -337,16 +337,28 @@ class Game {
           'invite new member': {
             title: '(Team name here) - Which member? (The person you want to invite must be in the same location as you.)',
             autopageOptions: async () => {
+              const options = []
+
               const location = await this.users.getLocation(userId)
-              const users = await this.users.findByLocation(location)
-              return await Promise.all(users.map(async userId => {
+              const usersInLocation = await this.users.findByLocation(location)
+
+              for (const userId of usersInLocation) {
                 const memberId = await this.users.getBattleCharacter(userId)
+
+                // Don't list users who are already in the team as options.
+                if (await this.teams.hasMember(currentTeamId, memberId)) {
+                  continue
+                }
+
                 const name = await this.battleCharacters.getName(memberId)
-                return {title: name, action: async () => {
+
+                options.push({title: name, action: async () => {
                   await this.teams.addMember(currentTeamId, memberId)
-                  return {to: 'manage current team'}
-                }}
-              }))
+                  return {history: 'back'}
+                }})
+              }
+
+              return options
             }
           },
           'delete team': {
