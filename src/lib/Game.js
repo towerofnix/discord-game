@@ -279,6 +279,97 @@ class Game {
     })
 
     this.commands.set('team', async (rest, message) => {
+      // UNSURPRISINGLY TEMP
+
+      const userId = message.author.id
+      const battleCharacterId = await this.users.getBattleCharacter(userId)
+
+      let currentTeamId = null
+      let currentMemberId = null
+
+      await showMenu(message.channel, userId, {
+        start: 'root',
+        showBack: true,
+        dialogs: {
+          'root': {
+            title: 'Teams',
+            options: async () => {
+              return [
+                {title: 'Close', emoji: '❎'},
+                // {title: 'View invites', emoji: '💌'},
+                {title: 'Create new team', emoji: '🚀', action: {to: 'create new team'}}
+              ]
+            },
+            autopageOptions: async () => {
+              return (await this.teams.findByMember(battleCharacterId))
+                .map(teamId => ({title: '(Team name here)', action: () => {
+                  currentTeamId = teamId
+                  return {to: 'manage current team'}
+                }}))
+            }
+          },
+          'create new team': {
+            action: async () => {
+              const teamId = await this.teams.createNew([battleCharacterId])
+              currentTeamId = teamId
+              return {history: 'pop', to: 'manage current team'}
+            }
+          },
+          'manage current team': {
+            title: '(Team name here)',
+            options: [
+              {title: '~~Invite~~ Add a new member', emoji: '💌', action: {to: 'invite new member'}},
+              {title: 'Delete team', emoji: '🗑', action: {to: 'delete team'}}
+            ],
+            autopageOptions: async () => {
+              const members = await this.teams.getMembers(currentTeamId)
+              return await Promise.all(members.map(async memberId => {
+                const name = await this.battleCharacters.getName(memberId)
+                return {title: name, action: async () => {
+                  currentMemberId = memberId
+                  return {to: 'manage member'}
+                }}
+              }))
+              const names = await Promise.all(members.map(id => this.battleCharacters.getName(id)))
+              return names.map(name => ({title: name}))
+            }
+          },
+          'invite new member': {
+            title: '(Team name here) - Which member? (The person you want to invite must be in the same location as you.)',
+            autopageOptions: async () => {
+              const location = await this.users.getLocation(userId)
+              const users = await this.users.findByLocation(location)
+              return await Promise.all(users.map(async userId => {
+                const memberId = await this.users.getBattleCharacter(userId)
+                const name = await this.battleCharacters.getName(memberId)
+                return {title: name, action: async () => {
+                  await this.teams.addMember(currentTeamId, memberId)
+                  return {to: 'manage current team'}
+                }}
+              }))
+            }
+          },
+          'delete team': {
+            action: async () => {
+              await this.teams.delete(currentTeamId)
+              currentTeamId = null
+              return {history: 'clear', to: 'root'}
+            }
+          },
+          'manage member': {
+            title: async () => `(Team name here) - ${await this.battleCharacters.getName(currentMemberId)}`,
+            options: [
+              {title: 'Remove from team', emoji: '👋', action: async () => {
+                await this.teams.removeMember(currentTeamId, currentMemberId)
+                return {history: 'back'}
+              }}
+            ]
+          }
+        }
+      })
+    })
+
+    this.commands.set('team-add', async (rest, message) => {
       // FURTHERMORE TEMP
 
       const userId = message.author.id

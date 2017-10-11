@@ -157,18 +157,25 @@ async function showMenu(channel, userId, spec) {
   }
 
   const handleAction = async function(action, autoInput) {
+    if ('history' in action) {
+      if (action.history === 'back') {
+        const current = history.pop()
+        const previous = history.pop()
+        if (previous) {
+          history.push(previous)
+          await showDialog(previous, {autoInput})
+        }
+      } else if (action.history === 'clear') {
+        history.splice(0)
+      } else if (action.history === 'pop') {
+        // Used in "in-between" dialogs (e.g. "delete team").
+        history.pop()
+      }
+    }
+
     if ('to' in action) {
       history.push(action.to)
       await showDialog(action.to, {autoInput})
-    }
-
-    if ('history' in action) {
-      const current = history.pop()
-      const previous = history.pop()
-      if (previous) {
-        history.push(previous)
-        await showDialog(previous, {autoInput})
-      }
     }
   }
 

@@ -49,9 +49,12 @@ class UserController extends BasicDatabaseController {
 
   async list() {
     // Doesn't return users who don't have Discord members joined to the game guild.
-    const allUsers = await super.list()
+    return await this.filterByLiveDiscordMembers(await super.list())
+  }
+
+  async filterByLiveDiscordMembers(userArray) {
     const exists = async id => await this.getDiscordMember(id) !== null
-    return (await Promise.all(allUsers.map(async id => (await exists(id) ? id : false))))
+    return (await Promise.all(userArray.map(async id => (await exists(id) ? id : false))))
       .filter(item => item !== false)
   }
 
@@ -62,21 +65,17 @@ class UserController extends BasicDatabaseController {
     return member.displayName
   }
 
-  async getLocation(id) {
-    return await this.getProperty(id, 'location')
-  }
+  async getLocation(id) { return await this.getProperty(id, 'location') }
+  async setLocation(id, newLocation) { return await this.setProperty(id, 'location', newLocation) }
+  async findByLocation(location) { return await this.findByProperty('location', location) }
 
-  async getBattleCharacter(id) {
-    return await this.getProperty(id, 'battleCharacter')
-  }
+  async getBattleCharacter(id) { return await this.getProperty(id, 'battleCharacter') }
 
-  async getListeningTo(id) {
-    return await this.getProperty(id, 'listeningTo')
-  }
+  async getListeningTo(id) { return await this.getProperty(id, 'listeningTo') }
+  async setListeningTo(id, song) { return await this.setProperty(id, 'listeningTo', song) }
 
-  async setListeningTo(id, song) {
-    // _setListeningTo is called by set, so we don't need to call it here.
-    return await this.setProperty(id, 'listeningTo', song)
+  async getDiscordMember(id) {
+    return await this.game.guild.members.find('id', id)
   }
 
   async _setListeningTo(id, song) {
@@ -109,11 +108,6 @@ class UserController extends BasicDatabaseController {
     }
   }
 
-  async setLocation(id, newLocation) {
-    // _setLocation is called by set, so we don't need to call it here.
-    return await this.setProperty(id, 'location', newLocation)
-  }
-
   async _setLocation(userId, roomId) {
     // Perform setLocation side effects
 
@@ -133,10 +127,6 @@ class UserController extends BasicDatabaseController {
     member.addRole(role)
 
     await this.game.rooms.notifyUserEntered(roomId, userId)
-  }
-
-  async getDiscordMember(id) {
-    return await this.game.guild.members.find('id', id)
   }
 }
 

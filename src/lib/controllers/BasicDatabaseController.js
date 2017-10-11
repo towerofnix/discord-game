@@ -85,6 +85,10 @@ class BasicDatabaseController {
   async setProperty(id, key, value) {
     return await this.set(id, { [key]: value })
   }
+
+  async findByProperty(key, value) {
+    return (await this.db.find({ [key]: value })).map(doc => doc._id)
+  }
 }
 
 module.exports = { BasicDatabaseController }

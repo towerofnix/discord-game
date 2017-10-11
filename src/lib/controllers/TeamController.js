@@ -80,7 +80,12 @@ class TeamController extends BasicDatabaseController {
   }
 
   async findByMember(member) {
-    return await this.db.find({ members: { $elemMatch: member } }, { _id: 1 })
+    return (await this.db.find({ members: { $elemMatch: member } }, { _id: 1 }))
+      .map(team => team._id)
+  }
+
+  async removeMember(teamId, member) {
+    return await this.update(teamId, { $pull: { members: member } })
   }
 
   async findOrCreateForMember(member) {
@@ -89,7 +94,7 @@ class TeamController extends BasicDatabaseController {
     let id
 
     if (find.length > 0) {
-      id = find[0]._id
+      id = find[0]
     } else {
       id = await this.createNew([member])
     }
