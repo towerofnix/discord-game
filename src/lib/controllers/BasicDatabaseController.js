@@ -13,7 +13,7 @@ class BasicDatabaseController {
   }
 
   async typecheckAll() {
-    const items = await this.list()
+    const items = await BasicDatabaseController.prototype.list.apply(this)
 
     for (const id of items) {
       const item = await this.get(id)

@@ -119,10 +119,10 @@ class MusicController {
       if (song !== null) {
         await log.debug(`Giving user ${id} listening-to role`)
         const { role } = await this.getSongRoleAndChannel(song)
+        const member = await this.game.users.getDiscordMember(id)
 
         // give user the "listening to: <song>" role
-        const member = await this.game.users.getDiscordMember(id)
-          .then(member => member.addRole(role))
+        await member.addRole(role)
 
         // remove previous "listening to" role
         for (let [ id, mRole ] of member.roles) {

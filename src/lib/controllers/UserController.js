@@ -47,6 +47,14 @@ class UserController extends BasicDatabaseController {
     return ret
   }
 
+  async list() {
+    // Doesn't return users who don't have Discord members joined to the game guild.
+    const allUsers = await super.list()
+    const exists = async id => await this.getDiscordMember(id) !== null
+    return (await Promise.all(allUsers.map(async id => (await exists(id) ? id : false))))
+      .filter(item => item !== false)
+  }
+
   async getName(id) {
     if (!id || typeof id !== 'string') throw new TypeError('UserController#getName(String id) expected')
 
