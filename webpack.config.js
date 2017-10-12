@@ -54,6 +54,10 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             // ...Babel options here...
+            plugins: [
+              'transform-es2015-classes',
+              'transform-async-to-generator'
+            ]
           }
         }
       },

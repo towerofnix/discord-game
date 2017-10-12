@@ -1,10 +1,11 @@
+import BasicMaplikeController from './BasicMaplikeController'
 import { debug } from '../util/log'
 
 // Battle AIs control the moves a given ai-controlled battle character makes
 // in battle. They also (TODO) control initial stats given to newly created
 // characters of that AI type.
 
-export default class BattleAIController extends Map {
+export default class BattleAIController extends BasicMaplikeController {
   constructor(game) {
     super()
 

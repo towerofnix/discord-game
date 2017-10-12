@@ -1,10 +1,11 @@
+import BasicMaplikeController from './BasicMaplikeController'
 import { warn } from '../util/log'
 import { promptOnMessage } from '../util/prompt'
 import { richWrite } from '../util/richWrite'
 
 export const PREFIX = '.'
 
-export default class CommandController extends Map {
+export default class CommandController extends BasicMaplikeController {
   // Command controller map. Add entries to the map to act as command handlers;
   // for example: commandController.set('.warp', (rest, message) => {})
   // Also contains a utility function for adding a verb command (these are used

@@ -1,7 +1,8 @@
+import BasicMaplikeController from './BasicMaplikeController'
 import Room from '../Room'
 import * as log from '../util/log'
 
-export default class RoomController extends Map {
+export default class RoomController extends BasicMaplikeController {
   constructor(game) {
     super()
 

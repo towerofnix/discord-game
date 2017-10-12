@@ -1,6 +1,7 @@
+import BasicMaplikeController from './BasicMaplikeController'
 import { debug } from '../util/log'
 
-export default class MoveController extends Map {
+export default class MoveController extends BasicMaplikeController {
   constructor(game) {
     super()
 
