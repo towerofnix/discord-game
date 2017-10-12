@@ -1,6 +1,6 @@
 import chalk from 'chalk'
-import { env } from './env'
 import nodeUtil from 'util'
+import env from './env'
 
 export async function info(...messages) {
   if (await env('loglevel', 'number', 0) > 0) return

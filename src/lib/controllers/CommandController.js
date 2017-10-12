@@ -1,8 +1,10 @@
-const { log, promptOnMessage, richWrite } = require('../util')
+import { warn } from '../util/log'
+import { promptOnMessage } from '../util/prompt'
+import { richWrite } from '../util/richWrite'
 
-const PREFIX = '.'
+export const PREFIX = '.'
 
-class CommandController extends Map {
+export default class CommandController extends Map {
   // Command controller map. Add entries to the map to act as command handlers;
   // for example: commandController.set('.warp', (rest, message) => {})
   // Also contains a utility function for adding a verb command (these are used
@@ -92,5 +94,3 @@ class CommandController extends Map {
     })
   }
 }
-
-module.exports = { CommandController }

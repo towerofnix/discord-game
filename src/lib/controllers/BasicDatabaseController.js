@@ -1,4 +1,4 @@
-import { checkTypes } from '../util'
+import checkTypes from '../util/checkTypes'
 
 // async superset of Map
 export default class BasicDatabaseController {

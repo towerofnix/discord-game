@@ -3,9 +3,10 @@ import Game from './lib/Game'
 import { log, checkTypes } from './lib/util'
 //const { LonelyVoid } = require('./game/rooms/LonelyVoid')
 //const { TinyLand } = require('./game/rooms/TinyLand')
-//const battleAIs = require('./game/ais')
-//const music = require('./game/music')
-//const moves = require('./game/moves')
+import music from './game/music'
+import battleAIs from './game/ais'
+import * as moveCategories from './game/moves'
+import rooms from './game/rooms'
 
 console.log('Go!')
 
@@ -21,12 +22,13 @@ async function main() {
   const game = new Game()
   await game.setup()
 
-  await game.rooms.register(new LonelyVoid(game))
-  await game.rooms.register(new TinyLand(game))
+  for (const roomClass of rooms) {
+    await game.rooms.register(new roomClass(game))
+  }
 
-  for (const category of Object.values(moves)) {
-    for (const move of category) {
-      await game.moves.register(new move(game))
+  for (const category of Object.values(moveCategories)) {
+    for (const moveClass of category) {
+      await game.moves.register(new moveClass(game))
     }
   }
 

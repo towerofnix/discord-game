@@ -1,6 +1,6 @@
-const { BattleMove } = require('../../../lib/BattleMove')
+import BattleMove from '../../../lib/BattleMove'
 
-class SkipTurn extends BattleMove {
+export default class SkipTurn extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Skip Turn',
@@ -23,5 +23,3 @@ class SkipTurn extends BattleMove {
     await battle.writeMoveMessage(this, 0x777777, string)
   }
 }
-
-module.exports = SkipTurn

@@ -6,7 +6,7 @@ function out(msg) {
   console.error(chalk`{bgRed [typecheck]} ${msg}`)
 }
 
-export function checkTypes(obj, typedef, all) {
+export default function checkTypes(obj, typedef, all) {
   if (!obj) throw new TypeError('checkTypes(Object obj) expected')
   if (!typedef) throw new TypeError('checkTypes(, Object typedef) expected')
   if (typeof all !== 'boolean') throw new TypeError('checkTypes(,, Boolean all) expected')

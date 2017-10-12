@@ -1,9 +1,12 @@
 import discord from 'discord.js'
 import chalk from 'chalk'
 
-import { log, showMenu, env } from './util'
+import env from './util/env'
+import * as log from './util/log'
+import showMenu from './util/showMenu'
 import BattleAIController from './controllers/BattleAIController'
 import BattleCharacterController from './controllers/BattleCharacterController'
+import CommandController from './controllers/CommandController'
 import MoveController from './controllers/MoveController'
 import MusicController from './controllers/MusicController'
 import RoomController from './controllers/RoomController'

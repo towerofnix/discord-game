@@ -1,8 +1,7 @@
-const { Room } = require('../../lib/Room')
+import Room from '../../lib/Room'
+import richWrite from '../../lib/util/richWrite'
 
-const { richWrite } = require('../../lib/util')
-
-class TinyLand extends Room {
+export default class TinyLand extends Room {
   constructor(game) {
     super(game, 'tiny-land', 'Tiny Land')
   }
@@ -21,5 +20,3 @@ class TinyLand extends Room {
     }, 4000)
   }
 }
-
-module.exports = { TinyLand }

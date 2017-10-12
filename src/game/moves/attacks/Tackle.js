@@ -1,6 +1,6 @@
-const { BattleMove, aliveOnly } = require('../../../lib/BattleMove.js')
+import BattleMove, { aliveOnly } from '../../../lib/BattleMove'
 
-class Tackle extends BattleMove {
+export default class Tackle extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Tackle',
@@ -19,5 +19,3 @@ class Tackle extends BattleMove {
     await battle.dealDamageToCharacter(this, targetId, damage)
   }
 }
-
-module.exports = Tackle

@@ -17,7 +17,7 @@ export const getOptions = memize(async function(configFile = 'env.json') {
   }
 })
 
-export async function env(key, type, defaultValue = null) {
+export default async function env(key, type, defaultValue = null) {
   if (!key) throw 'env(key) expected'
   if (!type) throw 'env(, type) expected'
 
