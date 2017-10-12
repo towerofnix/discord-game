@@ -3,6 +3,7 @@ import * as log from '../util/log'
 
 import chalk from 'chalk'
 import discord from 'discord.js'
+import nodePath from 'path'
 
 export default class MusicController {
   constructor(game) {
@@ -49,7 +50,7 @@ export default class MusicController {
         resolve()
 
         async function loop() {
-          let dispatcher = voiceConn.playFile(path, {
+          let dispatcher = voiceConn.playFile(nodePath.join(__dirname, path), {
             bitrate: 4000, // 48000 default
           })
 

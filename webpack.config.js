@@ -5,7 +5,12 @@ const WebpackShellPlugin = require('webpack-shell-plugin')
 
 module.exports = {
   devtool: 'source-map',
+
   target: 'node',
+  node: {
+    __dirname: false,
+    __filename: false
+  },
 
   entry: ['./src/main.js'],
   output: {
@@ -34,14 +39,14 @@ module.exports = {
     })
   ],
 
-  // Babel config.
-  // No Babel plugins, yet. In the future we should definitely be careful to
-  // choose plugins carefully. Remember that we aren't targeting any old
-  // versions of Node - only the current one. So, only add plugins which are
-  // useful to current versions of Node. Later, we'll want to transform async
-  // functions into generator syntax so that we get better async stack traces.
   module: {
     rules: [
+      // Babel config.
+      // No Babel plugins, yet. In the future we should definitely be careful to
+      // choose plugins carefully. Remember that we aren't targeting any old
+      // versions of Node - only the current one. So, only add plugins which are
+      // useful to current versions of Node. Later, we'll want to transform async
+      // functions into generator syntax so that we get better async stack traces.
       {
         test: /\.js$/,
         exclude: /node_modules/,
@@ -50,6 +55,13 @@ module.exports = {
           options: {
             // ...Babel options here...
           }
+        }
+      },
+
+      {
+        test: /\.mp3$/,
+        use: {
+          loader: 'file-loader'
         }
       }
     ]
