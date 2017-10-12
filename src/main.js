@@ -1,22 +1,18 @@
-//const { Game } = require('./lib/Game')
 import Game from './lib/Game'
-import { log, checkTypes } from './lib/util'
-//const { LonelyVoid } = require('./game/rooms/LonelyVoid')
-//const { TinyLand } = require('./game/rooms/TinyLand')
+import { fatal } from './lib/util/log'
+import checkTypes from './lib/util/checkTypes'
 import music from './game/music'
 import battleAIs from './game/ais'
 import * as moveCategories from './game/moves'
 import rooms from './game/rooms'
 
-console.log('Go!')
-
 async function main() {
   process.on('uncaughtException', async err => {
-    await log.fatal(err.stack || err)
+    await fatal(err.stack || err)
   })
 
   process.on('unhandledRejection', async err => {
-    await log.fatal(err.stack || err)
+    await fatal(err.stack || err)
   })
 
   const game = new Game()
@@ -44,4 +40,3 @@ async function main() {
 }
 
 main()
-  .catch(err => console.error(err))

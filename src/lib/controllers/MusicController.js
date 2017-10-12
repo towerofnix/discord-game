@@ -1,4 +1,5 @@
-import { log, env } from '../util'
+import env from '../util/env'
+import * as log from '../util/log'
 
 import chalk from 'chalk'
 import discord from 'discord.js'

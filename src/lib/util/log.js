@@ -21,6 +21,13 @@ export async function warn(...messages) {
   console.trace('Stack trace')
 }
 
+export async function fatal(...messages) {
+  // note: you can also just `throw` to do this
+  console.error(chalk`{bgRed [fatal]} ${messages.join(', ')}`)
+
+  process.exit(1) // fatal errors only!
+}
+
 export async function debug(...messages) {
   if (await env('loglevel', 'number', 0) > -1) return
 
