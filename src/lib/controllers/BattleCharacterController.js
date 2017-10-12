@@ -1,5 +1,5 @@
-const { BasicDatabaseController } = require('./BasicDatabaseController')
-const { Either, Value } = require('../util/checkTypes')
+import BasicDatabaseController from './BasicDatabaseController'
+import { Either, Value } from '../util/checkTypes'
 
 const shortid = require('shortid')
 const Datastore = require('nedb-promise')
@@ -9,7 +9,7 @@ const db = new Datastore({
   autoload: true,
 })
 
-const BattleCharacterData = {
+export const BattleCharacterData = {
   curHP: Number,
   maxHP: Number,
   baseDefense: Number,
@@ -24,7 +24,7 @@ const BattleCharacterData = {
 // hooked into a clean-up (which deletes old un-deleted enemies when called..
 // or at least, temporary ones).
 
-class BattleCharacterController extends BasicDatabaseController {
+export default class BattleCharacterController extends BasicDatabaseController {
   constructor(game) {
     if (!game) throw new TypeError('new BattleCharacterController(Game game) expected')
 
@@ -97,5 +97,3 @@ class BattleCharacterController extends BasicDatabaseController {
     return id
   }
 }
-
-module.exports = { BattleCharacterController, BattleCharacterData }

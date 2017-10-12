@@ -1,10 +1,9 @@
-const { env } = require('../env')
-const { log } = require('../util')
+import { log, env } from '../util'
 
-const discord = require('discord.js')
-const chalk = require('chalk')
+import chalk from 'chalk'
+import discord from 'discord.js'
 
-class MusicController {
+export default class MusicController {
   constructor(game) {
     if (!game) throw new TypeError('new MusicController(Game game) expected')
 
@@ -134,5 +133,3 @@ class MusicController {
     }
   }
 }
-
-module.exports = { MusicController }

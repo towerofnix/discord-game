@@ -1,7 +1,7 @@
-const { Room } = require('../Room')
-const { log } = require('../util')
+import Room from '../Room'
+import * as log from '../util/log'
 
-class RoomController extends Map {
+export default class RoomController extends Map {
   constructor(game) {
     super()
 
@@ -67,5 +67,3 @@ class RoomController extends Map {
     return { role, channel }
   }
 }
-
-module.exports = { RoomController }

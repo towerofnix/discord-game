@@ -2,11 +2,15 @@ import discord from 'discord.js'
 import chalk from 'chalk'
 
 import { log, showMenu, env } from './util'
+import BattleAIController from './controllers/BattleAIController'
+import BattleCharacterController from './controllers/BattleCharacterController'
+import MoveController from './controllers/MoveController'
+import MusicController from './controllers/MusicController'
+import RoomController from './controllers/RoomController'
+import TeamController from './controllers/TeamController'
+import UserController from './controllers/UserController'
 
 /*
-const { CommandController, RoomController, MusicController,
-        UserController, BattleAIController, TeamController,
-        BattleCharacterController, MoveController } = require('./controllers')
 const { Battle } = require('./Battle')
 */
 

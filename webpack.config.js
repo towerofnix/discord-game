@@ -21,24 +21,39 @@ module.exports = {
       raw: true, entryOnly: false
     }),
 
+    // Set up the regenerator runtime, for Babel.
+    new webpack.BannerPlugin({
+      banner: 'require("regenerator-runtime/runtime");',
+      raw: true, entryOnl: false
+    }),
+
     // Run the server when the build ends.
     new WebpackShellPlugin({
-      onBuildExit: ['node dist/bundle.js']
+      onBuildExit: ['node dist/bundle.js'],
+      dev: true
     })
   ],
 
-  // Babel - disabled.. for now.
-  /*
+  // Babel config.
+  // No Babel plugins, yet. In the future we should definitely be careful to
+  // choose plugins carefully. Remember that we aren't targeting any old
+  // versions of Node - only the current one. So, only add plugins which are
+  // useful to current versions of Node. Later, we'll want to transform async
+  // functions into generator syntax so that we get better async stack traces.
   module: {
     rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'babel-loader'
+        use: {
+          loader: 'babel-loader',
+          options: {
+            // ...Babel options here...
+          }
+        }
       }
     ]
   },
-  */
 
   // Don't include node_modules in the export - they eat up a lot of room and
   // are unnecessary.

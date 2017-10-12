@@ -7,7 +7,7 @@ import { log, checkTypes } from './lib/util'
 //const music = require('./game/music')
 //const moves = require('./game/moves')
 
-console.log('Go!!!!')
+console.log('Go!')
 
 async function main() {
   process.on('uncaughtException', async err => {

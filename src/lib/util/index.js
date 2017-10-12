@@ -1,8 +1,16 @@
 // Sorry, alex! -Florrie
 
-export * from './log'
-export * from './checkTypes'
-export * from './env'
+import * as log from './log'
+export { log }
+
+import checkTypes from './checkTypes'
+export { checkTypes }
+
+import env from './env'
+export { env }
+
+import showMenu from './showMenu'
+export { showMenu }
 
 /*
 const { prompt, promptOnMessage, temporaryPrompt } = require('./prompt')

@@ -1,16 +1,16 @@
-const { BasicDatabaseController } = require('./BasicDatabaseController')
+import BasicDatabaseController from './BasicDatabaseController'
 
-const Datastore = require('nedb-promise')
-const shortid = require('shortid')
+import Datastore from 'nedb-promise'
+import shortid from 'shortid'
 
 const db = new Datastore({
   filename: 'data/teams.json',
   autoload: true,
 })
 
-const TeamData = { members: Array }
+export const TeamData = { members: Array }
 
-class TeamController extends BasicDatabaseController {
+export default class TeamController extends BasicDatabaseController {
   constructor(game) {
     if (!game) throw new TypeError('new TeamController(Game game) expected')
 
@@ -114,5 +114,3 @@ class TeamController extends BasicDatabaseController {
     return id
   }
 }
-
-module.exports = { TeamController, TeamData }

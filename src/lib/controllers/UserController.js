@@ -1,19 +1,19 @@
-const { BasicDatabaseController } = require('./BasicDatabaseController')
-const { Either } = require('../util/checkTypes')
+import BasicDatabaseController from './BasicDatabaseController'
+import { Either } from '../util/checkTypes'
 
-const Datastore = require('nedb-promise')
+import Datastore from 'nedb-promise'
 const db = new Datastore({
   filename: 'data/users.json',
   autoload: true,
 })
 
-const UserData = {
+export const UserData = {
   location: String,
   battleCharacter: String,
   listeningTo: Either(String, null),
 }
 
-class UserController extends BasicDatabaseController {
+export default class UserController extends BasicDatabaseController {
   constructor(game) {
     if (!game) throw new TypeError('new UserController(Game game) expected')
 
@@ -132,5 +132,3 @@ class UserController extends BasicDatabaseController {
     await this.game.rooms.notifyUserEntered(roomId, userId)
   }
 }
-
-module.exports = { UserController, UserData }
