@@ -1,12 +1,15 @@
-const { log, showMenu, richWrite, delay } = require('./util')
-const { env } = require('./env')
-const { BattleMove } = require('./BattleMove')
+import { warn } from './util/log'
+import richWrite from './util/richWrite'
+import showMenu from './util/showMenu'
+import delay from './util/delay'
+import env from './util/env'
+import BattleMove from './BattleMove'
 
 const chalk = require('chalk')
 const shortid = require('shortid')
 const discord = require('discord.js')
 
-class Battle {
+export default class Battle {
   constructor(teams) {
     if (!teams || !Array.isArray(teams)) throw new TypeError('new Battle(array<Team> teams) expected')
     if (teams.length < 2) throw new TypeError('At least two teams expected')
@@ -181,11 +184,11 @@ class Battle {
       if (this.game.moves.has(moveId)) {
         await (this.game.moves.get(moveId)).go(this.currentCharacterId, this.currentTeamId, action.target, this)
       } else {
-        await log.warn(`Invalid action move ID: ${moveId}`)
-        await log.warn(`..acted by battle character ${this.currentCharacterId} (${name})`)
+        await warn(`Invalid action move ID: ${moveId}`)
+        await warn(`..acted by battle character ${this.currentCharacterId} (${name})`)
       }
     } else {
-      await log.warn(
+      await warn(
         `Invalid action type: "${action.type}" acted by battle character ${this.currentCharacterId} (${name})`
       )
     }
@@ -430,8 +433,8 @@ class Battle {
       const aiType = await this.game.battleCharacters.getCharacterId(battleCharacterId)
 
       if (this.game.battleAIs.has(aiType) === false) {
-        await log.warn(`Invalid AI type: "${aiType}" (Skipping turn)`)
-        await log.warn(`..on battle character ${battleCharacterId} (${await this.game.battleCharacters.getName(battleCharacterId)})`)
+        await warn(`Invalid AI type: "${aiType}" (Skipping turn)`)
+        await warn(`..on battle character ${battleCharacterId} (${await this.game.battleCharacters.getName(battleCharacterId)})`)
         return { type: 'use move', move: this.game.moves.get('skip-turn') }
       }
 
@@ -539,7 +542,7 @@ class Battle {
     // and if there is at least one player-type character inside the channel.
 
     if (this.channelMap.has(teamId) === false) {
-      await log.warn('Battle#writeToTeamChannel called with a team ID that isn\'t in the team map?')
+      await warn('Battle#writeToTeamChannel called with a team ID that isn\'t in the team map?')
       console.trace('Warning trace of writeToTeamChannel')
       return false
     }
@@ -599,5 +602,3 @@ class Battle {
     }
   }
 }
-
-module.exports = { Battle }

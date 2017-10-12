@@ -12,10 +12,7 @@ import MusicController from './controllers/MusicController'
 import RoomController from './controllers/RoomController'
 import TeamController from './controllers/TeamController'
 import UserController from './controllers/UserController'
-
-/*
-const { Battle } = require('./Battle')
-*/
+import Battle from './Battle'
 
 export default class Game {
   constructor() {
