@@ -1,6 +1,6 @@
-const { BattleMove, aliveOnly } = require('../../../lib/BattleMove.js')
+import BattleMove, { aliveOnly } from '../../../lib/BattleMove.js'
 
-class Buff extends BattleMove {
+export default class Buff extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Buff',
@@ -19,5 +19,3 @@ class Buff extends BattleMove {
     await battle.writeMoveMessage(this, 0x22CC55, `${await bc.getName(targetId)}'s defense is boosted to +${buff}!`)
   }
 }
-
-module.exports = Buff

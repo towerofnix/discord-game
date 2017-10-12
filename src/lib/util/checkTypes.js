@@ -1,4 +1,4 @@
-const chalk = require('chalk')
+import chalk from 'chalk'
 let outEnabled = true // XXX ew but it works :D
 
 function out(msg) {
@@ -6,7 +6,7 @@ function out(msg) {
   console.error(chalk`{bgRed [typecheck]} ${msg}`)
 }
 
-function checkTypes(obj, typedef, all) {
+export default function checkTypes(obj, typedef, all) {
   if (!obj) throw new TypeError('checkTypes(Object obj) expected')
   if (!typedef) throw new TypeError('checkTypes(, Object typedef) expected')
   if (typeof all !== 'boolean') throw new TypeError('checkTypes(,, Boolean all) expected')
@@ -61,7 +61,7 @@ function stringifyValue(v) {
   return v
 }
 
-function checkType(def, value, all) {
+export function checkType(def, value, all) {
   switch (def) {
     case Number:
       if (typeof value !== 'number') {
@@ -140,22 +140,16 @@ function checkType(def, value, all) {
   return true
 }
 
-function Either(...types) {
+export function Either(...types) {
   return { _checkTypes: 'either', types }
 }
 
-function Maybe(T) {
+export function Maybe(T) {
   return { _checkTypes: 'maybe', T }
 }
 
-function Value(value) {
+export function Value(value) {
   return { _checkTypes: 'value', value }
 }
 
-const Any = { _checkTypes: 'any' }
-
-checkTypes.Either = Either
-checkTypes.Maybe = Maybe
-checkTypes.Value = Value
-checkTypes.Any = Any
-module.exports = checkTypes
+export const Any = { _checkTypes: 'any' }

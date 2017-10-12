@@ -1,10 +1,11 @@
-const { env } = require('../env')
-const { log } = require('../util')
+import env from '../util/env'
+import * as log from '../util/log'
 
-const discord = require('discord.js')
-const chalk = require('chalk')
+import chalk from 'chalk'
+import discord from 'discord.js'
+import nodePath from 'path'
 
-class MusicController {
+export default class MusicController {
   constructor(game) {
     if (!game) throw new TypeError('new MusicController(Game game) expected')
 
@@ -49,7 +50,7 @@ class MusicController {
         resolve()
 
         async function loop() {
-          let dispatcher = voiceConn.playFile(path, {
+          let dispatcher = voiceConn.playFile(nodePath.join(__dirname, path), {
             bitrate: 4000, // 48000 default
           })
 
@@ -134,5 +135,3 @@ class MusicController {
     }
   }
 }
-
-module.exports = { MusicController }

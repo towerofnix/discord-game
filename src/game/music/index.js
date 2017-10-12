@@ -1,7 +1,13 @@
-const path = require('path')
+import path from 'path'
 
 // https://www.youtube.com/playlist?list=PLBE459782E55DE0D8
-module.exports = [
-  [ 'battle', path.join(__dirname, 'battle.mp3') ],
-  [ 'lonely-void', path.join(__dirname, 'lonely-void.mp3') ],
+// Voodoo webpack magic! No hacks, though. Fun!
+import battle from './battle.mp3'
+import lonelyVoid from './lonely-void.mp3'
+
+const music = [
+  [ 'battle', battle ],
+  [ 'lonely-void', lonelyVoid ],
 ]
+
+export default music

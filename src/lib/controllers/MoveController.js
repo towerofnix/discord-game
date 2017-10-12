@@ -1,16 +1,15 @@
-const { log } = require('../util')
+import BasicMaplikeController from './BasicMaplikeController'
+import { debug } from '../util/log'
 
-class MoveController extends Map {
+export default class MoveController extends BasicMaplikeController {
   constructor(game) {
     super()
 
     this.game = game
   }
 
-  register(move) {
-    log.debug(`Registering move: ${move.name} (ID: ${move.id})`)
+  async register(move) {
+    await debug(`Registering move: ${move.name} (ID: ${move.id})`)
     this.set(move.id, move)
   }
 }
-
-module.exports = { MoveController }

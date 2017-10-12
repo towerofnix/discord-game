@@ -1,6 +1,6 @@
-const { BattleMove } = require('../../../lib/BattleMove.js')
+import BattleMove from '../../../lib/BattleMove.js'
 
-class AirRatBite extends BattleMove {
+export default class AirRatBite extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Bite',
@@ -21,5 +21,3 @@ class AirRatBite extends BattleMove {
     await battle.dealDamageToCharacter(this, targetId, damage)
   }
 }
-
-module.exports = AirRatBite

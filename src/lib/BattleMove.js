@@ -1,7 +1,7 @@
-const { log, checkTypes } = require('./util')
-const { Maybe } = checkTypes
+import { warn } from './util/log'
+import checkTypes, { Maybe } from './util/checkTypes'
 
-class BattleMove {
+export default class BattleMove {
   constructor(game, opts) {
     if (!game) throw new TypeError('new BattleMove(Game game) expected')
     if (!opts || typeof opts !== 'object') throw new TypeError('new BattleMove(object opts) expected')
@@ -40,14 +40,12 @@ class BattleMove {
   }
 }
 
-async function deadOnly(id, game) {
+export async function deadOnly(id, game) {
   let isAlive = await game.battleCharacters.isAlive(id)
   return !isAlive
 }
 
-async function aliveOnly(id, game) {
+export async function aliveOnly(id, game) {
   let isAlive = await game.battleCharacters.isAlive(id)
   return isAlive
 }
-
-module.exports = { BattleMove, deadOnly, aliveOnly }

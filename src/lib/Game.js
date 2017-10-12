@@ -1,14 +1,20 @@
-const discord = require('discord.js')
-const chalk = require('chalk')
+import discord from 'discord.js'
+import chalk from 'chalk'
 
-const { env } = require('./env')
-const { log, showMenu } = require('./util')
-const { CommandController, RoomController, MusicController,
-        UserController, BattleAIController, TeamController,
-        BattleCharacterController, MoveController } = require('./controllers')
-const { Battle } = require('./Battle')
+import env from './util/env'
+import * as log from './util/log'
+import showMenu from './util/showMenu'
+import BattleAIController from './controllers/BattleAIController'
+import BattleCharacterController from './controllers/BattleCharacterController'
+import CommandController from './controllers/CommandController'
+import MoveController from './controllers/MoveController'
+import MusicController from './controllers/MusicController'
+import RoomController from './controllers/RoomController'
+import TeamController from './controllers/TeamController'
+import UserController from './controllers/UserController'
+import Battle from './Battle'
 
-class Game {
+export default class Game {
   constructor() {
     this.client = new discord.Client()
     this.client.on('ready', () => this.handleClientReady())
@@ -484,5 +490,3 @@ class Game {
     }
   }
 }
-
-module.exports = { Game }

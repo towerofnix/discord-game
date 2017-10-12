@@ -1,6 +1,6 @@
-const { BattleMove, aliveOnly } = require('../../../lib/BattleMove.js')
+import BattleMove, { aliveOnly } from '../../../lib/BattleMove'
 
-class Sap extends BattleMove {
+export default class Sap extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Sap',
@@ -19,5 +19,3 @@ class Sap extends BattleMove {
     await battle.writeMoveMessage(this, 0x996699, `${await bc.getName(targetId)}'s attack is debuffed to -${debuff}!`)
   }
 }
-
-module.exports = Sap

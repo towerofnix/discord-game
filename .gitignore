@@ -1,3 +1,4 @@
-env.json
-node_modules
-data
+/env.json
+/node_modules
+/data
+/dist

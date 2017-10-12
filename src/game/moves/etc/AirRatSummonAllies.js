@@ -1,6 +1,6 @@
-const { BattleMove } = require('../../../lib/BattleMove')
+import BattleMove from '../../../lib/BattleMove'
 
-class AirRatSummonAllies extends BattleMove {
+export default class AirRatSummonAllies extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Summon Allies',
@@ -64,5 +64,3 @@ class AirRatSummonAllies extends BattleMove {
     }
   }
 }
-
-module.exports = AirRatSummonAllies

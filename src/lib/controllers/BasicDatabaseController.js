@@ -1,7 +1,7 @@
-const { checkTypes } = require('../util')
+import checkTypes from '../util/checkTypes'
 
 // async superset of Map
-class BasicDatabaseController {
+export default class BasicDatabaseController {
   constructor(db, dataSchema) {
     if (!db) throw new TypeError('new BasicDatabaseController(nedb.DataStore db) expected')
     if (!dataSchema || typeof dataSchema !== 'object') throw new TypeError('new BasicDatabaseController(object dataSchema) expected')
@@ -90,5 +90,3 @@ class BasicDatabaseController {
     return (await this.db.find({ [key]: value })).map(doc => doc._id)
   }
 }
-
-module.exports = { BasicDatabaseController }

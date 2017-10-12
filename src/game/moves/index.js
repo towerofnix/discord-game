@@ -1,5 +1,4 @@
-module.exports = {
-  attacks: require('./attacks'),
-  spells: require('./spells'),
-  etc: require('./etc')
-}
+import attacks from './attacks'
+import spells from './spells'
+import etc from './etc'
+export { attacks, spells, etc }

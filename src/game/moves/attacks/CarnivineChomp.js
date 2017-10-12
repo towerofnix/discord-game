@@ -1,6 +1,6 @@
-const { BattleMove } = require('../../../lib/BattleMove.js')
+import BattleMove from '../../../lib/BattleMove.js'
 
-class CarnivineChomp extends BattleMove {
+export default class CarnivineChomp extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Chomp',
@@ -29,5 +29,3 @@ class CarnivineChomp extends BattleMove {
     await battle.dealDamageToCharacter(this, targetId, damage)
   }
 }
-
-module.exports = CarnivineChomp

@@ -1,6 +1,8 @@
-class Room {
+import Game from './Game'
+
+export default class Room {
   constructor(game, channelName, displayName) {
-    if (!game || game instanceof require('./Game').Game === false) throw new TypeError('new Room(Game game) expected')
+    if (!game || game instanceof Game === false) throw new TypeError('new Room(Game game) expected')
     if (!channelName || typeof channelName !== 'string') throw new TypeError('new Room(, string channelName) expected')
     if (!displayName || typeof displayName !== 'string') throw new TypeError('new Room(,, string displayName) expected')
 
@@ -17,5 +19,3 @@ class Room {
   async getVerbChoices(verb, user, game) {}
   async handleVerbChoice(verb, choice, user, game) {}
 }
-
-module.exports = { Room }

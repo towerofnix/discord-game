@@ -1,6 +1,6 @@
-const { BattleMove, deadOnly } = require('../../../lib/BattleMove.js')
+import BattleMove, { deadOnly } from '../../../lib/BattleMove.js'
 
-class Revive extends BattleMove {
+export default class Revive extends BattleMove {
   constructor(game) {
     super(game, {
       name: 'Revive',
@@ -18,5 +18,3 @@ class Revive extends BattleMove {
     await battle.setTemporaryEffect(actorId, 'rest', 2)
   }
 }
-
-module.exports = Revive
