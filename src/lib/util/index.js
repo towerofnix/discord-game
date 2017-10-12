@@ -1,4 +1,10 @@
 // Sorry, alex! -Florrie
+
+export * from './log'
+export * from './checkTypes'
+export * from './env'
+
+/*
 const { prompt, promptOnMessage, temporaryPrompt } = require('./prompt')
 
 module.exports = {
@@ -11,3 +17,4 @@ module.exports = {
   showMenu: require('./showMenu'),
   checkTypes: require('./checkTypes'),
 }
+*/

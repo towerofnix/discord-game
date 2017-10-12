@@ -1,10 +1,13 @@
-const { Game } = require('./lib/Game')
-const { log, checkTypes } = require('./lib/util')
-const { LonelyVoid } = require('./game/rooms/LonelyVoid')
-const { TinyLand } = require('./game/rooms/TinyLand')
-const battleAIs = require('./game/ais')
-const music = require('./game/music')
-const moves = require('./game/moves')
+//const { Game } = require('./lib/Game')
+import Game from './lib/Game'
+import { log, checkTypes } from './lib/util'
+//const { LonelyVoid } = require('./game/rooms/LonelyVoid')
+//const { TinyLand } = require('./game/rooms/TinyLand')
+//const battleAIs = require('./game/ais')
+//const music = require('./game/music')
+//const moves = require('./game/moves')
+
+console.log('Go!!!!')
 
 async function main() {
   process.on('uncaughtException', async err => {
@@ -38,8 +41,5 @@ async function main() {
   await game.go()
 }
 
-module.exports = { main }
-
-if (require.main === module) {
-  main()
-}
+main()
+  .catch(err => console.error(err))

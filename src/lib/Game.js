@@ -1,14 +1,16 @@
-const discord = require('discord.js')
-const chalk = require('chalk')
+import discord from 'discord.js'
+import chalk from 'chalk'
 
-const { env } = require('./env')
-const { log, showMenu } = require('./util')
+import { log, showMenu, env } from './util'
+
+/*
 const { CommandController, RoomController, MusicController,
         UserController, BattleAIController, TeamController,
         BattleCharacterController, MoveController } = require('./controllers')
 const { Battle } = require('./Battle')
+*/
 
-class Game {
+export default class Game {
   constructor() {
     this.client = new discord.Client()
     this.client.on('ready', () => this.handleClientReady())
@@ -484,5 +486,3 @@ class Game {
     }
   }
 }
-
-module.exports = { Game }

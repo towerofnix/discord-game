@@ -1,19 +1,23 @@
-const { log } = require('./util/logFatal')
+import fs from 'fs'
+import { promisify } from 'util'
+import memize from 'memize'
+import chalk from 'chalk'
 
-const fs = require('mz/fs')
-const memize = require('memize')
-const chalk = require('chalk')
+// FIXME: This is obviously bad.
+const log = { fatal: (...x) => console.error(...x) }
 
-const getOptions = memize(async function(configFile = 'env.json') {
+const readFile = promisify(fs.readFile)
+
+export const getOptions = memize(async function(configFile = 'env.json') {
   try {
-    return JSON.parse(await fs.readFile(configFile, 'utf8'))
+    return JSON.parse(await readFile(configFile, 'utf8'))
   } catch(err) {
     // for some reason the await above swallowed the error
     await log.fatal(err)
   }
 })
 
-async function env(key, type, defaultValue = null) {
+export default async function env(key, type, defaultValue = null) {
   if (!key) throw 'env(key) expected'
   if (!type) throw 'env(, type) expected'
 
@@ -33,5 +37,3 @@ async function env(key, type, defaultValue = null) {
 
   return value
 }
-
-module.exports = { env, getOptions }
