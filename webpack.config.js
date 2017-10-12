@@ -1,6 +1,7 @@
 const path = require('path')
 const nodeExternals = require('webpack-node-externals')
 const webpack = require('webpack')
+const WebpackShellPlugin = require('webpack-shell-plugin')
 
 module.exports = {
   devtool: 'source-map',
@@ -18,6 +19,11 @@ module.exports = {
     new webpack.BannerPlugin({
       banner: 'require("source-map-support").install();',
       raw: true, entryOnly: false
+    }),
+
+    // Run the server when the build ends.
+    new WebpackShellPlugin({
+      onBuildExit: ['node dist/bundle.js']
     })
   ],
 
