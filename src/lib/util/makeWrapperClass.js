@@ -10,8 +10,6 @@ export default function makeWrapperClass(baseClass) {
     this[wrappedInstance] = Reflect.construct(baseClass, args)
   }
 
-  console.log('Nice', baseClass)
-
   const baseProto = baseClass.prototype
   const wrapperProto = wrapperClass.prototype
 
