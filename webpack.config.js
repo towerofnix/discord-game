@@ -55,8 +55,12 @@ module.exports = {
           options: {
             // ...Babel options here...
             plugins: [
+              // Disabled because they don't actually do anything to help with
+              // at <anonymous>. Sorry, alex :)
+              /*
               'transform-es2015-classes',
               'transform-async-to-generator'
+              */
             ]
           }
         }
