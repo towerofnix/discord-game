@@ -8,10 +8,17 @@ function parseChoiceText(str, options) {
   const matches = options.map(option => {
     const { title, emoji } = option
 
-    // Test for an emoji match, first.
-    const firstChar = String.fromCodePoint(str.codePointAt(0))
-    if (firstChar === emoji) {
-      return { rest: str.slice(firstChar.length), choice: option }
+    // Test for an emoji match, first. But we can only do that if there's
+    // at least one character in the string..
+    if (str.length >= 1) {
+      const firstChar = String.fromCodePoint(str.codePointAt(0))
+      if (firstChar === emoji) {
+        return { rest: str.slice(firstChar.length), choice: option }
+      }
+    } else {
+      // If the string is empty, then we definitely aren't going to match
+      // anything!
+      return false
     }
 
     // If there's no emoji match, we'll see if there's any text match between
