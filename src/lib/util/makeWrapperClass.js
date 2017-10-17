@@ -25,7 +25,7 @@ export default function makeWrapperClass(baseClass) {
 
       if (value && value instanceof Function) {
         wrapperDescriptor.value = function(...args) {
-          value.apply(this[wrappedInstance], args)
+          return value.apply(this[wrappedInstance], args)
         }
       } else {
         wrapperDescriptor.value = value
