@@ -49,7 +49,7 @@ export default class CommandController extends BasicMaplikeController {
       const commandHandler = this.get(command)
       await commandHandler(rest, message)
     } else {
-      log.warn(`${message.author.tag} used nonexistant command "${command}": ${message.content}`)
+      warn(`${message.author.tag} used nonexistant command "${command}": ${message.content}`)
     }
   }
 
@@ -61,7 +61,7 @@ export default class CommandController extends BasicMaplikeController {
       const location = await this.game.users.getLocation(userId)
 
       if (this.game.rooms.has(location) === false) {
-        log.warn(`User ${message.author.tag} attempted to use a verb (${verb} ${rest}) while in nonexistant room "${location}"!`)
+        warn(`User ${message.author.tag} attempted to use a verb (${verb} ${rest}) while in nonexistant room "${location}"!`)
         return false
       }
 
