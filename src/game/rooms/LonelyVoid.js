@@ -16,9 +16,9 @@ export default class LonelyVoid extends Room {
 
   async getVerbChoices(verb, user) {
     if (verb === 'examine') {
-      return {
-        sign: ['sign', '📜'] // :scroll:
-      }
+      return [
+        {title: 'sign', emoji: '📜'} // :scroll:
+      ]
     }
 
     return []
@@ -28,7 +28,7 @@ export default class LonelyVoid extends Room {
     const { channel } = await this.game.rooms.getChannelAndRole(this.id)
 
     if (verb === 'examine') {
-      if (choice === 'sign') {
+      if (choice.title === 'sign') {
         await richWrite(channel, 0xCCCCFF, 'Cardboard Sign', 'It\'s a rectangular sign made of cardboard. The edges are rough. Scribbled onto the sign with a permanent marker is a message:\n\n"WELCOME TO THE LONELY VOID! We have cookies."')
       }
     }

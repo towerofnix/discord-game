@@ -1,7 +1,7 @@
 import BasicMaplikeController from './BasicMaplikeController'
 import { warn } from '../util/log'
 import { promptOnMessage } from '../util/prompt'
-import { richWrite } from '../util/richWrite'
+import richWrite from '../util/richWrite'
 
 export const PREFIX = '.'
 
@@ -77,20 +77,25 @@ export default class CommandController extends BasicMaplikeController {
         // TODO: "Simplify" this string - remove common English words, like "the"
         choice = rest.toLowerCase()
 
-        if (Object.values(choices).some(c => c[0] === choice)) {
+        const match = choices.find(c => {
+          return c.title === choice || c.emoji === choice
+        })
+
+        if (match) {
+          choice = match
           validChoice = true
         } else {
           validChoice = false
         }
       } else {
-        choice = await promptOnMessage(message, choices, userId)
+        choice = (await promptOnMessage(message, choices, userId)).choice
         validChoice = true
       }
 
       if (validChoice) {
         await roomObject.handleVerbChoice(verb, choice, userId, this.game)
       } else {
-        await richWrite(channel, 0xBB4444, 'Invalid choice!', `That isn't a valid choice for "${verb}".`)
+        await richWrite(channel, 0xBB4444, 'Invalid choice!', `That isn't a valid thing to ${verb}.`)
       }
     })
   }
