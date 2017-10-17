@@ -1,4 +1,5 @@
 import BattleAI from '../../lib/BattleAI'
+import asyncFilter from '../../lib/util/asyncFilter'
 
 export default class Think extends BattleAI {
   constructor() {
@@ -10,8 +11,7 @@ export default class Think extends BattleAI {
 
   async chooseAction(myBattleCharacterId, myTeamId, battle) {
     const validTargets = await battle.getAllAliveCharacters()
-      .then(chars => Promise.all(chars.map(async char => await battle.game.teams.hasMember(myTeamId, char) ? false : char)))
-      .then(chars => chars.filter(char => char !== false))
+      .then(asyncFilter(async char => await battle.game.teams.hasMember(myTeamId, char) === false))
 
     if (validTargets.length === 0) {
       return { type: 'use move', move: 'skip-turn' }
