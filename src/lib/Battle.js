@@ -64,7 +64,7 @@ export default class Battle {
     this.currentTeamId = this.teams[0]
     this.currentCharacterId = (await this.game.teams.getMembers(this.currentTeamId))[0]
 
-    this.battleStatuses = await this.writeBattleStatuses()
+    this.battleStatuses = await this.writeBattleStatuses(true)
 
     await this.runBattleLoop()
   }
@@ -170,11 +170,8 @@ export default class Battle {
     }
 
     await this.updateBattleStatuses()
-
-    /*
     await delay(400)
     await this.writeBattleStatuses()
-    */
     await delay(400)
 
     const action = await this.getBattleCharacterAction(this.currentCharacterId, this.currentTeamId)
@@ -356,14 +353,14 @@ export default class Battle {
     return status
   }
 
-  async writeBattleStatuses() {
+  async writeBattleStatuses(pin = false) {
     let battleStatuses = []
 
     for (const team of this.teams) {
       const status = await this.getBattleStatusForTeam(team)
       const msg = await this.writeToTeamChannel(team, 'DEFAULT', 'Battle status', status)
 
-      if (msg) {
+      if (pin && msg) {
         await msg.pin()
         battleStatuses.push([ msg, team ])
       }
