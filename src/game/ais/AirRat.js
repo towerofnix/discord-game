@@ -1,6 +1,6 @@
-const { BattleAI } = require('../../lib/BattleAI')
+import BattleAI from '../../lib/BattleAI'
 
-class AirRat extends BattleAI {
+export default class AirRat extends BattleAI {
   constructor() {
     super({
       name: 'Air Rat',
@@ -36,5 +36,3 @@ class AirRat extends BattleAI {
     }
   }
 }
-
-module.exports = AirRat

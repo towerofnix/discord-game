@@ -1,6 +1,6 @@
-const { BattleAI } = require('../../lib/BattleAI')
+import BattleAI from '../../lib/BattleAI'
 
-class Think extends BattleAI {
+export default class Think extends BattleAI {
   constructor() {
     super({
       name: 'Think',
@@ -22,5 +22,3 @@ class Think extends BattleAI {
     return { type: 'use move', move: 'tackle', target }
   }
 }
-
-module.exports = Think

@@ -1,4 +1,4 @@
-class BattleAI {
+export default class BattleAI {
   constructor(opts) {
     if (!opts || typeof opts !== 'object') throw new TypeError('new Enemy(object opts) expected')
 
@@ -15,5 +15,3 @@ class BattleAI {
     return { type: 'use move', move: battle.game.moves.get('skip-turn') }
   }
 }
-
-module.exports = { BattleAI }

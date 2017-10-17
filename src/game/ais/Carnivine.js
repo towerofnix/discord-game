@@ -1,6 +1,6 @@
-const { BattleAI } = require('../../lib/BattleAI')
+import BattleAI from '../../lib/BattleAI'
 
-class Carnivine extends BattleAI {
+export default class Carnivine extends BattleAI {
   constructor() {
     super({
       name: 'Carnivine',
@@ -22,5 +22,3 @@ class Carnivine extends BattleAI {
     return { type: 'use move', move: 'carnivine-chomp', target }
   }
 }
-
-module.exports = Carnivine
