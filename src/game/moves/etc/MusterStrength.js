@@ -24,7 +24,7 @@ export default class MusterStrength extends BattleMove {
     await battle.writeMoveMessage(this, 'GREY', str)
 
     battle.addTemporaryEffect(actorId, {
-      name: 'Strength Mustered',
+      name: 'Strength mustered',
       getDisplayString: () => '',
       type: 'attack-buff',
       value: 8,
