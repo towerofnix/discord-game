@@ -541,7 +541,9 @@ export default class Battle {
       const characterIds = await this.getAllCharactersFilter(move.targetFilter)
 
       return await Promise.all(characterIds.map(
-        async id => ({title: await this.game.battleCharacters.getName(id), action: actionCallback})
+        async id => ({title: await this.game.battleCharacters.getName(id), action: () => {
+          return actionCallback(id)
+        }})
       ))
     } else if (move.targetType === 'team') {
       const teamIds = await this.getAllTeamsFilter(move.targetFilter)
