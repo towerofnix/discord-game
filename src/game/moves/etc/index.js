@@ -1,13 +1,18 @@
 import SkipTurn from './SkipTurn'
-import AirRatSummonAllies from './AirRatSummonAllies'
+import Defend from './Defend'
 import FeatherCloud from './FeatherCloud'
 import MusterStrength from './MusterStrength'
 
+// AI-specific moves..
+import AirRatSummonAllies from './AirRatSummonAllies'
+
 const etc = [
   SkipTurn,
-  AirRatSummonAllies,
+  Defend,
   FeatherCloud,
-  MusterStrength
+  MusterStrength,
+
+  AirRatSummonAllies,
 ]
 
 export default etc

@@ -80,6 +80,7 @@ export default class BattleCharacterController extends BasicDatabaseController {
   async createForCharacter(characterType, characterId, documentConfig = {}) {
     if (characterType !== 'user' && characterType !== 'ai') throw new TypeError('BattleCharacterController#createForCharacter(string ("user", "ai") characterType) expected')
     if (!characterId || typeof characterId !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(, string characterId) expected')
+    if (typeof documentConfig !== 'object') throw new TypeError('BattleCharacterController#createForCharacter(, object documentConfig) expected')
 
     const id = shortid.generate().toLowerCase()
 

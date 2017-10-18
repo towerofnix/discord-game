@@ -283,7 +283,10 @@ export default class Game {
 
       const aiId = rest || 'cool-npc-friend'
 
-      const friendBattleCharacterId = await this.battleCharacters.createForCharacter('ai', rest || 'cool-npc-friend', name, pronoun)
+      const friendBattleCharacterId = await this.battleCharacters.createForCharacter('ai', rest || 'cool-npc-friend', {
+        name, pronoun
+      })
+
       await this.teams.addMember(teamId, friendBattleCharacterId)
 
       message.reply(name + ' joins your team!')

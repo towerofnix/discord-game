@@ -494,6 +494,10 @@ export default class Battle {
               userAction.type = 'use move'
               userAction.move = 'skip-turn'
             }},
+            {title: 'Defend', emoji: '🛡', action: () => {
+              userAction.type = 'use move'
+              userAction.move = 'defend'
+            }},
             {title: 'Attacks', emoji: '🥊', action: {to: 'pick attack'}}
           ]
         },
@@ -607,14 +611,81 @@ export default class Battle {
   // (Handy so that if, for example, a user takes damage out of battle, that
   // damage can use the same formulas as damage in-battle.)
 
+  async getDefendingMultiplier(characterId) {
+    if (typeof characterId !== 'string') throw new TypeError('Battle#getDefendingMultiplier(string characterId) expected')
+
+    const defending = this.getTemporaryEffect(characterId, 'defend')
+
+    if (defending > 0) {
+      return 0.5
+    } else {
+      return 1.0
+    }
+  }
+
+  async getActiveAttack(characterId) {
+    if (typeof characterId !== 'string') throw new TypeError('Battle#getActiveAttack(string characterId) expected')
+
+    return await this.game.battleCharacters.getBaseAttack(characterId) + this.getTemporaryEffect(characterId, 'attack-buff')
+  }
+
+  async getActiveDefense(characterId) {
+    if (typeof characterId !== 'string') throw new TypeError('Battle#getActiveDefense(string characterId) expected')
+
+    return await this.game.battleCharacters.getBaseDefense(characterId) + this.getTemporaryEffect(characterId, 'defense-buff')
+  }
+
   async getBasicDamage(baseDamage, actorId, targetId) {
+    // Basic physical damage - this takes into account the attack and defense
+    // stats of the actor and target, and considers whether or not the target
+    // is defending.
+
+    if (typeof baseDamage !== 'number') throw new TypeError('Battle#getBasicDamage(number baseDamage) expected')
+    if (typeof actorId !== 'string') throw new TypeError('Battle#getBasicDamage(, string actorId) expected')
+    if (typeof targetId !== 'string') throw new TypeError('Battle#getBasicDamage(,, string targetId) expected')
+
     if (this.getTemporaryEffect(targetId, 'invincible-against-normal') > 0) {
       return 0
     }
 
-    const attack = await this.game.battleCharacters.getBaseAttack(actorId) + this.getTemporaryEffect(actorId, 'attack-buff')
-    const defense = await this.game.battleCharacters.getBaseDefense(targetId) + this.getTemporaryEffect(targetId, 'defense-buff')
-    return Math.ceil(baseDamage * attack / defense)
+    let val = baseDamage
+
+    val *= await this.getActiveAttack(actorId)
+    val /= await this.getActiveDefense(targetId)
+    val *= await this.getDefendingMultiplier(targetId)
+
+    return Math.ceil(val)
+  }
+
+  async getEnvironmentalDamage(baseDamage, targetId) {
+    // "Environmental" damage - this doesn't take into account the attack stat
+    // of the actor or the defense stat of the target, but does consider whether
+    // or not the target is defending.
+    //
+    // This function doesn't do anything asynchronously, but is marked async to
+    // be consistent with other "get damage" functions.
+
+    if (typeof baseDamage !== 'number') throw new TypeError('Battle#getEnvironmentalDamage(number baseDamage) expected')
+    if (typeof targetId !== 'string') throw new TypeError('Battle#getEnvironmentalDamage(, string targetId) expected')
+
+    let val = baseDamage
+
+    val *= await this.getDefendingMultiplier(targetId)
+
+    return Math.ceil(val)
+  }
+
+  async getElementalDamage(baseDamage, element, actorId, targetId) {
+    // Elemental damage - in the future, may tweak damage dealt based on
+    // specific resistances of the target. For now it behaves the same way
+    // as environmental damage.
+
+    if (typeof baseDamage !== 'number') throw new TypeError('Battle#getElementalDamage(number baseDamage) expected')
+    if (typeof element !== 'string') throw new TypeError('Battle#getElementalDamage(, string element) expected')
+    if (typeof actorId !== 'string') throw new TypeError('Battle#getElementalDamage(,, string actorId) expected')
+    if (typeof targetId !== 'string') throw new TypeError('Battle#getElementalDamage(,,, string targetId) expected')
+
+    return await this.getEnvironmentalDamage(baseDamage, targetId)
   }
 
   getTemporaryEffect(characterId, effectType) {

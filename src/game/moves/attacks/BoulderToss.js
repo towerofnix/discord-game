@@ -17,8 +17,9 @@ export default class BoulderToss extends BattleMove {
     const targetIds = await this.game.teams.getMembers(targetTeamId)
       .then(asyncFilter(id => bc.isAlive(id)))
 
+    const baseDamage = 5
     for (const targetId of targetIds) {
-      await battle.dealDamageToCharacter(this, targetId, 5)
+      await battle.dealDamageToCharacter(this, targetId, await battle.getEnvironmentalDamage(baseDamage, targetId))
     }
   }
 }

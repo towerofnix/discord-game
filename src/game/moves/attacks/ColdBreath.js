@@ -19,9 +19,7 @@ export default class ColdBreath extends BattleMove {
       .then(asyncFilter(async id => await battle.game.teams.hasMember(actorTeamId, id) === false))
 
     for (const targetId of targetIds) {
-      // TODO: Figure out the damage formula for elemental damage!
-      const damage = 4
-      await battle.dealDamageToCharacter(this, targetId, damage)
+      await battle.dealDamageToCharacter(this, targetId, await battle.getElementalDamage(4, 'ice', actorId, targetId))
     }
   }
 }
