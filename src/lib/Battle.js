@@ -290,15 +290,18 @@ export default class Battle {
           status += `(${curHP} / ${maxHP})`
         }
 
-        const tempEffects = Object.entries(this.temporaryEffects.get(member) || {})
-          .filter(([ name, value ]) => value !== 0)
-          .filter(([ name ]) => !name.startsWith('silent') )
+        const tempEffects = (this.temporaryEffects.get(member) || [])
+          .filter(({ value }) => value !== 0)
+          .filter(({ silent }) => silent !== true)
 
         if (tempEffects.length) {
           status += ' ('
-          status += tempEffects.map(([ name, value ]) => {
-            if (name === 'rest') return `${name}: ${value} turns`
-            else return `${name}: ${value > 0 ? '+' + value : value}`
+          status += tempEffects.map(({ name, value }) => {
+            return `${name}: ${
+              member.getDisplayString
+                ? member.getDisplayString(value)
+                : value > 0 ? '+' + value : value
+            }`
           }).join(', ')
           status += ')'
         }
@@ -604,20 +607,21 @@ export default class Battle {
     return Math.ceil(baseDamage * attack / defense)
   }
 
-  getTemporaryEffect(characterId, effectName) {
+  getTemporaryEffect(characterId, effectType) {
     if (this.temporaryEffects.has(characterId) === false) {
       return 0
     }
 
-    return this.temporaryEffects.get(characterId)[effectName] || 0
+    return this.temporaryEffects.get(characterId)
+      .reduce((val, item) => item.type === effectType ? Math.max(item.value, val) : val, 0)
   }
 
-  setTemporaryEffect(characterId, effectName, value) {
+  addTemporaryEffect(characterId, effect) {
     if (this.temporaryEffects.has(characterId) === false) {
-      this.temporaryEffects.set(characterId, {})
+      this.temporaryEffects.set(characterId, [])
     }
 
-    this.temporaryEffects.get(characterId)[effectName] = value
+    this.temporaryEffects.get(characterId).push(effect)
   }
 
   tickAllTemporaryEffects() {
@@ -625,8 +629,8 @@ export default class Battle {
     // the value is moved towards zero.
 
     for (const characterEffects of this.temporaryEffects.values()) {
-      for (const effectName of Object.keys(characterEffects)) {
-        characterEffects[effectName] -= Math.sign(characterEffects[effectName])
+      for (const effect of characterEffects) {
+        effect.value -= Math.sign(effect.value)
       }
     }
   }
