@@ -602,8 +602,12 @@ export default class Battle {
   // damage can use the same formulas as damage in-battle.)
 
   async getBasicDamage(baseDamage, actorId, targetId) {
-    const attack = await this.game.battleCharacters.getBaseAttack(actorId) + this.getTemporaryEffect(actorId, 'attackBuff')
-    const defense = await this.game.battleCharacters.getBaseDefense(targetId) + this.getTemporaryEffect(targetId, 'defenseBuff')
+    if (this.getTemporaryEffect(targetId, 'invincible-against-normal') > 0) {
+      return 0
+    }
+
+    const attack = await this.game.battleCharacters.getBaseAttack(actorId) + this.getTemporaryEffect(actorId, 'attack-buff')
+    const defense = await this.game.battleCharacters.getBaseDefense(targetId) + this.getTemporaryEffect(targetId, 'defense-buff')
     return Math.ceil(baseDamage * attack / defense)
   }
 
