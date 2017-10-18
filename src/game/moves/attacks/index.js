@@ -5,6 +5,7 @@ import AirRatBite from './AirRatBite'
 import FooYungAttack from './FooYungAttack'
 import BlazingFire from './BlazingFire'
 import ColdBreath from './ColdBreath'
+import BoulderToss from './BoulderToss'
 
 const attacks = [
   Tackle,
@@ -13,7 +14,8 @@ const attacks = [
   AirRatBite,
   FooYungAttack,
   BlazingFire,
-  ColdBreath
+  ColdBreath,
+  BoulderToss
 ]
 
 export default attacks
