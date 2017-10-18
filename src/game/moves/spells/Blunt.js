@@ -1,10 +1,10 @@
 import BattleMove, { aliveOnly } from '../../../lib/BattleMove'
 
-export default class Sap extends BattleMove {
+export default class Blunt extends BattleMove {
   constructor(game) {
     super(game, {
-      name: 'Sap',
-      id: 'sap',
+      name: 'Blunt',
+      id: 'blunt',
       emoji: '😬', // :grimacing:
       targetFilter: aliveOnly,
     })
@@ -12,10 +12,15 @@ export default class Sap extends BattleMove {
 
   async go(actorId, actorTeamId, targetId, battle) {
     const bc = this.game.battleCharacters
-    await battle.writeMoveMessage(this, /*FD*/0x996699, `${await bc.getName(actorId)} casts Sap.`)
+    await battle.writeMoveMessage(this, /*FD*/0x996699, `${await bc.getName(actorId)} casts Blunt.`)
 
     const debuff = 3
-    await battle.setTemporaryEffect(targetId, 'attackBuff', -debuff)
+    await battle.addTemporaryEffect(targetId, {
+      name: 'Attack buff',
+      type: 'attack-buff',
+      value: -debuff
+    })
+
     await battle.writeMoveMessage(this, 0x996699, `${await bc.getName(targetId)}'s attack is debuffed to -${debuff}!`)
   }
 }

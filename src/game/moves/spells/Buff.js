@@ -15,7 +15,12 @@ export default class Buff extends BattleMove {
     await battle.writeMoveMessage(this, 0x22CC55, `${await bc.getName(actorId)} casts Buff.`)
 
     const buff = 4
-    await battle.setTemporaryEffect(targetId, 'defenseBuff', buff)
+    await battle.addTemporaryEffect(targetId, {
+      type: 'defense-buff',
+      name: 'Defense buff',
+      value: buff
+    })
+
     await battle.writeMoveMessage(this, 0x22CC55, `${await bc.getName(targetId)}'s defense is boosted to +${buff}!`)
   }
 }

@@ -1,12 +1,12 @@
 import Buff from './Buff'
 import Kabuff from './Kabuff'
-import Sap from './Sap'
+import Blunt from './Blunt'
 import Revive from './Revive'
 
 const spells = [
   Buff,
   Kabuff,
-  Sap,
+  Blunt,
   Revive
 ]
 

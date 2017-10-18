@@ -22,7 +22,11 @@ export default class Kabuff extends BattleMove {
       .then(asyncFilter(charId => bc.isAlive(charId)))
 
     for (const targetId of targetIds) {
-      await battle.setTemporaryEffect(targetId, 'defenseBuff', buff)
+      await battle.addTemporaryEffect(targetId, {
+        type: 'defense-buff',
+        name: 'Defense buff',
+        value: buff
+      })
       await battle.writeMoveMessage(this, 0x22CC55, `${await bc.getName(targetId)}'s defense is boosted to +${buff}!`)
     }
   }
