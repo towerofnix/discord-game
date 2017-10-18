@@ -3,13 +3,15 @@ import CarnivineChomp from './CarnivineChomp'
 import AirRatTailWhip from './AirRatTailWhip'
 import AirRatBite from './AirRatBite'
 import BlazingFire from './BlazingFire'
+import ColdBreath from './ColdBreath'
 
 const attacks = [
   Tackle,
   CarnivineChomp,
   AirRatTailWhip,
   AirRatBite,
-  BlazingFire
+  BlazingFire,
+  ColdBreath
 ]
 
 export default attacks
