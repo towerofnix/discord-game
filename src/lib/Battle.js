@@ -296,12 +296,18 @@ export default class Battle {
 
         if (tempEffects.length) {
           status += ' ('
-          status += tempEffects.map(({ name, value }) => {
-            return `${name}: ${
-              member.getDisplayString
-                ? member.getDisplayString(value)
-                : value > 0 ? '+' + value : value
-            }`
+          status += tempEffects.map(({ name, value, getDisplayString }) => {
+            if (getDisplayString) {
+              const str = getDisplayString(value)
+
+              if (str.length > 0) {
+                return `${name}: ${str}`
+              } else {
+                return name
+              }
+            } else {
+              return `${name}: ${value > 0 ? '+' + value : value}`
+            }
           }).join(', ')
           status += ')'
         }
