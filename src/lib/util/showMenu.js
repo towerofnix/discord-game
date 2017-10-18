@@ -140,22 +140,24 @@ async function showMenu(channel, userId, spec) {
         }
       }
 
-      const title = await evaluateProperty(dialog, 'title')
-      const color = await evaluateProperty(dialog, 'color')
-      const description = await evaluateProperty(dialog, 'description')
+      if (renderedOptions.length) {
+        const title = await evaluateProperty(dialog, 'title') || 'Unnamed dialog'
+        const color = await evaluateProperty(dialog, 'color')
+        const description = await evaluateProperty(dialog, 'description')
 
-      const match = await temporaryPrompt(channel, userId, title, renderedOptions, color, description)
+        const match = await temporaryPrompt(channel, userId, title, renderedOptions, color, description)
 
-      choice = match.choice
-      rest = match.rest
+        choice = match.choice
+        rest = match.rest
+      }
     }
 
     // If the selected option has an action, run it.
-
-    const action = await evaluateProperty(choice, 'action')
-
-    if (action) {
-      await handleAction(action, rest)
+    if (choice) {
+      const action = await evaluateProperty(choice, 'action')
+      if (action) {
+        await handleAction(action, rest)
+      }
     }
   }
 
