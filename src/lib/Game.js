@@ -45,7 +45,10 @@ export default class Game {
       // Add new user to the database
       await log.info('A new user just joined! Adding them to the database...')
 
-      const battleCharacter = await this.battleCharacters.createForCharacter('user', member.id, member.displayName)
+      const battleCharacter = await this.battleCharacters.createForCharacter('user', member.id, {
+        name: member.displayName,
+      })
+
       await this.users.add(member.id, {
         location: 'lonely-void',
         listeningTo: 'lonely-void',
@@ -195,8 +198,10 @@ export default class Game {
         const enemies = []
         for (const enemyAI of teamString.split(',')) {
           const ai = this.battleAIs.get(enemyAI)
-          // TODO: Store enemy pronoun in AI type?
-          enemies.push(await this.battleCharacters.createForCharacter('ai', enemyAI, ai && ai.name, 'it'))
+          enemies.push(await this.battleCharacters.createForCharacter('ai', enemyAI, Object.assign({
+            name: ai && ai.name,
+            pronoun: 'it'
+          }, await ai.getDefaultBattleCharacter())))
         }
         teams.push(await this.teams.createNew(enemies))
       }

@@ -14,4 +14,10 @@ export default class BattleAI {
   async chooseAction(myBattleCharacterId, myTeamId, battle) {
     return { type: 'use move', move: battle.game.moves.get('skip-turn') }
   }
+
+  // Controls default battle character info (max HP, pronoun, etc).
+  // Override this!
+  async getDefaultBattleCharacter() {
+    return {}
+  }
 }

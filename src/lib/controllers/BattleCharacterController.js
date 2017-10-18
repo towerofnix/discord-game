@@ -77,22 +77,28 @@ export default class BattleCharacterController extends BasicDatabaseController {
     return await this.isAlive(id) === false
   }
 
-  async createForCharacter(characterType, characterId, name = 'Unnamed Battle Character', pronoun = 'they') {
+  async createForCharacter(characterType, characterId, documentConfig = {}) {
     if (characterType !== 'user' && characterType !== 'ai') throw new TypeError('BattleCharacterController#createForCharacter(string ("user", "ai") characterType) expected')
     if (!characterId || typeof characterId !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(, string characterId) expected')
-    if (!name || typeof name !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(,, optional string name) expected')
-    if (!pronoun || typeof pronoun !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(,, optional string pronoun) expected')
 
     const id = shortid.generate().toLowerCase()
 
-    await this.add(id, {
-      maxHP: 10, curHP: 10,
+    const doc = Object.assign({
+      maxHP: 10,
       baseAttack: 3, baseDefense: 2,
-      name,
-      pronoun,
+      name: 'Unnamed Battle Character',
+      pronoun: 'they',
       characterType,
       characterId
-    })
+    }, documentConfig)
+
+    // Fully heal the character so that its current HP is the same as its max HP,
+    // unless the passed document configuration gives a specific current HP.
+    if ('curHP' in documentConfig === false) {
+      doc.curHP = doc.maxHP
+    }
+
+    await this.add(id, doc)
 
     return id
   }

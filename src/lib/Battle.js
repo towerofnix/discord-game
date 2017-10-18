@@ -258,7 +258,7 @@ export default class Battle {
 
     const title = await this.getCurrentMoveTitle(move)
     await this.game.battleCharacters.heal(targetId, amount)
-    await
+    await // FIXME ???
     await this.writeToAllChannels(0xD96FCA, title, `Heals ${await this.game.battleCharacters.getName(targetId)} for ${amount} HP.`)
   }
 
