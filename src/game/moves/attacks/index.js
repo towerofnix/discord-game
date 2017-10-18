@@ -1,21 +1,28 @@
+import BlazingFire from './BlazingFire'
+import BoulderToss from './BoulderToss'
+import ColdBreath from './ColdBreath'
+import CockspurKick from './CockspurKick'
 import Tackle from './Tackle'
-import CarnivineChomp from './CarnivineChomp'
+
+// Enemy-specific moves..
 import AirRatTailWhip from './AirRatTailWhip'
 import AirRatBite from './AirRatBite'
+import CarnivineChomp from './CarnivineChomp'
+import ChowMeinAttack from './ChowMeinAttack'
 import FooYungAttack from './FooYungAttack'
-import BlazingFire from './BlazingFire'
-import ColdBreath from './ColdBreath'
-import BoulderToss from './BoulderToss'
 
 const attacks = [
+  BlazingFire,
+  BoulderToss,
+  ColdBreath,
+  CockspurKick,
   Tackle,
-  CarnivineChomp,
+
   AirRatTailWhip,
   AirRatBite,
+  CarnivineChomp,
+  ChowMeinAttack,
   FooYungAttack,
-  BlazingFire,
-  ColdBreath,
-  BoulderToss
 ]
 
 export default attacks
