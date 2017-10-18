@@ -12,12 +12,14 @@ export default class BattleMove {
       name: String,
       id: String,
       emoji: String,
+      targetType: Maybe(String),
       targetFilter: Maybe(Function), // only applies to user moves
     }, true)) throw new TypeError('new BattleMove(opts) typecheck failed')
 
     this.name = opts.name
     this.id = opts.id
     this.emoji = opts.emoji
+    this.targetType = opts.targetType || 'character'
     this.targetFilter = opts.targetFilter || (() => Promise.resolve(true))
 
     // TODO: Target type -- select one multiple, multiple of same team, etc.
@@ -30,7 +32,7 @@ export default class BattleMove {
   async go(actorBattleCharacterId, actorTeamId, targetBattleCharacterId, battleObject) {
     const bc = this.game.battleCharacters
 
-    await log.warn(`BattleMove ${this.name} has no #go() function`)
+    await warn(`BattleMove ${this.name} has no #go() function`)
 
     if (targetBattleCharacterId) {
       await battleObject.writeMoveMessage(this, 'RED', `${await bc.getName(actorBattleCharacterId)} notices that the ${this.name} move doesn't have a go function, but doesn't think too much about it and launches a sick burn at ${await bc.getName(targetBattleCharacterId)}.`)
@@ -46,6 +48,15 @@ export async function deadOnly(id, game) {
 }
 
 export async function aliveOnly(id, game) {
-  let isAlive = await game.battleCharacters.isAlive(id)
-  return isAlive
+  return await game.battleCharacters.isAlive(id)
+}
+
+export async function aliveTeamsOnly(teamId, game) {
+  for (const memberId of await game.teams.getMembers(teamId)) {
+    if (await game.battleCharacters.isAlive(memberId)) {
+      return true
+    }
+  }
+
+  return false
 }

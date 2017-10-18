@@ -3,6 +3,7 @@ import richWrite from './util/richWrite'
 import showMenu from './util/showMenu'
 import delay from './util/delay'
 import env from './util/env'
+import asyncFilter from './util/asyncFilter'
 import BattleMove from './BattleMove'
 
 const chalk = require('chalk')
@@ -208,6 +209,7 @@ export default class Battle {
   }
 
   async getAllCharactersFilter(filter) {
+    // TODO: Re-implement with or discard in favor of asyncFilter
     if (!filter || typeof filter !== 'function') throw new TypeError('Battle#getAllCharactersFilter(function filter) expected')
 
     let all = (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
@@ -219,6 +221,12 @@ export default class Battle {
     }
 
     return filtered
+  }
+
+  async getAllTeamsFilter(filter) {
+    if (!filter || typeof filter !== 'function') throw new TypeError('Battle#getAllTeamsFilter(function filter) expected')
+
+    return await asyncFilter(t => filter(t, this.game))(this.teams)
   }
 
   async getAllAliveCharacters() {
@@ -455,7 +463,7 @@ export default class Battle {
 
     // TEMP, user should be able to learn attacks and stuff
     // TODO: Move to attacks map stored on game
-    const userAttacks = ['tackle', 'buff', 'sap', 'revive']
+    const userAttacks = ['tackle', 'buff', 'kabuff', 'sap', 'revive']
 
     const userId = await this.game.battleCharacters.getCharacterId(battleCharacterId)
     const member = await this.game.users.getDiscordMember(userId)
@@ -491,7 +499,7 @@ export default class Battle {
 
             for (const id of userAttacks) {
               const move = this.game.moves.get(id)
-              const targets = await this.getAllCharactersFilter(move.targetFilter)
+              const targets = await this.getMoveTargets(move)
 
               if (targets.length > 0) {
                 options.push({title: move.name, emoji: move.emoji, action: () => {
@@ -508,22 +516,44 @@ export default class Battle {
           action: () => {
             delete userAction.target
           },
-          title: () => `${turnTitle} - Use ${this.game.moves.get(userAction.move).name} on who?`,
-          autopageOptions: async () => {
+          title: () => {
             const move = this.game.moves.get(userAction.move)
-            const characterIds = await this.getAllCharactersFilter(move.targetFilter)
-
-            return await Promise.all(characterIds.map(
-              async id => ({title: await this.game.battleCharacters.getName(id), action: () => {
-                userAction.target = id
-              }})
-            ))
+            if (move.targetType === 'character') {
+              return `${turnTitle} - Use ${move.name} on who?`
+            } else if (move.targetType === 'team') {
+              return `${turnTitle} - Use ${move.name} on which team?`
+            }
+          },
+          autopageOptions: async () => {
+            return await this.getMoveTargets(this.game.moves.get(userAction.move), id => {
+              userAction.target = id
+            })
           }
         }
       }
     })
 
     return userAction
+  }
+
+  async getMoveTargets(move, actionCallback = id => {}) {
+    if (move.targetType === 'character') {
+      const characterIds = await this.getAllCharactersFilter(move.targetFilter)
+
+      return await Promise.all(characterIds.map(
+        async id => ({title: await this.game.battleCharacters.getName(id), action: actionCallback})
+      ))
+    } else if (move.targetType === 'team') {
+      const teamIds = await this.getAllTeamsFilter(move.targetFilter)
+
+      return await Promise.all(teamIds.map(
+        async id => ({title: 'Team BLOOORGH!!! NAMES ARE NOT IMPLEMENTED YET!!!!!!!', action: () => {
+          return actionCallback(id)
+        }})
+      ))
+    } else {
+      return []
+    }
   }
 
   async writeToAllChannels(color, title, content) {
