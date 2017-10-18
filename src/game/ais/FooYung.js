@@ -31,7 +31,7 @@ export default class FooYung extends BattleAI {
     const opponents = await battle.getAllAliveCharacters()
       .then(asyncFilter(async char => await battle.game.teams.hasMember(myTeamId, char) === false))
 
-    const willUseAttack = Math.random() < 0.7
+    const willUseAttack = Math.random() < 0.8
 
     if (willUseAttack && opponents.length > 0) {
       const random = Math.random()
