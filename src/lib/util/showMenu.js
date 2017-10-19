@@ -122,7 +122,7 @@ async function showMenu(channel, userId, spec) {
 
       if (renderPages) {
         if (pageIndex > 0) {
-          renderedOptions.push({ title: 'Previous page', emoji: '◀', action: async() => {
+          renderedOptions.push({ title: 'Previous page', emoji: '◀', action: async () => {
             await showDialog(dialogId, { pageIndex: pageIndex - 1 })
           } })
         }
@@ -134,7 +134,7 @@ async function showMenu(channel, userId, spec) {
         }
 
         if (pageIndex < renderPages.length - 1) {
-          renderedOptions.push({ title: 'Next page', emoji: '▶', action: async() => {
+          renderedOptions.push({ title: 'Next page', emoji: '▶', action: async () => {
             await showDialog(dialogId, { pageIndex: pageIndex + 1 })
           } })
         }

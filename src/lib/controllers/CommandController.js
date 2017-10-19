@@ -56,7 +56,7 @@ export default class CommandController extends BasicMaplikeController {
   addVerb(verb) {
     if (!verb || typeof verb !== 'string') throw new TypeError('CommandController#addVerb(string verb) expected')
 
-    this.set(verb, async(rest, message) => {
+    this.set(verb, async (rest, message) => {
       const userId = message.author.id
       const location = await this.game.users.getLocation(userId)
 

@@ -281,7 +281,7 @@ export default class Battle {
   async getBattleStatusForTeam(team: string) {
     let status = '**Your team:**\n'
 
-    const _addMemberLine = async(member, fromThisTeam) => {
+    const _addMemberLine = async (member, fromThisTeam) => {
       const name = await this.game.battleCharacters.getName(member)
       if (await this.game.battleCharacters.isAlive(member)) {
         const curHP = await this.game.battleCharacters.getHP(member)
@@ -345,7 +345,7 @@ export default class Battle {
   async getShortBattleStatusForTeam(team: string) {
     let status = ''
 
-    const _addMemberLine = async(member, fromThisTeam) => {
+    const _addMemberLine = async (member, fromThisTeam) => {
       const name = await this.game.battleCharacters.getName(member)
       if (await this.game.battleCharacters.isAlive(member)) {
         const curHP = await this.game.battleCharacters.getHP(member)
@@ -494,7 +494,7 @@ export default class Battle {
             delete userAction.move
           },
           title: turnTitle + ' - Attacks',
-          options: async() => {
+          options: async () => {
             const options = []
 
             for (const id of userAttacks) {
@@ -524,7 +524,7 @@ export default class Battle {
               return `${turnTitle} - Use ${move.name} on which team?`
             }
           },
-          autopageOptions: async() => await this.getMoveTargets(this.game.moves.get(userAction.move), id => {
+          autopageOptions: async () => await this.getMoveTargets(this.game.moves.get(userAction.move), id => {
             userAction.target = id
           })
         }

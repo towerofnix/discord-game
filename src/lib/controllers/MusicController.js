@@ -31,7 +31,7 @@ export default class MusicController {
       const { path } = this.songs.get(song)
       const bot = new discord.Client()
 
-      bot.on('ready', async() => {
+      bot.on('ready', async () => {
         const { role, channel } = await this.getSongRoleAndChannel(song)
         const botMemberAsAdmin = this.game.guild.members.find('id', bot.user.id)
         const channelAsAdmin = this.game.guild.channels.find('id', channel)

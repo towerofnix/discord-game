@@ -69,7 +69,7 @@ async function promptOnMessage(message, options, userId) {
   if (!userId || typeof userId !== 'string') throw new TypeError('prompt(,, string userId) expected')
 
   // And you thought you'd never see another IIFE?!
-  void (async() => {
+  void (async () => {
     for (const item of options) {
       try {
         await message.react(item.emoji || '🔣') // FIXME :symbols:
