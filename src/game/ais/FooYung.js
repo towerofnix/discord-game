@@ -40,7 +40,7 @@ export default class FooYung extends BattleAI {
 
     const targetTeam = opponentTeams[Math.floor(Math.random() * opponentTeams.length)]
 
-    const willUseAttack = Math.random() < 0.1
+    const willUseAttack = Math.random() < 0.8
 
     if (willUseAttack && opponents.length > 0) {
       const random = Math.random()
