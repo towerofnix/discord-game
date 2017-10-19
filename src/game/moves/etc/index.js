@@ -1,5 +1,6 @@
 import SkipTurn from './SkipTurn'
 import Defend from './Defend'
+import DisruptiveWave from './DisruptiveWave'
 import FeatherCloud from './FeatherCloud'
 import MusterStrength from './MusterStrength'
 
@@ -9,6 +10,7 @@ import AirRatSummonAllies from './AirRatSummonAllies'
 const etc = [
   SkipTurn,
   Defend,
+  DisruptiveWave,
   FeatherCloud,
   MusterStrength,
 

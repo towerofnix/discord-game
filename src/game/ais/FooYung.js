@@ -1,5 +1,6 @@
 import BattleAI from '../../lib/BattleAI'
 import asyncFilter from '../../lib/util/asyncFilter'
+import { aliveTeamsOnly } from '../../lib/BattleMove'
 
 // "Foo Yung spews forth blazing fire!"
 //  (Strong fire damage to every opponent)
@@ -31,12 +32,18 @@ export default class FooYung extends BattleAI {
     const opponents = await battle.getAllAliveCharacters()
       .then(asyncFilter(async char => await battle.game.teams.hasMember(myTeamId, char) === false))
 
-    const willUseAttack = Math.random() < 0.8
+    const targetCharacter = opponents[Math.floor(Math.random() * opponents.length)]
+
+    const opponentTeams = await Promise.resolve(battle.teams)
+      .then(asyncFilter(teamId => teamId !== myTeamId))
+      .then(asyncFilter(teamId => aliveTeamsOnly(teamId, battle.game)))
+
+    const targetTeam = opponentTeams[Math.floor(Math.random() * opponentTeams.length)]
+
+    const willUseAttack = Math.random() < 0.1
 
     if (willUseAttack && opponents.length > 0) {
       const random = Math.random()
-
-      const targetCharacter = opponents[Math.floor(Math.random() * opponents.length)]
 
       if (random < 0.3) {
         return { type: 'use move', move: 'blazing-fire' }
@@ -46,7 +53,13 @@ export default class FooYung extends BattleAI {
         return { type: 'use move', move: 'foo-yung-attack', target: targetCharacter }
       }
     } else {
-      return { type: 'use move', move: 'kabuff', target: myTeamId }
+      const random = Math.random()
+
+      if (random < 0.5) {
+        return { type: 'use move', move: 'kabuff', target: myTeamId }
+      } else {
+        return { type: 'use move', move: 'disruptive-wave', target: targetTeam }
+      }
     }
   }
 

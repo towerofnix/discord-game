@@ -1,4 +1,5 @@
 import { warn } from './util/log'
+import checkTypes, { Maybe } from './util/checkTypes'
 import richWrite from './util/richWrite'
 import showMenu from './util/showMenu'
 import delay from './util/delay'
@@ -9,6 +10,17 @@ import BattleMove from './BattleMove'
 const chalk = require('chalk')
 const shortid = require('shortid')
 const discord = require('discord.js')
+
+export const EffectData = {
+  name: String,
+  type: String,
+  value: Number,
+  minValue: Number,
+  maxValue: Number,
+  getDisplayString: Maybe(Function),
+  decaySpeed: Maybe(Number),
+  etc: Maybe(Object),
+}
 
 export default class Battle {
   constructor(teams) {
@@ -689,6 +701,9 @@ export default class Battle {
   }
 
   getTemporaryEffect(characterId, effectType) {
+    if (typeof characterId !== 'string') throw new TypeError('Battle#getTemporaryEffect(string characterId) expected')
+    if (typeof effectType !== 'string') throw new TypeError('Battle#getTemporaryEffect(, string effectType) expected')
+
     if (this.temporaryEffects.has(characterId) === false) {
       return 0
     }
@@ -698,11 +713,51 @@ export default class Battle {
   }
 
   addTemporaryEffect(characterId, effect) {
+    if (typeof characterId !== 'string') throw new TypeError('Battle#addTemporaryEffect(string characterId) expected')
+    if (!checkTypes(effect, EffectData, true)) throw new TypeError('Battle#addTemporaryEffect(, effect effect) expected')
+
+    this.constrainTemporaryEffect(effect)
+
     if (this.temporaryEffects.has(characterId) === false) {
       this.temporaryEffects.set(characterId, [])
     }
 
     this.temporaryEffects.get(characterId).push(effect)
+
+    return effect.value
+  }
+
+  boostTemporaryEffect(characterId, effectBase, value) {
+    if (typeof characterId !== 'string') throw new TypeError('Battle#boostTemporaryEffect(string characterId) expected')
+    if (!checkTypes(effectBase, EffectData, true)) throw new TypeError('Battle#boostTemporaryEffect(, effect effectBase) expected')
+    if (typeof value !== 'number') throw new TypeError('Battle#boostTemporaryEffect(,, number value) expected')
+
+    if (this.temporaryEffects.has(characterId) === false) {
+      this.temporaryEffects.set(characterId, [])
+    }
+
+    const effect = this.temporaryEffects.get(characterId)
+      .find(f => f.name === effectBase.name)
+
+    if (effect) {
+      effect.value += value
+      this.constrainTemporaryEffect(effect)
+      return effect.value
+    } else {
+      // If the effect doesn't already exist, create it.
+      const effect = Object.assign({}, effectBase, {value})
+      this.constrainTemporaryEffect(effect)
+      this.addTemporaryEffect(characterId, effect)
+      return value
+    }
+  }
+
+  constrainTemporaryEffect(effect) {
+    if (effect.value < effect.minValue) {
+      effect.value = effect.minValue
+    } else if (effect.value > effect.maxValue) {
+      effect.value = effect.maxValue
+    }
   }
 
   tickAllTemporaryEffects() {

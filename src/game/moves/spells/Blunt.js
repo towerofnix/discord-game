@@ -1,4 +1,5 @@
 import BattleMove, { aliveOnly } from '../../../lib/BattleMove'
+import attackBuff from '../../effects/attackBuff'
 
 export default class Blunt extends BattleMove {
   constructor(game) {
@@ -14,13 +15,8 @@ export default class Blunt extends BattleMove {
     const bc = this.game.battleCharacters
     await battle.writeMoveMessage(this, /*FD*/0x996699, `${await bc.getName(actorId)} casts Blunt.`)
 
-    const debuff = 3
-    await battle.addTemporaryEffect(targetId, {
-      name: 'Attack buff',
-      type: 'attack-buff',
-      value: -debuff
-    })
+    const newBuff = battle.boostTemporaryEffect(targetId, attackBuff, -3)
 
-    await battle.writeMoveMessage(this, 0x996699, `${await bc.getName(targetId)}'s attack is debuffed to -${debuff}!`)
+    await battle.writeMoveMessage(this, 0x996699, `${await bc.getName(targetId)}'s attack is debuffed to ${newBuff > 0 ? '+'+newBuff : newBuff}!`)
   }
 }
