@@ -96,7 +96,7 @@ export default class TeamController extends BasicDatabaseController {
     if (find.length > 0) {
       id = find[0]
     } else {
-      id = await this.createNew([member])
+      id = await this.createNew([ member ])
     }
 
     await this.updateUserTeamRoles(id)

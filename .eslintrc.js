@@ -42,7 +42,6 @@ module.exports = {
     'no-lonely-if': 'warn',
     'no-mixed-operators': 'warn',
     'no-multiple-empty-lines': 'warn',
-    'no-negated-condition': 'warn',
     'no-new-object': 'error',
     'no-trailing-spaces': 'error',
     'no-unneeded-ternary': 'warn',

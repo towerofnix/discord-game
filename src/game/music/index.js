@@ -1,5 +1,3 @@
-import path from 'path'
-
 // 8-bit-style music:
 // https://www.youtube.com/playlist?list=PLBE459782E55DE0D8
 
@@ -11,8 +9,8 @@ import path from 'path'
 */
 
 // Voodoo webpack magic! No hacks, though. Fun!
-import battle from './mountain-emperor.mp3' // incompetech
-import lonelyVoid from './truth-in-the-stones.mp3' // incompetech
+import battle from './mountain-emperor.mp3' // Incompetech
+import lonelyVoid from './truth-in-the-stones.mp3' // Incompetech
 
 const music = [
   [ 'battle', battle ],

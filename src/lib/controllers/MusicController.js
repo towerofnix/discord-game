@@ -31,8 +31,8 @@ export default class MusicController {
       const { path } = this.songs.get(song)
       const bot = new discord.Client()
 
-      bot.on('ready', async () => {
-        const { speakRole, role, channel } = await this.getSongRoleAndChannel(song)
+      bot.on('ready', async() => {
+        const { role, channel } = await this.getSongRoleAndChannel(song)
         const botMemberAsAdmin = this.game.guild.members.find('id', bot.user.id)
         const channelAsAdmin = this.game.guild.channels.find('id', channel)
         const channelAsBot = bot.guilds.first().channels.find('id', channel)
@@ -40,17 +40,17 @@ export default class MusicController {
         await botMemberAsAdmin.setNickname('bot')
         await botMemberAsAdmin.addRole(role)
         await channelAsAdmin.overwritePermissions(bot.user.id, {
-          // holy crap
+          // Holy crap
           SPEAK: true,
         })
 
-        let voiceConn = await channelAsBot.join()
+        const voiceConn = await channelAsBot.join()
 
         this.songs.set(song, { path, bot, voiceConn })
         resolve()
 
         async function loop() {
-          let dispatcher = voiceConn.playFile(nodePath.join(__dirname, path), {
+          const dispatcher = voiceConn.playFile(nodePath.join(__dirname, path), {
             bitrate: 4000, // 48000 default
           })
 
@@ -74,7 +74,7 @@ export default class MusicController {
 
     if (await env('music_enabled', 'boolean') === false) {
       log.warn(chalk`{yellow music_enabled} is {magenta false} but MusicController#getSongRoleAndChannel() was called anyway`)
-      return {role: null, channel: null}
+      return { role: null, channel: null }
     }
 
     // Music channels will probably be named the same as some room channels
@@ -106,7 +106,7 @@ export default class MusicController {
       await log.success(chalk`Created {magenta ${channelName}} channel`)
     }
 
-    return {role, channel}
+    return { role, channel }
   }
 
   async giveRoles() {
@@ -122,11 +122,11 @@ export default class MusicController {
         const { role } = await this.getSongRoleAndChannel(song)
         const member = await this.game.users.getDiscordMember(id)
 
-        // give user the "listening to: <song>" role
+        // Give user the "listening to: <song>" role
         await member.addRole(role)
 
-        // remove previous "listening to" role
-        for (let [ id, mRole ] of member.roles) {
+        // Remove previous "listening to" role
+        for (const [ id, mRole ] of member.roles) {
           if (role.name.startsWith('listening to:') && mRole.name !== mRole.name) {
             await member.removeRole(id)
           }

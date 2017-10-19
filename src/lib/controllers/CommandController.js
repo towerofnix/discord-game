@@ -32,14 +32,14 @@ export default class CommandController extends BasicMaplikeController {
     if (!message)
       throw new TypeError('CommandController.handleMessage(discord.Message message) expected')
 
-    if (!message.content.startsWith(PREFIX)) return // not a command
+    if (!message.content.startsWith(PREFIX)) return // Not a command
 
     const content = message.content.substr(PREFIX.length)
 
-    // we won't parse the content (past the command) here - leave that up to
+    // We won't parse the content (past the command) here - leave that up to
     // the command's handler function
 
-    let eocIndex = content.indexOf(' ') // end of command index
+    let eocIndex = content.indexOf(' ') // End of command index
     if (eocIndex === -1) eocIndex = content.length
 
     const command = content.substr(0, eocIndex)
@@ -56,7 +56,7 @@ export default class CommandController extends BasicMaplikeController {
   addVerb(verb) {
     if (!verb || typeof verb !== 'string') throw new TypeError('CommandController#addVerb(string verb) expected')
 
-    this.set(verb, async (rest, message) => {
+    this.set(verb, async(rest, message) => {
       const userId = message.author.id
       const location = await this.game.users.getLocation(userId)
 
@@ -77,9 +77,7 @@ export default class CommandController extends BasicMaplikeController {
         // TODO: "Simplify" this string - remove common English words, like "the"
         choice = rest.toLowerCase()
 
-        const match = choices.find(c => {
-          return c.title === choice || c.emoji === choice
-        })
+        const match = choices.find(c => c.title === choice || c.emoji === choice)
 
         if (match) {
           choice = match

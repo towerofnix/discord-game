@@ -1,3 +1,4 @@
+/* global wrapperInstance */
 export const wrappedInstance = Symbol('Wrapped instance')
 
 export default function makeWrapperClass(baseClass) {

@@ -1,6 +1,6 @@
 import checkTypes from '../util/checkTypes'
 
-// async superset of Map
+// Async superset of Map
 export default class BasicDatabaseController {
   constructor(db, dataSchema) {
     if (!db) throw new TypeError('new BasicDatabaseController(nedb.DataStore db) expected')
@@ -30,7 +30,7 @@ export default class BasicDatabaseController {
 
   async has(id) {
     if (!id || typeof id !== 'string') throw new TypeError('BasicDatabaseController#has(string id) expected')
-    return (await this.db.findOne({ _id: id }, { _id: 1})) !== null
+    return (await this.db.findOne({ _id: id }, { _id: 1 })) !== null
   }
 
   async add(id, data) {

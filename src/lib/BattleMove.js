@@ -1,5 +1,5 @@
 import { warn } from './util/log'
-import checkTypes, { Maybe } from './util/checkTypes'
+import checkTypes, { maybe } from './util/checkTypes'
 
 export default class BattleMove {
   constructor(game, opts) {
@@ -12,8 +12,8 @@ export default class BattleMove {
       name: String,
       id: String,
       emoji: String,
-      targetType: Maybe(String),
-      targetFilter: Maybe(Function), // only applies to user moves
+      targetType: maybe(String),
+      targetFilter: maybe(Function), // Only applies to user moves
     }, true)) throw new TypeError('new BattleMove(opts) typecheck failed')
 
     this.name = opts.name
@@ -43,7 +43,7 @@ export default class BattleMove {
 }
 
 export async function deadOnly(id, game) {
-  let isAlive = await game.battleCharacters.isAlive(id)
+  const isAlive = await game.battleCharacters.isAlive(id)
   return !isAlive
 }
 

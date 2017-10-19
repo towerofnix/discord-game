@@ -15,6 +15,7 @@ export default class Room {
     return this.channelName
   }
 
+  // TODO: use a decorator for expected-to-be-overridden methods
   async handleUserEntered(user, game) {}
   async getVerbChoices(verb, user, game) {}
   async handleVerbChoice(verb, choice, user, game) {}

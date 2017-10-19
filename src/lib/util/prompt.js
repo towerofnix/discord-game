@@ -1,4 +1,4 @@
-const { RichEmbed, TextChannel, Message } = require('discord.js')
+const { RichEmbed, Message } = require('discord.js')
 
 function parseChoiceText(str, options) {
   if (str.startsWith(';') || str.startsWith(':')) {
@@ -69,11 +69,11 @@ async function promptOnMessage(message, options, userId) {
   if (!userId || typeof userId !== 'string') throw new TypeError('prompt(,, string userId) expected')
 
   // And you thought you'd never see another IIFE?!
-  void (async () => {
+  void (async() => {
     for (const item of options) {
       try {
         await message.react(item.emoji || '🔣') // FIXME :symbols:
-      } catch(err) {
+      } catch (err) {
         if (err.message === 'Unknown Message') {
           return
         } else {
@@ -83,13 +83,9 @@ async function promptOnMessage(message, options, userId) {
     }
   })()
 
-  const reactionPromise = message.awaitReactions(reaction => {
-    return reaction.users.find('id', userId)
-  }, {max: 1})
+  const reactionPromise = message.awaitReactions(reaction => reaction.users.find('id', userId), { max: 1 })
     .then(reactions => reactions.first())
-    .then(reaction => {
-      return { choice: options.find(choice => choice.emoji === reaction.emoji.name) }
-    })
+    .then(reaction => ({ choice: options.find(choice => choice.emoji === reaction.emoji.name) }))
 
   const messagePromise = message.channel.awaitMessages(message => {
     if (message.author.id !== userId) {
@@ -101,11 +97,11 @@ async function promptOnMessage(message, options, userId) {
     ) {
       return parseChoiceText(message.content, options)
     }
-  }, {max: 1})
+  }, { max: 1 })
     .then(messages => messages.first())
     .then(message => parseChoiceText(message.content, options))
 
-  const ret = await Promise.race([reactionPromise, messagePromise])
+  const ret = await Promise.race([ reactionPromise, messagePromise ])
 
   return Object.assign({ message }, ret)
 }

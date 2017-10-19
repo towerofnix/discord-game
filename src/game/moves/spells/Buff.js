@@ -17,6 +17,6 @@ export default class Buff extends BattleMove {
 
     const newBuff = await battle.boostTemporaryEffect(targetId, defenseBuff, +4)
 
-    await battle.writeMoveMessage(this, 0x22CC55, `${await bc.getName(targetId)}'s defense is boosted to ${newBuff > 0 ? '+'+newBuff : newBuff}!`)
+    await battle.writeMoveMessage(this, 0x22CC55, `${await bc.getName(targetId)}'s defense is boosted to ${newBuff > 0 ? '+' + newBuff : newBuff}!`)
   }
 }

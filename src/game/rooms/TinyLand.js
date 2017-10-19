@@ -7,7 +7,7 @@ export default class TinyLand extends Room {
   }
 
   async handleUserEntered(userId) {
-    // await this.game.musicController.play('tiny-land', user)
+    // Await this.game.musicController.play('tiny-land', user)
 
     // TODO: send message to user function, or something
 

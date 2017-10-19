@@ -24,10 +24,10 @@ export async function warn(...messages) {
 }
 
 export async function fatal(...messages) {
-  // note: you can also just `throw` to do this
+  // Note: you can also just `throw` to do this
   console.error(chalk`{bgRed [fatal]} ${messages.join(', ')}`)
 
-  process.exit(1) // fatal errors only!
+  process.exit(1) // Fatal errors only!
 }
 
 export async function debug(...messages) {
@@ -41,7 +41,7 @@ export async function inspect(...objects) {
 
   process.stdout.write(chalk`{dim [inspect]} `)
 
-  for (let object of objects) {
+  for (const object of objects) {
     console.log(nodeUtil.inspect(object, {
       depth: null,
       colors: true,

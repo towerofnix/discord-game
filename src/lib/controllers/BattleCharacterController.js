@@ -1,5 +1,5 @@
 import BasicDatabaseController from './BasicDatabaseController'
-import { Either, Value } from '../util/checkTypes'
+import { either, value } from '../util/checkTypes'
 
 const shortid = require('shortid')
 const Datastore = require('nedb-promise')
@@ -15,8 +15,8 @@ export const BattleCharacterData = {
   baseDefense: Number,
   baseAttack: Number,
   name: String,
-  pronoun: Either(Value('they'), Value('he'), Value('she'), Value('it')),
-  characterType: Either(Value('user'), Value('ai')),
+  pronoun: either(value('they'), value('he'), value('she'), value('it')),
+  characterType: either(value('user'), value('ai')),
   characterId: String, // ID of player or AI-character (enemy)
 }
 

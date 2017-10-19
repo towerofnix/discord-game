@@ -19,7 +19,7 @@ async function evaluateProperty(obj, prop) {
 }
 
 async function showMenu(channel, userId, spec) {
-  let history = []
+  const history = []
 
   const showBack = await evaluateProperty(spec, 'showBack')
 
@@ -80,7 +80,7 @@ async function showMenu(channel, userId, spec) {
       // history to go back to.
 
       if (showBack === true && history.length > 1) {
-        renderedOptions.push({title: 'Back', emoji: '⏪', action: {history: 'back'}})
+        renderedOptions.push({ title: 'Back', emoji: '⏪', action: { history: 'back' } })
       }
 
       // Show the actual options array.
@@ -122,9 +122,9 @@ async function showMenu(channel, userId, spec) {
 
       if (renderPages) {
         if (pageIndex > 0) {
-          renderedOptions.push({title: 'Previous page', emoji: '◀', action: async () => {
+          renderedOptions.push({ title: 'Previous page', emoji: '◀', action: async() => {
             await showDialog(dialogId, { pageIndex: pageIndex - 1 })
-          }})
+          } })
         }
 
         const currentPage = renderPages[pageIndex]
@@ -134,9 +134,9 @@ async function showMenu(channel, userId, spec) {
         }
 
         if (pageIndex < renderPages.length - 1) {
-          renderedOptions.push({title: 'Next page', emoji: '▶', action: async () => {
+          renderedOptions.push({ title: 'Next page', emoji: '▶', action: async() => {
             await showDialog(dialogId, { pageIndex: pageIndex + 1 })
-          }})
+          } })
         }
       }
 
@@ -164,11 +164,11 @@ async function showMenu(channel, userId, spec) {
   const handleAction = async function(action, autoInput) {
     if ('history' in action) {
       if (action.history === 'back') {
-        const current = history.pop()
+        history.pop() // Current
         const previous = history.pop()
         if (previous) {
           history.push(previous)
-          await showDialog(previous, {autoInput})
+          await showDialog(previous, { autoInput })
         }
       } else if (action.history === 'clear') {
         history.splice(0)
@@ -180,11 +180,11 @@ async function showMenu(channel, userId, spec) {
 
     if ('to' in action) {
       history.push(action.to)
-      await showDialog(action.to, {autoInput})
+      await showDialog(action.to, { autoInput })
     }
   }
 
-  await handleAction({to: spec.start})
+  await handleAction({ to: spec.start })
 }
 
 module.exports = showMenu

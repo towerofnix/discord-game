@@ -10,7 +10,7 @@ export default class RoomController extends BasicMaplikeController {
   }
 
   async notifyUserEntered(roomId, userId) {
-    // notify room of new user
+    // Notify room of new user
     const room = await this.get(roomId)
     await room.handleUserEntered(userId)
   }

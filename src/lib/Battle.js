@@ -54,8 +54,8 @@ export default class Battle {
       const teamRole = await this.game.teams.getRole(teamId)
 
       this.channelMap.set(teamId, await this.game.guild.createChannel(`battle-${this.id}-team-${teamId}`, 'text', [
-        { id: everyoneRole, deny: 3136, allow: 0}, // @everyone -rw -react
-        { id: teamRole.id, deny: 0, allow: 3072 }, // team +rw
+        { id: everyoneRole, deny: 3136, allow: 0 }, // @everyone -rw -react
+        { id: teamRole.id, deny: 0, allow: 3072 }, // Team +rw
       ]))
     }
 
@@ -63,7 +63,7 @@ export default class Battle {
       for (const team of this.teams) {
         for (const character of await this.game.teams.getMembers(team)) {
           if (await this.game.battleCharacters.getCharacterType(character) === 'user') {
-            let id = await this.game.battleCharacters.getCharacterId(character)
+            const id = await this.game.battleCharacters.getCharacterId(character)
             this.originallyPlayingSongs[id] = await this.game.users.getListeningTo(id)
             await this.game.users.setListeningTo(id, 'battle')
           }
@@ -100,7 +100,7 @@ export default class Battle {
       await this.writeToAllChannels(0x4488EE, 'Battle results', 'No teams survived.')
     }
 
-    for (let [ id, song ] of Object.entries(this.originallyPlayingSongs)) {
+    for (const [ id, song ] of Object.entries(this.originallyPlayingSongs)) {
       await this.game.users.setListeningTo(id, song)
     }
 
@@ -108,13 +108,13 @@ export default class Battle {
     const msgs = await this.writeToAllChannels(0xFF8888, 'Channel to be deleted', 'This battle\'s channels will be deleted in 30 seconds.')
 
     for (let secs = 29; secs > 0; secs--) {
-      let editPromises = []
+      const editPromises = []
       const embed = new discord.RichEmbed()
         .setTitle('Channel to be deleted')
         .setColor(0xFF8888)
         .setDescription(`This battle\'s channels will be deleted in ${secs} second${secs == 1 ? '' : 's'}.`)
 
-      for (let msg of msgs) {
+      for (const msg of msgs) {
         editPromises.push(
           msg.edit('', embed))
       }
@@ -224,11 +224,11 @@ export default class Battle {
     // TODO: Re-implement with or discard in favor of asyncFilter
     if (!filter || typeof filter !== 'function') throw new TypeError('Battle#getAllCharactersFilter(function filter) expected')
 
-    let all = (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
-    let filtered = []
+    const all = (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
+    const filtered = []
 
-    for (let id of all) {
-      let ok = await filter(id, this.game)
+    for (const id of all) {
+      const ok = await filter(id, this.game)
       if (ok) filtered.push(id)
     }
 
@@ -242,9 +242,7 @@ export default class Battle {
   }
 
   async getAllAliveCharacters() {
-    return this.getAllCharactersFilter(async id => {
-      return await this.game.battleCharacters.isAlive(id)
-    })
+    return this.getAllCharactersFilter(async id => await this.game.battleCharacters.isAlive(id))
   }
 
   async dealDamageToCharacter(move, targetId, damage) {
@@ -285,7 +283,7 @@ export default class Battle {
 
     let status = '**Your team:**\n'
 
-    const _addMemberLine = async (member, fromThisTeam) => {
+    const _addMemberLine = async(member, fromThisTeam) => {
       const name = await this.game.battleCharacters.getName(member)
       if (await this.game.battleCharacters.isAlive(member)) {
         const curHP = await this.game.battleCharacters.getHP(member)
@@ -351,7 +349,7 @@ export default class Battle {
 
     let status = ''
 
-    const _addMemberLine = async (member, fromThisTeam) => {
+    const _addMemberLine = async(member, fromThisTeam) => {
       const name = await this.game.battleCharacters.getName(member)
       if (await this.game.battleCharacters.isAlive(member)) {
         const curHP = await this.game.battleCharacters.getHP(member)
@@ -383,7 +381,7 @@ export default class Battle {
   }
 
   async writeBattleStatuses(pin = false) {
-    let battleStatuses = []
+    const battleStatuses = []
 
     for (const team of this.teams) {
       const status = await this.getBattleStatusForTeam(team)
@@ -477,14 +475,14 @@ export default class Battle {
     // TODO: Implement tactics and items
     const userMoves = {
       skipTurn: [ 'Skip Turn', '⚓' ],
-      // tactics: [ 'Tactics', '🏴' ],
+      // Tactics: [ 'Tactics', '🏴' ],
       // items: [ 'Items',   '🌂' ],
       attacks: [ 'Attacks', '🥊' ]
     }
 
     // TEMP, user should be able to learn attacks and stuff
     // TODO: Move to attacks map stored on game
-    const userAttacks = ['tackle', 'buff', 'kabuff', 'blunt', 'revive']
+    const userAttacks = [ 'tackle', 'buff', 'kabuff', 'blunt', 'revive' ]
 
     const userId = await this.game.battleCharacters.getCharacterId(battleCharacterId)
     const member = await this.game.users.getDiscordMember(userId)
@@ -502,15 +500,15 @@ export default class Battle {
         'choose action': {
           title: turnTitle,
           options: [
-            {title: 'Skip Turn', emoji: '⚓', action: () => {
+            { title: 'Skip Turn', emoji: '⚓', action: () => {
               userAction.type = 'use move'
               userAction.move = 'skip-turn'
-            }},
-            {title: 'Defend', emoji: '🛡', action: () => {
+            } },
+            { title: 'Defend', emoji: '🛡', action: () => {
               userAction.type = 'use move'
               userAction.move = 'defend'
-            }},
-            {title: 'Attacks', emoji: '🥊', action: {to: 'pick attack'}}
+            } },
+            { title: 'Attacks', emoji: '🥊', action: { to: 'pick attack' } }
           ]
         },
         'pick attack': {
@@ -519,7 +517,7 @@ export default class Battle {
             delete userAction.move
           },
           title: turnTitle + ' - Attacks',
-          options: async () => {
+          options: async() => {
             const options = []
 
             for (const id of userAttacks) {
@@ -527,10 +525,10 @@ export default class Battle {
               const targets = await this.getMoveTargets(move)
 
               if (targets.length > 0) {
-                options.push({title: move.name, emoji: move.emoji, action: () => {
+                options.push({ title: move.name, emoji: move.emoji, action: () => {
                   userAction.move = move.id
-                  return {to: 'pick target'}
-                }})
+                  return { to: 'pick target' }
+                } })
               }
             }
 
@@ -549,11 +547,9 @@ export default class Battle {
               return `${turnTitle} - Use ${move.name} on which team?`
             }
           },
-          autopageOptions: async () => {
-            return await this.getMoveTargets(this.game.moves.get(userAction.move), id => {
-              userAction.target = id
-            })
-          }
+          autopageOptions: async() => await this.getMoveTargets(this.game.moves.get(userAction.move), id => {
+            userAction.target = id
+          })
         }
       }
     })
@@ -566,17 +562,13 @@ export default class Battle {
       const characterIds = await this.getAllCharactersFilter(move.targetFilter)
 
       return await Promise.all(characterIds.map(
-        async id => ({title: await this.game.battleCharacters.getName(id), action: () => {
-          return actionCallback(id)
-        }})
+        async id => ({ title: await this.game.battleCharacters.getName(id), action: () => actionCallback(id) })
       ))
     } else if (move.targetType === 'team') {
       const teamIds = await this.getAllTeamsFilter(move.targetFilter)
 
       return await Promise.all(teamIds.map(
-        async id => ({title: 'Team BLOOORGH!!! NAMES ARE NOT IMPLEMENTED YET!!!!!!!', action: () => {
-          return actionCallback(id)
-        }})
+        async id => ({ title: 'Team BLOOORGH!!! NAMES ARE NOT IMPLEMENTED YET!!!!!!!', action: () => actionCallback(id) })
       ))
     } else {
       return []
@@ -588,7 +580,7 @@ export default class Battle {
     const msgs = await Promise.all(
       teamIds.map(teamId => this.writeToTeamChannel(teamId, color, title, content)))
 
-    return msgs.filter(msg => !!msg) // remove falsey values
+    return msgs.filter(msg => !!msg) // Remove falsey values
   }
 
   async writeToTeamChannel(teamId, color, title, content) {
@@ -745,7 +737,7 @@ export default class Battle {
       return effect.value
     } else {
       // If the effect doesn't already exist, create it.
-      const effect = Object.assign({}, effectBase, {value})
+      const effect = Object.assign({}, effectBase, { value })
       this.constrainTemporaryEffect(effect)
       this.addTemporaryEffect(characterId, effect)
       return value

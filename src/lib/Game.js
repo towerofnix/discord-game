@@ -23,7 +23,7 @@ export default class Game {
 
   async handleClientReady() {
     await log.success('Connected to Discord API')
-    this.guild = this.client.guilds.first() // assumes one and only guild
+    this.guild = this.client.guilds.first() // Assumes one and only guild
 
     // New user check
     await log.info('Checking for any new members who don\'t yet have users in the database...')
@@ -41,7 +41,7 @@ export default class Game {
   async createUserForMember(member) {
     if (!member /* TODO: typecheck */) throw new TypeError('Game#createUserForMember(discord.GuildMember member) expected')
 
-    if (await this.users.has(member.id) === false) { // quick sanity check
+    if (await this.users.has(member.id) === false) { // Quick sanity check
       // Add new user to the database
       await log.info('A new user just joined! Adding them to the database...')
 
@@ -63,13 +63,13 @@ export default class Game {
     let numAdded = 0
 
     await Promise.all(
-      Array.from(this.guild.members.entries()).map(async ([ id, member ]) => {
-        // if this user is a bot, ignore it
+      Array.from(this.guild.members.entries()).map(async([ id, member ]) => {
+        // If this user is a bot, ignore it
         if (member.user.bot === true) {
           return
         }
 
-        // is this user in the database?
+        // Is this user in the database?
         if (await this.users.has(id) === false) {
           await this.createUserForMember(member)
           numAdded++
@@ -91,7 +91,7 @@ export default class Game {
     this.music = new MusicController(this)
     this.battleAIs = new BattleAIController(this)
 
-    // check existing db schemas
+    // Check existing db schemas
     await this.battleCharacters.typecheckAll()
     await this.users.typecheckAll()
     await this.teams.typecheckAll()
@@ -100,14 +100,14 @@ export default class Game {
     this.commands.setupMessageListener()
     this.commands.addVerb('examine')
 
-    this.commands.set('play', async (rest, message) => {
+    this.commands.set('play', async(rest, message) => {
       // TEMP
 
       const userId = message.author.id
       await this.users.setListeningTo(userId, rest)
     })
 
-    this.commands.set('pages', async (rest, message) => {
+    this.commands.set('pages', async(rest, message) => {
       // TEMP ONCE MORE
 
       const userId = message.author.id
@@ -120,16 +120,16 @@ export default class Game {
           'multipage': {
             title: 'Multi-page dialog',
             options: [
-              {title: 'Spaghetti!', emoji: '🍝', action: reply('Spaghetti!')}
+              { title: 'Spaghetti!', emoji: '🍝', action: reply('Spaghetti!') }
             ],
             pages: [
               [
-                {title: 'P1 O1', emoji: '🔄', action: reply('P1 O1')},
-                {title: 'P1 O2', emoji: '🍔', action: reply('P1 O2')}
+                { title: 'P1 O1', emoji: '🔄', action: reply('P1 O1') },
+                { title: 'P1 O2', emoji: '🍔', action: reply('P1 O2') }
               ],
               [
-                {title: 'P2 O1', emoji: '🐻', action: reply('P2 O1')},
-                {title: 'P2 O2', emoji: '💡', action: reply('P2 O2')}
+                { title: 'P2 O1', emoji: '🐻', action: reply('P2 O1') },
+                { title: 'P2 O2', emoji: '💡', action: reply('P2 O2') }
               ]
             ]
           }
@@ -137,7 +137,7 @@ export default class Game {
       })
     })
 
-    this.commands.set('menu', async (rest, message) => {
+    this.commands.set('menu', async(rest, message) => {
       // TEMP AGAIN
 
       const userId = message.author.id
@@ -148,40 +148,38 @@ export default class Game {
         dialogs: {
           root: {
             title: 'Root',
-            action: async () => {
+            action: async() => {
               await message.reply('Welcome to my AMAZING menu maze!')
             },
             options: [
-              {title: 'Reference self', emoji: '🔄', action: {to: 'root'}},
-              {title: 'Run-action', emoji: '🍔', action: async () => {
+              { title: 'Reference self', emoji: '🔄', action: { to: 'root' } },
+              { title: 'Run-action', emoji: '🍔', action: async() => {
                 await message.reply('Yeah, right!')
-                return {to: 'root'}
-              }},
-              {title: 'Get outta here!', emoji: '🐻', action: async () => {
+                return { to: 'root' }
+              } },
+              { title: 'Get outta here!', emoji: '🐻', action: async() => {
                 await message.reply('Awww.')
-                return {to: 'finalRegrets'}
-              }},
-              {title: 'Memeland', emoji: '💡', action: {to: 'memeland'}}
+                return { to: 'finalRegrets' }
+              } },
+              { title: 'Memeland', emoji: '💡', action: { to: 'memeland' } }
             ]
           },
           memeland: {
             title: 'Memeland',
-            options: () => ['FACE', 'nah'].map((item, index) => {
-              return {title: item, emoji: ['🎨', '📝'][index], action: {to: 'memeland'}}
-            }).concat({title: 'Back to the past', emoji: '🔙', action: {history: 'back'}})
+            options: () => [ 'FACE', 'nah' ].map((item, index) => ({ title: item, emoji: [ '🎨', '📝' ][index], action: { to: 'memeland' } })).concat({ title: 'Back to the past', emoji: '🔙', action: { history: 'back' } })
           },
           finalRegrets: {
             title: 'Final regrets?',
             options: [
-              {title: 'I hate this stupid menu, let me leave.', emoji: '🔥'},
-              {title: 'Actually...', emoji: '🤔', action: {to: 'root'}}
+              { title: 'I hate this stupid menu, let me leave.', emoji: '🔥' },
+              { title: 'Actually...', emoji: '🤔', action: { to: 'root' } }
             ]
           }
         }
       })
     })
 
-    this.commands.set('battle', async (rest, message) => {
+    this.commands.set('battle', async(rest, message) => {
       // TEMP
       log.info('Battle!')
 
@@ -193,7 +191,7 @@ export default class Game {
         await this.battleCharacters.restoreHP(member)
       }
 
-      const teams = [team1Id]
+      const teams = [ team1Id ]
       for (const teamString of (rest || 'think').split(' ')) {
         const enemies = []
         for (const enemyAI of teamString.split(',')) {
@@ -230,7 +228,7 @@ export default class Game {
       return userId
     }
 
-    this.commands.set('duel', async (rest, message) => {
+    this.commands.set('duel', async(rest, message) => {
       // ALSO TEMP
 
       const userId = message.author.id
@@ -245,18 +243,18 @@ export default class Game {
       // TODO: Get a "this user only" team. (This should be a new method on TeamController.)
       const opponentTeamId = await this.teams.findOrCreateForMember(opponentBattleCharacterId)
 
-      for (const member of [...await this.teams.getMembers(userTeamId), ...await this.teams.getMembers(opponentTeamId)]) {
+      for (const member of [ ...await this.teams.getMembers(userTeamId), ...await this.teams.getMembers(opponentTeamId) ]) {
         await this.battleCharacters.restoreHP(member)
       }
 
       // Let the opponent go first! (This gives them a chance to think and look at the dueler
       // (the person who used this command).)
-      const battle = new Battle([opponentTeamId, userTeamId])
+      const battle = new Battle([ opponentTeamId, userTeamId ])
 
       battle.start(this)
     })
 
-    this.commands.set('warp', async (rest, message) => {
+    this.commands.set('warp', async(rest, message) => {
       // FURTHERMORE TEMP
       const location = rest
 
@@ -269,7 +267,7 @@ export default class Game {
       await this.users.setLocation(userId, location)
     })
 
-    this.commands.set('summon-cool-npc-friend', async (rest, message) => {
+    this.commands.set('summon-cool-npc-friend', async(rest, message) => {
       // ADDITIONALLY TEMP
 
       const userId = message.author.id
@@ -279,9 +277,7 @@ export default class Game {
       const choose = arrlike => arrlike[Math.floor(Math.random() * arrlike.length)]
       const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
       const name = choose(alphabet) + (choose('AEIOU') + choose(alphabet)).toLowerCase()
-      const pronoun = choose(['she', 'he', 'they'])
-
-      const aiId = rest || 'cool-npc-friend'
+      const pronoun = choose([ 'she', 'he', 'they' ])
 
       const friendBattleCharacterId = await this.battleCharacters.createForCharacter('ai', rest || 'cool-npc-friend', {
         name, pronoun
@@ -292,7 +288,7 @@ export default class Game {
       message.reply(name + ' joins your team!')
     })
 
-    this.commands.set('team', async (rest, message) => {
+    this.commands.set('team', async(rest, message) => {
       // UNSURPRISINGLY TEMP
 
       const userId = message.author.id
@@ -307,50 +303,44 @@ export default class Game {
         dialogs: {
           'root': {
             title: 'Teams',
-            options: async () => {
-              return [
-                {title: 'Close', emoji: '❎'},
-                // {title: 'View invites', emoji: '💌'},
-                {title: 'Create new team', emoji: '🚀', action: {to: 'create new team'}}
-              ]
-            },
-            autopageOptions: async () => {
-              return (await this.teams.findByMember(battleCharacterId))
-                .map(teamId => ({title: '(Team name here)', action: () => {
-                  currentTeamId = teamId
-                  return {to: 'manage current team'}
-                }}))
-            }
+            options: async() => [
+              { title: 'Close', emoji: '❎' },
+              // {title: 'View invites', emoji: '💌'},
+              { title: 'Create new team', emoji: '🚀', action: { to: 'create new team' } }
+            ],
+            autopageOptions: async() => (await this.teams.findByMember(battleCharacterId))
+              .map(teamId => ({ title: '(Team name here)', action: () => {
+                currentTeamId = teamId
+                return { to: 'manage current team' }
+              } }))
           },
           'create new team': {
-            action: async () => {
-              const teamId = await this.teams.createNew([battleCharacterId])
+            action: async() => {
+              const teamId = await this.teams.createNew([ battleCharacterId ])
               currentTeamId = teamId
-              return {history: 'pop', to: 'manage current team'}
+              return { history: 'pop', to: 'manage current team' }
             }
           },
           'manage current team': {
             title: '(Team name here)',
             options: [
-              {title: '~~Invite~~ Add a new member', emoji: '💌', action: {to: 'invite new member'}},
-              {title: 'Delete team', emoji: '🗑', action: {to: 'delete team'}}
+              { title: '~~Invite~~ Add a new member', emoji: '💌', action: { to: 'invite new member' } },
+              { title: 'Delete team', emoji: '🗑', action: { to: 'delete team' } }
             ],
-            autopageOptions: async () => {
+            autopageOptions: async() => {
               const members = await this.teams.getMembers(currentTeamId)
               return await Promise.all(members.map(async memberId => {
                 const name = await this.battleCharacters.getName(memberId)
-                return {title: name, action: async () => {
+                return { title: name, action: async() => {
                   currentMemberId = memberId
-                  return {to: 'manage member'}
-                }}
+                  return { to: 'manage member' }
+                } }
               }))
-              const names = await Promise.all(members.map(id => this.battleCharacters.getName(id)))
-              return names.map(name => ({title: name}))
             }
           },
           'invite new member': {
             title: '(Team name here) - Which member? (The person you want to invite must be in the same location as you.)',
-            autopageOptions: async () => {
+            autopageOptions: async() => {
               const options = []
 
               const location = await this.users.getLocation(userId)
@@ -366,36 +356,36 @@ export default class Game {
 
                 const name = await this.battleCharacters.getName(memberId)
 
-                options.push({title: name, action: async () => {
+                options.push({ title: name, action: async() => {
                   await this.teams.addMember(currentTeamId, memberId)
-                  return {history: 'back'}
-                }})
+                  return { history: 'back' }
+                } })
               }
 
               return options
             }
           },
           'delete team': {
-            action: async () => {
+            action: async() => {
               await this.teams.delete(currentTeamId)
               currentTeamId = null
-              return {history: 'clear', to: 'root'}
+              return { history: 'clear', to: 'root' }
             }
           },
           'manage member': {
-            title: async () => `(Team name here) - ${await this.battleCharacters.getName(currentMemberId)}`,
+            title: async() => `(Team name here) - ${await this.battleCharacters.getName(currentMemberId)}`,
             options: [
-              {title: 'Remove from team', emoji: '👋', action: async () => {
+              { title: 'Remove from team', emoji: '👋', action: async() => {
                 await this.teams.removeMember(currentTeamId, currentMemberId)
-                return {history: 'back'}
-              }}
+                return { history: 'back' }
+              } }
             ]
           }
         }
       })
     })
 
-    this.commands.set('team-add', async (rest, message) => {
+    this.commands.set('team-add', async(rest, message) => {
       // FURTHERMORE TEMP
 
       const userId = message.author.id

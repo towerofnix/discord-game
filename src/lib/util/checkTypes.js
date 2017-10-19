@@ -3,7 +3,7 @@ let outEnabled = true // XXX ew but it works :D
 
 function out(msg) {
   if (!outEnabled) return
-  console.error(chalk`{bgRed [typecheck]} ${msg}`)
+  console.error(chalk`{bgRed [typecheck]} ${msg}`) // eslint-disable-line no-console
 }
 
 export default function checkTypes(obj, typedef, all) {
@@ -21,7 +21,7 @@ export default function checkTypes(obj, typedef, all) {
   }
 
   if (all) {
-    // check all keys are there
+    // Check all keys are there
     for (const key of Object.keys(typedef)) {
       if (typeof obj[key] === 'undefined' && typedef[key]._checkTypes !== 'maybe') {
         out(`Expected key ${key} to exist on object`)
@@ -117,7 +117,7 @@ export function checkType(def, value, all) {
 
           return false
         case 'maybe':
-          // undefined | null | T is ok
+          // Undefined | null | T is ok
           if (value === undefined) break
           if (value === null) break
 
@@ -146,16 +146,16 @@ export function checkType(def, value, all) {
   return true
 }
 
-export function Either(...types) {
+export function either(...types) {
   return { _checkTypes: 'either', types }
 }
 
-export function Maybe(T) {
+export function maybe(T) {
   return { _checkTypes: 'maybe', T }
 }
 
-export function Value(value) {
+export function value(value) {
   return { _checkTypes: 'value', value }
 }
 
-export const Any = { _checkTypes: 'any' }
+export const any = { _checkTypes: 'any' }

@@ -3,18 +3,10 @@ import { promisify } from 'util'
 import memize from 'memize'
 import chalk from 'chalk'
 
-// FIXME: This is obviously bad.
-const log = { fatal: (...x) => console.error(...x) }
-
 const readFile = promisify(fs.readFile)
 
 export const getOptions = memize(async function(configFile = 'env.json') {
-  try {
-    return JSON.parse(await readFile(configFile, 'utf8'))
-  } catch(err) {
-    // for some reason the await above swallowed the error
-    await log.fatal(err)
-  }
+  return JSON.parse(await readFile(configFile, 'utf8'))
 })
 
 export default async function env(key, type, defaultValue = null) {
@@ -28,11 +20,11 @@ export default async function env(key, type, defaultValue = null) {
     value = defaultValue
 
   if (typeof value === 'undefined') {
-    await log.fatal(chalk`Environment option expected but not provided: {yellow ${key}} {dim (${type})}`)
+    throw chalk`Environment option expected but not provided: {yellow ${key}} {dim (${type})}`
   }
 
   if (typeof value !== type) {
-    await log.fatal(chalk`Environment option {yellow ${key}} should be {cyan ${type}} but it is {cyan ${typeof value}}`)
+    throw chalk`Environment option {yellow ${key}} should be {cyan ${type}} but it is {cyan ${typeof value}}`
   }
 
   return value

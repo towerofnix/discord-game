@@ -1,5 +1,5 @@
 import BasicDatabaseController from './BasicDatabaseController'
-import { Either } from '../util/checkTypes'
+import { either } from '../util/checkTypes'
 
 import Datastore from 'nedb-promise'
 const db = new Datastore({
@@ -10,7 +10,7 @@ const db = new Datastore({
 export const UserData = {
   location: String,
   battleCharacter: String,
-  listeningTo: Either(String, null),
+  listeningTo: either(String, null),
 }
 
 export default class UserController extends BasicDatabaseController {
@@ -91,20 +91,20 @@ export default class UserController extends BasicDatabaseController {
     if (song !== null) {
       const { role, channel } = await this.game.music.getSongRoleAndChannel(song)
 
-      // give user the "listening to: <song>" role so they can actually join the channel
+      // Give user the "listening to: <song>" role so they can actually join the channel
       await member.addRole(role)
 
-      // move them to the voice channel
+      // Move them to the voice channel
       // (note: setVoiceChannel cannot *put* people in voice channels if they aren't
       // already in one! no idea why that doesnt throw an error, though...)
       await member.setVoiceChannel(channel)
 
-      // set the new role name, so that this role won't be removed next
+      // Set the new role name, so that this role won't be removed next
       newRoleName = role.name
     }
 
-    // remove previous "listening to" role
-    for (let [ id, role ] of member.roles) {
+    // Remove previous "listening to" role
+    for (const [ id, role ] of member.roles) {
       if (role.name.startsWith('listening to:') && role.name !== newRoleName) {
         await member.removeRole(id)
       }
@@ -114,9 +114,7 @@ export default class UserController extends BasicDatabaseController {
   async _setLocation(userId, roomId) {
     // Perform setLocation side effects
 
-    const roleName = `in location: ${roomId}`
     const member = await this.getDiscordMember(userId)
-    const guild = this.game.guild
 
     // Remove the user from any location roles they might have previously
     // been in.

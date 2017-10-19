@@ -13,10 +13,10 @@ export default class Blunt extends BattleMove {
 
   async go(actorId, actorTeamId, targetId, battle) {
     const bc = this.game.battleCharacters
-    await battle.writeMoveMessage(this, /*FD*/0x996699, `${await bc.getName(actorId)} casts Blunt.`)
+    await battle.writeMoveMessage(this, /* FD*/0x996699, `${await bc.getName(actorId)} casts Blunt.`)
 
     const newBuff = battle.boostTemporaryEffect(targetId, attackBuff, -3)
 
-    await battle.writeMoveMessage(this, 0x996699, `${await bc.getName(targetId)}'s attack is debuffed to ${newBuff > 0 ? '+'+newBuff : newBuff}!`)
+    await battle.writeMoveMessage(this, 0x996699, `${await bc.getName(targetId)}'s attack is debuffed to ${newBuff > 0 ? '+' + newBuff : newBuff}!`)
   }
 }
