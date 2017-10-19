@@ -54,6 +54,9 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             // ...Babel options here...
+            presets: [
+              'flow',
+            ],
             plugins: [
               // Disabled because they don't actually do anything to help with
               // at <anonymous>. Sorry, alex :)
