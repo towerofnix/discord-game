@@ -42,7 +42,7 @@ export default class Battle {
   // A big, bad thing created by Alex!! This should be handled in the music
   // controller (TODO something like pushing, rather than setting, music would be
   // good maybe - such as window.location.history)
-  originallyPlayingSongs: Object
+  originallyPlayingSongs: Map<string, string>
 
   // A mapping of team IDs to their text channels from the game's Discord
   // guild.
@@ -71,7 +71,7 @@ export default class Battle {
     this.game = game
     this.id = shortid.generate().toLowerCase()
     this.teams = teams
-    this.originallyPlayingSongs = {} // Object userId -> song
+    this.originallyPlayingSongs = new Map()
 
     this.channelMap = new Map()
     this.started = false
@@ -100,7 +100,7 @@ export default class Battle {
         for (const character of await this.game.teams.getMembers(team)) {
           if (await this.game.battleCharacters.getCharacterType(character) === 'user') {
             const id = await this.game.battleCharacters.getCharacterId(character)
-            this.originallyPlayingSongs[id] = await this.game.users.getListeningTo(id)
+            this.originallyPlayingSongs.set(id, await this.game.users.getListeningTo(id))
             await this.game.users.setListeningTo(id, 'battle')
           }
         }
@@ -136,7 +136,7 @@ export default class Battle {
       await this.writeToAllChannels(0x4488EE, 'Battle results', 'No teams survived.')
     }
 
-    for (const [ id, song ] of Object.entries(this.originallyPlayingSongs)) {
+    for (const [ id, song ] of this.originallyPlayingSongs.entries()) {
       await this.game.users.setListeningTo(id, song)
     }
 

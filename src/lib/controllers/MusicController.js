@@ -1,22 +1,23 @@
+// @flow
+
 import env from '../util/env'
 import * as log from '../util/log'
+import Game from '../Game'
 
 import chalk from 'chalk'
 import discord from 'discord.js'
 import nodePath from 'path'
 
 export default class MusicController {
-  constructor(game) {
-    if (!game) throw new TypeError('new MusicController(Game game) expected')
+  game: Game
+  songs: Map<string, { path: string, bot: ?discord.Client }>
 
+  constructor(game: Game) {
     this.game = game
     this.songs = new Map()
   }
 
-  async register(song, path) {
-    if (!song || typeof song !== 'string') throw new TypeError('MusicController#register(string song) expected')
-    if (!path || typeof path !== 'string') throw new TypeError('MusicController#register(, string path) expected')
-
+  async register(song: string, path: string) {
     log.debug('Registering song: ' + song)
     this.songs.set(song, { path, bot: null })
   }
@@ -28,7 +29,13 @@ export default class MusicController {
       throw new TypeError(`Environment music_bots array is too short (there are ${this.songs.size} songs, but only ${tokens.length} music bots available)`)
 
     await Promise.all(Array.from(this.songs.keys()).map((song, n) => new Promise((resolve, reject) => {
-      const { path } = this.songs.get(song)
+      const songObj = this.songs.get(song)
+
+      if (!songObj) {
+        return
+      }
+
+      const { path } = songObj
       const bot = new discord.Client()
 
       bot.on('ready', async () => {
@@ -66,11 +73,9 @@ export default class MusicController {
     })))
   }
 
-  async getSongRoleAndChannel(song) {
+  async getSongRoleAndChannel(song: string): Promise<{role: discord.Role, channel: discord.TextChannel}> {
     // Gets the Discord role and channel for a given song. Creates them,
     // if they don't already exist.
-
-    if (!song || typeof song !== 'string') throw new TypeError('MusicController#getSongRoleAndChannel(string song) expected')
 
     if (await env('music_enabled', 'boolean') === false) {
       log.warn(chalk`{yellow music_enabled} is {magenta false} but MusicController#getSongRoleAndChannel() was called anyway`)

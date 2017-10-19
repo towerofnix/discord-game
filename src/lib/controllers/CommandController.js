@@ -1,7 +1,12 @@
+// @flow
+
 import BasicMaplikeController from './BasicMaplikeController'
+import Game from '../Game'
 import { warn } from '../util/log'
 import { promptOnMessage } from '../util/prompt'
 import richWrite from '../util/richWrite'
+
+import discord from 'discord.js'
 
 export const PREFIX = '.'
 
@@ -11,7 +16,9 @@ export default class CommandController extends BasicMaplikeController {
   // Also contains a utility function for adding a verb command (these are used
   // for interacting with the room).
 
-  constructor(game) {
+  game: Game
+
+  constructor(game: Game) {
     if (!game) throw new TypeError('new CommandController(Game game) expected')
 
     super()
@@ -28,10 +35,7 @@ export default class CommandController extends BasicMaplikeController {
     this.game.client.on('message', msg => this.handleMessage(msg))
   }
 
-  async handleMessage(message) {
-    if (!message)
-      throw new TypeError('CommandController.handleMessage(discord.Message message) expected')
-
+  async handleMessage(message: discord.Message) {
     if (!message.content.startsWith(PREFIX)) return // Not a command
 
     const content = message.content.substr(PREFIX.length)
@@ -53,9 +57,7 @@ export default class CommandController extends BasicMaplikeController {
     }
   }
 
-  addVerb(verb) {
-    if (!verb || typeof verb !== 'string') throw new TypeError('CommandController#addVerb(string verb) expected')
-
+  addVerb(verb: string) {
     this.set(verb, async (rest, message) => {
       const userId = message.author.id
       const location = await this.game.users.getLocation(userId)

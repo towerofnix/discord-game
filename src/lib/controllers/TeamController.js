@@ -1,7 +1,11 @@
+// @flow
+
 import BasicDatabaseController from './BasicDatabaseController'
+import Game from '../Game'
 
 import Datastore from 'nedb-promise'
 import shortid from 'shortid'
+import discord from 'discord.js'
 
 const db = new Datastore({
   filename: 'data/teams.json',
@@ -11,36 +15,33 @@ const db = new Datastore({
 export const TeamData = { members: Array }
 
 export default class TeamController extends BasicDatabaseController {
-  constructor(game) {
-    if (!game) throw new TypeError('new TeamController(Game game) expected')
+  game: Game
 
+  constructor(game: Game) {
     super(db, TeamData)
 
     this.game = game
   }
 
-  async getMembers(id) {
+  async getMembers(id: string): Promise<Array<string>> {
     return await this.getProperty(id, 'members')
   }
 
-  async addMember(id, member) {
-    if (!id || typeof id !== 'string') throw new TypeError('TeamController#addMember(string id) expected')
-    if (!member || typeof member !== 'string') throw new TypeError('TeamController#addMember(, string member) expected')
-
+  async addMember(id: string, member: string) {
     if (await this.hasMember(id, member) === false) {
       await this.update(id, { $push: { members: member } })
       await this._addUserToTeamRole(id, member)
     }
   }
 
-  async getRoleName(id) {
+  async getRoleName(id: string): Promise<string> {
     // Doesn't actually do anything asynchronous, but is an async function for
     // consistency with most other functions in this class.
 
     return `in team: ${id}`
   }
 
-  async getRole(id) {
+  async getRole(id: string): Promise<discord.Role> {
     const roleName = await this.getRoleName(id)
 
     let role = this.game.guild.roles.find(role => role.name === roleName)
@@ -52,18 +53,13 @@ export default class TeamController extends BasicDatabaseController {
     return role
   }
 
-  async updateUserTeamRoles(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('TeamController#updateUserTeamRoles(string id) expected')
-
+  async updateUserTeamRoles(id: string) {
     for (const battleCharacterId of await this.getMembers(id)) {
       await this._addUserToTeamRole(id, battleCharacterId)
     }
   }
 
-  async _addUserToTeamRole(teamId, battleCharacterId) {
-    if (!teamId || typeof teamId !== 'string') throw new TypeError('TeamController#_addUserToTeamRole(string teamId) expected')
-    if (!battleCharacterId || typeof battleCharacterId !== 'string') throw new TypeError('TeamController#_addUserToTeamRole(, string battleCharacterId) expected')
-
+  async _addUserToTeamRole(teamId: string, battleCharacterId: string) {
     const type = await this.game.battleCharacters.getCharacterType(battleCharacterId)
 
     if (type === 'user') {
@@ -74,21 +70,21 @@ export default class TeamController extends BasicDatabaseController {
     }
   }
 
-  async hasMember(id, member) {
+  async hasMember(id: string, member: string): Promise<boolean> {
     const members = await this.getMembers(id)
     return members.includes(member)
   }
 
-  async findByMember(member) {
+  async findByMember(member: string): Promise<Array<string>> {
     return (await this.db.find({ members: { $elemMatch: member } }, { _id: 1 }))
       .map(team => team._id)
   }
 
-  async removeMember(teamId, member) {
-    return await this.update(teamId, { $pull: { members: member } })
+  async removeMember(teamId: string, member: string) {
+    await this.update(teamId, { $pull: { members: member } })
   }
 
-  async findOrCreateForMember(member) {
+  async findOrCreateForMember(member: string): Promise<string> {
     const find = await this.findByMember(member)
 
     let id
@@ -104,13 +100,9 @@ export default class TeamController extends BasicDatabaseController {
     return id
   }
 
-  async createNew(members = []) {
-    if (members && !Array.isArray(members)) throw new TypeError('TeamController#createNew(optional array members) expected')
-
+  async createNew(members: Array<string> = []): Promise<string> {
     const id = shortid.generate().toLowerCase()
-
     await this.add(id, { members })
-
     return id
   }
 }

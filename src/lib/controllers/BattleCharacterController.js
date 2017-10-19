@@ -1,8 +1,11 @@
+// @flow
+
 import BasicDatabaseController from './BasicDatabaseController'
+import Game from '../Game'
 import { either, value } from '../util/checkTypes'
 
-const shortid = require('shortid')
-const Datastore = require('nedb-promise')
+import shortid from 'shortid'
+import Datastore from 'nedb-promise'
 
 const db = new Datastore({
   filename: 'data/battle-characters.json',
@@ -25,7 +28,9 @@ export const BattleCharacterData = {
 // or at least, temporary ones).
 
 export default class BattleCharacterController extends BasicDatabaseController {
-  constructor(game) {
+  game: Game
+
+  constructor(game: Game) {
     if (!game) throw new TypeError('new BattleCharacterController(Game game) expected')
 
     super(db, BattleCharacterData)
@@ -33,27 +38,27 @@ export default class BattleCharacterController extends BasicDatabaseController {
     this.game = game
   }
 
-  async getHP(id) { return await this.getProperty(id, 'curHP') }
-  async setHP(id, newHP) { return await this.setProperty(id, 'curHP', newHP) }
+  async getHP(id: string): Promise<number> { return await this.getProperty(id, 'curHP') }
+  async setHP(id: string, newHP: number) { await this.setProperty(id, 'curHP', newHP) }
 
-  async getMaxHP(id) { return await this.getProperty(id, 'maxHP') }
-  async setMaxHP(id, newMaxHP) { return await this.setProperty(id, 'maxHP', newMaxHP) }
+  async getMaxHP(id: string): Promise<number> { return await this.getProperty(id, 'maxHP') }
+  async setMaxHP(id: string, newMaxHP: number) { await this.setProperty(id, 'maxHP', newMaxHP) }
 
-  async restoreHP(id) { return await this.setHP(id, await this.getMaxHP(id)) }
+  async restoreHP(id: string) { await this.setHP(id, await this.getMaxHP(id)) }
 
-  async getBaseDefense(id) { return await this.getProperty(id, 'baseDefense') }
-  async getBaseAttack(id) { return await this.getProperty(id, 'baseAttack') }
+  async getBaseDefense(id: string): Promise<number> { return await this.getProperty(id, 'baseDefense') }
+  async getBaseAttack(id: string) { return await this.getProperty(id, 'baseAttack') }
 
-  async getCharacterType(id) { return await this.getProperty(id, 'characterType') }
-  async getCharacterId(id) { return await this.getProperty(id, 'characterId') }
+  async getCharacterType(id: string): Promise<string> { return await this.getProperty(id, 'characterType') }
+  async getCharacterId(id: string): Promise<string> { return await this.getProperty(id, 'characterId') }
 
-  async getName(id) { return await this.getProperty(id, 'name') }
-  async setName(id, newName) { return await this.setProperty(id, 'name', newName) }
+  async getName(id: string): Promise<string> { return await this.getProperty(id, 'name') }
+  async setName(id: string, newName: string) { await this.setProperty(id, 'name', newName) }
 
-  async getPronoun(id) { return await this.getProperty(id, 'pronoun') }
-  async setPronoun(id, newPronoun) { return await this.setProperty(id, 'pronoun', newPronoun) }
+  async getPronoun(id: string): Promise<string> { return await this.getProperty(id, 'pronoun') }
+  async setPronoun(id: string, newPronoun: string) { await this.setProperty(id, 'pronoun', newPronoun) }
 
-  async dealDamage(id, damage) {
+  async dealDamage(id: string, damage: number) {
     const curHP = await this.getHP(id)
 
     if (curHP > damage) {
@@ -63,25 +68,21 @@ export default class BattleCharacterController extends BasicDatabaseController {
     }
   }
 
-  async heal(id, amount) {
+  async heal(id: string, amount: number) {
     const curHP = await this.getHP(id)
     const maxHP = await this.getMaxHP(id)
     await this.setHP(id, Math.min(maxHP, curHP + amount))
   }
 
-  async isAlive(id) {
+  async isAlive(id: string): Promise<boolean> {
     return await this.getHP(id) > 0
   }
 
-  async isDead(id) {
+  async isDead(id: string): Promise<boolean> {
     return await this.isAlive(id) === false
   }
 
-  async createForCharacter(characterType, characterId, documentConfig = {}) {
-    if (characterType !== 'user' && characterType !== 'ai') throw new TypeError('BattleCharacterController#createForCharacter(string ("user", "ai") characterType) expected')
-    if (!characterId || typeof characterId !== 'string') throw new TypeError('BattleCharacterController#createForCharacter(, string characterId) expected')
-    if (typeof documentConfig !== 'object') throw new TypeError('BattleCharacterController#createForCharacter(, object documentConfig) expected')
-
+  async createForCharacter(characterType: string, characterId: string, documentConfig: Object = {}): Promise<string> {
     const id = shortid.generate().toLowerCase()
 
     const doc = Object.assign({

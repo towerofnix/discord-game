@@ -1,4 +1,8 @@
+// @flow
+
 import BasicMaplikeController from './BasicMaplikeController'
+import Game from '../Game'
+import BattleAI from '../BattleAI'
 import { debug } from '../util/log'
 
 // Battle AIs control the moves a given ai-controlled battle character makes
@@ -6,13 +10,13 @@ import { debug } from '../util/log'
 // characters of that AI type.
 
 export default class BattleAIController extends BasicMaplikeController {
-  constructor(game) {
+  constructor(game: Game) {
     super()
 
     this.game = game
   }
 
-  async register(battleAI) {
+  async register(battleAI: BattleAI) {
     await debug(`Registering battle AI: ${battleAI.name} (ID: ${battleAI.id})`)
     this.set(battleAI.id, battleAI)
   }
