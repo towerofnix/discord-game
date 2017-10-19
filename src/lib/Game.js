@@ -1,3 +1,5 @@
+// @flow
+
 import discord from 'discord.js'
 import chalk from 'chalk'
 
@@ -15,6 +17,23 @@ import UserController from './controllers/UserController'
 import Battle from './Battle'
 
 export default class Game {
+  // The main bot connection to the Discord API.
+  client: discord.Client
+
+  // The guild that is used as the server the bot is joined to. There can only
+  // be one guild (tm).
+  guild: discord.Guild
+
+  // The various controllers. These almost always act like maps.
+  battleAIs: BattleAIController
+  battleCharacters: BattleCharacterController
+  commands: CommandController
+  moves: MoveController
+  music: MusicController
+  rooms: RoomController
+  teams: TeamController
+  users: UserController
+
   constructor() {
     this.client = new discord.Client()
     this.client.on('ready', () => this.handleClientReady())
@@ -34,13 +53,11 @@ export default class Game {
       await log.info('No users to add')
   }
 
-  async handleMemberJoin(member) {
+  async handleMemberJoin(member: discord.GuildMember) {
     await this.createUserForMember(member)
   }
 
-  async createUserForMember(member) {
-    if (!member /* TODO: typecheck */) throw new TypeError('Game#createUserForMember(discord.GuildMember member) expected')
-
+  async createUserForMember(member: discord.GuildMember) {
     if (await this.users.has(member.id) === false) { // Quick sanity check
       // Add new user to the database
       await log.info('A new user just joined! Adding them to the database...')
@@ -249,9 +266,9 @@ export default class Game {
 
       // Let the opponent go first! (This gives them a chance to think and look at the dueler
       // (the person who used this command).)
-      const battle = new Battle([ opponentTeamId, userTeamId ])
+      const battle = new Battle(this, [ opponentTeamId, userTeamId ])
 
-      battle.start(this)
+      battle.start()
     })
 
     this.commands.set('warp', async (rest, message) => {
