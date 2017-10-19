@@ -40,6 +40,7 @@ function stringify(T) {
     case Boolean: return "Boolean"
     case Array: return "Array"
     case Function: return "Function"
+    case Object: return "Object"
     case null: return "null"
   }
 
@@ -86,6 +87,11 @@ export function checkType(def, value, all) {
     case Function:
       if (typeof value !== 'function') {
         out(`Expected ${stringifyValue(value)} to be Function`)
+        return false
+      } else break
+    case Object:
+      if (typeof value !== 'object') {
+        out(`Expected ${stringifyValue(value)} to be Object`)
         return false
       } else break
     case null:
