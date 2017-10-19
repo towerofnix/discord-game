@@ -37,7 +37,7 @@ module.exports = {
     'linebreak-style': [ 'error', 'unix' ],
     'lines-between-class-members': [ 'error', 'always', { exceptAfterSingleLine: true } ],
     'new-cap': 'warn',
-    // what do we think about `new-parens`?
+    'new-parens': 'error', // disallow new ClassName without parens
     'no-array-constructor': 'error',
     'no-lonely-if': 'warn',
     'no-mixed-operators': 'warn',
