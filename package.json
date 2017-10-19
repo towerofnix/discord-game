@@ -2,13 +2,19 @@
   "main": "src/main.js",
   "dependencies": {
     "babel-preset-flow": "^6.23.0",
+    "babel-eslint": "^8.0.1",
     "chalk": "^2.1.0",
     "discord.js": "^11.2.1",
+    "eslint": "^4.9.0",
+    "eslint-loader": "^1.9.0",
     "memize": "^1.0.4",
     "nedb-promise": "^2.0.1",
     "shortid": "^2.2.8"
   },
   "scripts": {
+    "lint": "eslint src",
+    "lint-watch": "nodemon --watch src --exec 'eslint src --cache'",
+    "run": "node dist/bundle.js",
     "start": "webpack --config webpack.config.js",
     "start-verbose": "npm run start -- --display-error-details",
     "watch": "nodemon --watch src --exec 'npm run start'"

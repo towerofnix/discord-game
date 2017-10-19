@@ -1,3 +1,5 @@
+/* eslint no-console: [ 0 ] */
+
 import chalk from 'chalk'
 import nodeUtil from 'util'
 import env from './env'
