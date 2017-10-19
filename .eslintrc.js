@@ -14,7 +14,7 @@ module.exports = {
   rules: {
     'strict': 'warn',
 
-    'no-unused-vars': 'warn',
+    'no-unused-vars': [ 'warn', { args: 'none' } ],
 
     'array-bracket-newline': [ 'error', 'consistent' ],
     'array-bracket-spacing': [ 'error', 'always' ],

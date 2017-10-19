@@ -1,15 +1,19 @@
+// @flow
+
 import { warn } from './util/log'
-import checkTypes, { Maybe } from './util/checkTypes'
+import { maybe } from './util/checkTypes'
 import richWrite from './util/richWrite'
 import showMenu from './util/showMenu'
 import delay from './util/delay'
 import env from './util/env'
 import asyncFilter from './util/asyncFilter'
 import BattleMove from './BattleMove'
+import Game from './Game'
 
-const chalk = require('chalk')
 const shortid = require('shortid')
 const discord = require('discord.js')
+
+type Color = number | string
 
 export const EffectData = {
   name: String,
@@ -17,36 +21,68 @@ export const EffectData = {
   value: Number,
   minValue: Number,
   maxValue: Number,
-  getDisplayString: Maybe(Function),
-  decaySpeed: Maybe(Number),
-  etc: Maybe(Object),
+  getDisplayString: maybe(Function),
+  decaySpeed: maybe(Number),
+  etc: maybe(Object),
 }
 
 export default class Battle {
-  constructor(teams) {
-    if (!teams || !Array.isArray(teams)) throw new TypeError('new Battle(array<Team> teams) expected')
+  // A reference to the Game object.
+  game: Game
+
+  // A unique identifier for the battle. This is used in channel names and
+  // other places where two (or more) battles have to be kept track of, but
+  // references to the battle objects themselves can't be kept.
+  id: string
+
+  // The array of teams in this battle. Usually this is two, but it can be
+  // greater.
+  teams: Array<string>
+
+  // A big, bad thing created by Alex!! This should be handled in the music
+  // controller (something like pushing, rather than setting, music would be
+  // good maybe.)
+  originallyPlayingSongs: Object
+
+  // A mapping of team IDs to their text channels from the game's Discord
+  // guild.
+  channelMap: Map<string, discord.TextChannel>
+
+  // The current team and character identifiers. These are actual team and
+  // battle character IDs.
+  currentTeamId: string
+  currentCharacterId: string
+
+  // Mapping of battle character IDs to arrays of effects.
+  // TODO: Use Array<Effect> instead of Array<Object>.
+  temporaryEffects: Map<string, Array<Object>>
+
+  // An array of "team status" messages, to be continually edited throughout
+  // the battle.
+  battleStatuses: Array<discord.Message>
+
+  // Whether or not the battle has been started yet. Set to true when #go is
+  // called.
+  started: boolean
+
+  constructor(game: Game, teams: Array<string>) {
     if (teams.length < 2) throw new TypeError('At least two teams expected')
 
+    this.game = game
     this.id = shortid.generate().toLowerCase()
     this.teams = teams
     this.originallyPlayingSongs = {} // Object userId -> song
 
     this.channelMap = new Map()
     this.started = false
-    this.temporaryEffects = new Map() // Map of character ID -> {attack, defense, poison, ...} temporary effects
-
-    this.currentTeamId = null
-    this.currentCharacterId = null
+    this.temporaryEffects = new Map()
 
     this.battleStatuses = []
   }
 
-  async start(game) {
-    if (!game) throw new TypeError('Battle#start(Game game) expected')
+  async start() {
     if (this.started) throw new Error('Battle#start() already started')
     this.started = true
-
-    this.game = game
 
     const everyoneRole = this.game.guild.id
 
@@ -77,7 +113,7 @@ export default class Battle {
     this.currentTeamId = this.teams[0]
     this.currentCharacterId = (await this.game.teams.getMembers(this.currentTeamId))[0]
 
-    this.battleStatuses = await this.writeBattleStatuses(true)
+    await this.writeBattleStatuses(true)
 
     await this.runBattleLoop()
   }
@@ -108,20 +144,14 @@ export default class Battle {
     const msgs = await this.writeToAllChannels(0xFF8888, 'Channel to be deleted', 'This battle\'s channels will be deleted in 30 seconds.')
 
     for (let secs = 29; secs > 0; secs--) {
-      const editPromises = []
       const embed = new discord.RichEmbed()
         .setTitle('Channel to be deleted')
         .setColor(0xFF8888)
-        .setDescription(`This battle\'s channels will be deleted in ${secs} second${secs == 1 ? '' : 's'}.`)
-
-      for (const msg of msgs) {
-        editPromises.push(
-          msg.edit('', embed))
-      }
+        .setDescription(`This battle's channels will be deleted in ${secs} second${secs == 1 ? '' : 's'}.`)
 
       await Promise.all([
         delay(1000),
-        ...editPromises,
+        msgs.map(msg => msg.edit('', embed))
       ])
     }
 
@@ -208,11 +238,7 @@ export default class Battle {
     await this.tickAllTemporaryEffects()
   }
 
-  async writeMoveMessage(move, color, content) {
-    if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#displayMoveMessage(BattleMove move) expected')
-    if (!color) throw new TypeError('Battle#displayMoveMessage(, ColorResolvable color) expected')
-    if (!content || typeof content !== 'string') throw new TypeError('Battle#displayMoveMessage(,, string content) expected')
-
+  async writeMoveMessage(move: BattleMove, color: Color, content: string) {
     await this.writeToAllChannels(color, await this.getCurrentMoveTitle(move), content)
   }
 
@@ -220,36 +246,17 @@ export default class Battle {
     return (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
   }
 
-  async getAllCharactersFilter(filter) {
-    // TODO: Re-implement with or discard in favor of asyncFilter
-    if (!filter || typeof filter !== 'function') throw new TypeError('Battle#getAllCharactersFilter(function filter) expected')
-
-    const all = (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
-    const filtered = []
-
-    for (const id of all) {
-      const ok = await filter(id, this.game)
-      if (ok) filtered.push(id)
-    }
-
-    return filtered
-  }
-
-  async getAllTeamsFilter(filter) {
+  async getAllTeamsFilter(filter: (teamId: string, game: Game) => boolean) {
     if (!filter || typeof filter !== 'function') throw new TypeError('Battle#getAllTeamsFilter(function filter) expected')
 
     return await asyncFilter(t => filter(t, this.game))(this.teams)
   }
 
   async getAllAliveCharacters() {
-    return this.getAllCharactersFilter(async id => await this.game.battleCharacters.isAlive(id))
+    return await this.getAllCharacters().then(asyncFilter(id => this.game.battleCharacters.isAlive(id)))
   }
 
-  async dealDamageToCharacter(move, targetId, damage) {
-    if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#dealDamageToCharacter(BattleMove move) expected')
-    if (!targetId || typeof targetId !== 'string') throw new TypeError('Battle#dealDamageToCharacter(string targetId) expected')
-    if (typeof damage !== 'number') throw new TypeError('Battle#dealDamageToCharacter(, number damage) expected')
-
+  async dealDamageToCharacter(move: BattleMove, targetId: string, damage: number) {
     const title = await this.getCurrentMoveTitle(move)
     const wasAlive = await this.game.battleCharacters.isAlive(targetId)
     await this.game.battleCharacters.dealDamage(targetId, damage)
@@ -261,26 +268,17 @@ export default class Battle {
     }
   }
 
-  async healCharacter(move, targetId, amount) {
-    if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#healCharacter(BattleMove move) expected')
-    if (!targetId || typeof targetId !== 'string') throw new TypeError('Battle#healCharacter(string targetId) expected')
-    if (!amount || typeof amount !== 'number') throw new TypeError('Battle#healCharacter(, number amount) expected')
-
+  async healCharacter(move: BattleMove, targetId: string, amount: number) {
     const title = await this.getCurrentMoveTitle(move)
     await this.game.battleCharacters.heal(targetId, amount)
-    await // FIXME ???
     await this.writeToAllChannels(0xD96FCA, title, `Heals ${await this.game.battleCharacters.getName(targetId)} for ${amount} HP.`)
   }
 
-  async getCurrentMoveTitle(move) {
-    if (!move || move instanceof BattleMove === false) throw new TypeError('Battle#getCurrentMoveTitle(Move move) expected')
-
+  async getCurrentMoveTitle(move: BattleMove) {
     return `${await this.game.battleCharacters.getName(this.currentCharacterId)} - ${move.name}`
   }
 
-  async getBattleStatusForTeam(team) {
-    if (!team) throw new TypeError('Battle#getBattleStatusForTeam(Team team) expected')
-
+  async getBattleStatusForTeam(team: string) {
     let status = '**Your team:**\n'
 
     const _addMemberLine = async(member, fromThisTeam) => {
@@ -344,9 +342,7 @@ export default class Battle {
   }
 
 
-  async getShortBattleStatusForTeam(team) {
-    if (!team) throw new TypeError('Battle#getShortBattleStatusForTeam(Team team) expected')
-
+  async getShortBattleStatusForTeam(team: string) {
     let status = ''
 
     const _addMemberLine = async(member, fromThisTeam) => {
@@ -380,8 +376,8 @@ export default class Battle {
     return status
   }
 
-  async writeBattleStatuses(pin = false) {
-    const battleStatuses = []
+  async writeBattleStatuses(pin: boolean = false) {
+    this.battleStatuses = []
 
     for (const team of this.teams) {
       const status = await this.getBattleStatusForTeam(team)
@@ -389,11 +385,9 @@ export default class Battle {
 
       if (pin && msg) {
         await msg.pin()
-        battleStatuses.push([ msg, team ])
+        this.battleStatuses.push([ msg, team ])
       }
     }
-
-    return battleStatuses
   }
 
   async updateBattleStatuses() {
@@ -405,8 +399,13 @@ export default class Battle {
         .setColor('DEFAULT')
         .setDescription(status)
 
+      // TODO: It looks like this isn't working...?
       await msg.edit('', embed)
-      await this.channelMap.get(team).setTopic(statusShort)
+
+      const channel = await this.channelMap.get(team)
+      if (channel) {
+        await channel.setTopic(statusShort)
+      }
     }
   }
 
@@ -435,18 +434,7 @@ export default class Battle {
     this.currentCharacterId = currentTeamMembers[0]
   }
 
-  get currentTeam() {
-    throw new Error('get currentTeam is obsolete!')
-  }
-
-  get currentBattleCharacter() {
-    throw new Error('get currentBattleCharacter is obsolete!')
-  }
-
-  async getBattleCharacterAction(battleCharacterId, teamId) {
-    if (!battleCharacterId || typeof battleCharacterId !== 'string') throw new TypeError('Battle#getBattleCharacterAction(string battleCharacterId) expected')
-    if (!teamId || typeof teamId !== 'string') throw new TypeError('Battle#getBattleCharacterAction(, string teamId) expected')
-
+  async getBattleCharacterAction(battleCharacterId: string, teamId: string): Object {
     const characterType = await this.game.battleCharacters.getCharacterType(battleCharacterId)
 
     if (characterType === 'user') {
@@ -468,24 +456,13 @@ export default class Battle {
     }
   }
 
-  async getUserAction(battleCharacterId, teamId) {
-    if (!battleCharacterId || typeof battleCharacterId !== 'string') throw new TypeError('Battle#getUserAction(string battleCharacterId) expected')
-    if (!teamId || typeof teamId !== 'string') throw new TypeError('Battle#getUserAction(, string teamId) expected')
-
+  async getUserAction(battleCharacterId: string, teamId: string) {
     // TODO: Implement tactics and items
-    const userMoves = {
-      skipTurn: [ 'Skip Turn', '⚓' ],
-      // Tactics: [ 'Tactics', '🏴' ],
-      // items: [ 'Items',   '🌂' ],
-      attacks: [ 'Attacks', '🥊' ]
-    }
-
     // TEMP, user should be able to learn attacks and stuff
     // TODO: Move to attacks map stored on game
     const userAttacks = [ 'tackle', 'buff', 'kabuff', 'blunt', 'revive' ]
 
     const userId = await this.game.battleCharacters.getCharacterId(battleCharacterId)
-    const member = await this.game.users.getDiscordMember(userId)
     const channel = this.channelMap.get(teamId)
 
     const actorName = await this.game.battleCharacters.getName(battleCharacterId)
@@ -557,9 +534,9 @@ export default class Battle {
     return userAction
   }
 
-  async getMoveTargets(move, actionCallback = id => {}) {
+  async getMoveTargets(move: BattleMove, actionCallback: (id: string) => ?Object = id => {}) {
     if (move.targetType === 'character') {
-      const characterIds = await this.getAllCharactersFilter(move.targetFilter)
+      const characterIds = await this.getAllCharacters().then(asyncFilter(id => move.targetFilter(id, this.game)))
 
       return await Promise.all(characterIds.map(
         async id => ({ title: await this.game.battleCharacters.getName(id), action: () => actionCallback(id) })
@@ -575,7 +552,7 @@ export default class Battle {
     }
   }
 
-  async writeToAllChannels(color, title, content) {
+  async writeToAllChannels(color: Color, title: string, content: string): Promise<Array<discord.Message>> {
     const teamIds = Array.from(this.channelMap.keys())
     const msgs = await Promise.all(
       teamIds.map(teamId => this.writeToTeamChannel(teamId, color, title, content)))
@@ -583,13 +560,13 @@ export default class Battle {
     return msgs.filter(msg => !!msg) // Remove falsey values
   }
 
-  async writeToTeamChannel(teamId, color, title, content) {
+  async writeToTeamChannel(teamId: string, color: Color, title: string, content: string) {
     // Writes a text box to the given team's channel, if that channel exists,
     // and if there is at least one player-type character inside the channel.
 
     if (this.channelMap.has(teamId) === false) {
       await warn('Battle#writeToTeamChannel called with a team ID that isn\'t in the team map?')
-      console.trace('Warning trace of writeToTeamChannel')
+      console.trace('Warning trace of writeToTeamChannel') // eslint-disable-line no-console
       return false
     }
 
@@ -603,7 +580,7 @@ export default class Battle {
     return null
   }
 
-  static async deleteChannels(battleId, guild) {
+  static async deleteChannels(battleId: string, guild: discord.Guild) {
     return await Promise.all(guild.channels
       .filter(channel => channel.name.startsWith('battle-' + battleId))
       .map(channel => channel.delete())
@@ -615,7 +592,7 @@ export default class Battle {
   // (Handy so that if, for example, a user takes damage out of battle, that
   // damage can use the same formulas as damage in-battle.)
 
-  async getDefendingMultiplier(characterId) {
+  async getDefendingMultiplier(characterId: string) {
     if (typeof characterId !== 'string') throw new TypeError('Battle#getDefendingMultiplier(string characterId) expected')
 
     const defending = this.getTemporaryEffect(characterId, 'defend')
@@ -627,26 +604,18 @@ export default class Battle {
     }
   }
 
-  async getActiveAttack(characterId) {
-    if (typeof characterId !== 'string') throw new TypeError('Battle#getActiveAttack(string characterId) expected')
-
+  async getActiveAttack(characterId: string) {
     return await this.game.battleCharacters.getBaseAttack(characterId) + this.getTemporaryEffect(characterId, 'attack-buff')
   }
 
-  async getActiveDefense(characterId) {
-    if (typeof characterId !== 'string') throw new TypeError('Battle#getActiveDefense(string characterId) expected')
-
+  async getActiveDefense(characterId: string) {
     return await this.game.battleCharacters.getBaseDefense(characterId) + this.getTemporaryEffect(characterId, 'defense-buff')
   }
 
-  async getBasicDamage(baseDamage, actorId, targetId) {
+  async getBasicDamage(baseDamage: number, actorId: string, targetId: string) {
     // Basic physical damage - this takes into account the attack and defense
     // stats of the actor and target, and considers whether or not the target
     // is defending.
-
-    if (typeof baseDamage !== 'number') throw new TypeError('Battle#getBasicDamage(number baseDamage) expected')
-    if (typeof actorId !== 'string') throw new TypeError('Battle#getBasicDamage(, string actorId) expected')
-    if (typeof targetId !== 'string') throw new TypeError('Battle#getBasicDamage(,, string targetId) expected')
 
     if (this.getTemporaryEffect(targetId, 'invincible-against-normal') > 0) {
       return 0
@@ -661,16 +630,13 @@ export default class Battle {
     return Math.ceil(val)
   }
 
-  async getEnvironmentalDamage(baseDamage, targetId) {
+  async getEnvironmentalDamage(baseDamage: number, targetId: string) {
     // "Environmental" damage - this doesn't take into account the attack stat
     // of the actor or the defense stat of the target, but does consider whether
     // or not the target is defending.
     //
     // This function doesn't do anything asynchronously, but is marked async to
     // be consistent with other "get damage" functions.
-
-    if (typeof baseDamage !== 'number') throw new TypeError('Battle#getEnvironmentalDamage(number baseDamage) expected')
-    if (typeof targetId !== 'string') throw new TypeError('Battle#getEnvironmentalDamage(, string targetId) expected')
 
     let val = baseDamage
 
@@ -679,56 +645,49 @@ export default class Battle {
     return Math.ceil(val)
   }
 
-  async getElementalDamage(baseDamage, element, actorId, targetId) {
+  async getElementalDamage(baseDamage: number, element: string, actorId: string, targetId: string) {
     // Elemental damage - in the future, may tweak damage dealt based on
     // specific resistances of the target. For now it behaves the same way
     // as environmental damage.
 
-    if (typeof baseDamage !== 'number') throw new TypeError('Battle#getElementalDamage(number baseDamage) expected')
-    if (typeof element !== 'string') throw new TypeError('Battle#getElementalDamage(, string element) expected')
-    if (typeof actorId !== 'string') throw new TypeError('Battle#getElementalDamage(,, string actorId) expected')
-    if (typeof targetId !== 'string') throw new TypeError('Battle#getElementalDamage(,,, string targetId) expected')
-
     return await this.getEnvironmentalDamage(baseDamage, targetId)
   }
 
-  getTemporaryEffect(characterId, effectType) {
-    if (typeof characterId !== 'string') throw new TypeError('Battle#getTemporaryEffect(string characterId) expected')
-    if (typeof effectType !== 'string') throw new TypeError('Battle#getTemporaryEffect(, string effectType) expected')
+  getTemporaryEffect(characterId: string, effectType: string) {
+    const effects = this.temporaryEffects.get(characterId)
 
-    if (this.temporaryEffects.has(characterId) === false) {
+    if (effects) {
+      return effects.reduce((val, item) => item.type === effectType ? Math.max(item.value, val) : val, 0)
+    } else {
       return 0
     }
-
-    return this.temporaryEffects.get(characterId)
-      .reduce((val, item) => item.type === effectType ? Math.max(item.value, val) : val, 0)
   }
 
-  addTemporaryEffect(characterId, effect) {
-    if (typeof characterId !== 'string') throw new TypeError('Battle#addTemporaryEffect(string characterId) expected')
-    if (!checkTypes(effect, EffectData, true)) throw new TypeError('Battle#addTemporaryEffect(, effect effect) expected')
-
+  // TODO: Figure out how to get Flow to recognize effects. It'll probably be
+  // smartest (and simplest) to just make an Effect class, since that's virtually
+  // what we do already (extending a common "effect base" object).
+  addTemporaryEffect(characterId: string, effect: Object) {
     this.constrainTemporaryEffect(effect)
 
-    if (this.temporaryEffects.has(characterId) === false) {
-      this.temporaryEffects.set(characterId, [])
-    }
-
-    this.temporaryEffects.get(characterId).push(effect)
+    this.getTemporaryEffects(characterId).push(effect)
 
     return effect.value
   }
 
-  boostTemporaryEffect(characterId, effectBase, value) {
-    if (typeof characterId !== 'string') throw new TypeError('Battle#boostTemporaryEffect(string characterId) expected')
-    if (!checkTypes(effectBase, EffectData, true)) throw new TypeError('Battle#boostTemporaryEffect(, effect effectBase) expected')
-    if (typeof value !== 'number') throw new TypeError('Battle#boostTemporaryEffect(,, number value) expected')
+  getTemporaryEffects(characterId: string): Array<Object> {
+    let effects = this.temporaryEffects.get(characterId)
 
-    if (this.temporaryEffects.has(characterId) === false) {
-      this.temporaryEffects.set(characterId, [])
+    if (effects) {
+      return effects
     }
 
-    const effect = this.temporaryEffects.get(characterId)
+    effects = []
+    this.temporaryEffects.set(characterId, effects)
+    return effects
+  }
+
+  boostTemporaryEffect(characterId: string, effectBase: Object, value: number) {
+    const effect = this.getTemporaryEffects(characterId)
       .find(f => f.name === effectBase.name)
 
     if (effect) {
@@ -744,7 +703,8 @@ export default class Battle {
     }
   }
 
-  constrainTemporaryEffect(effect) {
+  // TODO: Move this onto the Effect class.
+  constrainTemporaryEffect(effect: Object) {
     if (effect.value < effect.minValue) {
       effect.value = effect.minValue
     } else if (effect.value > effect.maxValue) {

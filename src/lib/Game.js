@@ -204,9 +204,9 @@ export default class Game {
         teams.push(await this.teams.createNew(enemies))
       }
 
-      const battle = new Battle(teams)
+      const battle = new Battle(this, teams)
 
-      battle.start(this)
+      battle.start()
     })
 
     const _getUserArgFromMessage = async message => {
