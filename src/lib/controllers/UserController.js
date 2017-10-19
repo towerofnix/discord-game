@@ -1,7 +1,13 @@
+// @flow
+
 import BasicDatabaseController from './BasicDatabaseController'
+import Game from '../Game'
 import { either } from '../util/checkTypes'
+import asyncFilter from '../util/asyncFilter'
 
 import Datastore from 'nedb-promise'
+import discord from 'discord.js'
+
 const db = new Datastore({
   filename: 'data/users.json',
   autoload: true,
@@ -14,15 +20,15 @@ export const UserData = {
 }
 
 export default class UserController extends BasicDatabaseController {
-  constructor(game) {
-    if (!game) throw new TypeError('new UserController(Game game) expected')
+  game: Game
 
+  constructor(game: Game) {
     super(db, UserData)
 
     this.game = game
   }
 
-  async add(id, data) {
+  async add(id: string, data: Object) {
     const ret = await super.add(id, data)
 
     if (data.location)
@@ -31,7 +37,7 @@ export default class UserController extends BasicDatabaseController {
     return ret
   }
 
-  async set(id, data) {
+  async set(id: string, data: Object) {
     const ret = await super.set(id, data)
 
     // TODO refactor these into a BasicDatabaseController#onSetProperty(prop, fn).
@@ -47,41 +53,39 @@ export default class UserController extends BasicDatabaseController {
     return ret
   }
 
-  async list() {
+  async list(): Promise<Array<string>> {
     // Doesn't return users who don't have Discord members joined to the game guild.
     return await this.filterByLiveDiscordMembers(await super.list())
   }
 
-  async filterByLiveDiscordMembers(userArray) {
-    const exists = async id => await this.getDiscordMember(id) !== null
-    return (await Promise.all(userArray.map(async id => (await exists(id) ? id : false))))
-      .filter(item => item !== false)
+  async filterByLiveDiscordMembers(userArray: Array<string>): Promise<Array<string>> {
+    const users = await Promise.resolve(userArray)
+      .then(asyncFilter(async id => await this.getDiscordMember(id) !== null))
+    return users
   }
 
-  async getName(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('UserController#getName(String id) expected')
-
+  async getName(id: string): Promise<string> {
     const member = await this.getDiscordMember(id)
     return member.displayName
   }
 
-  async getLocation(id) { return await this.getProperty(id, 'location') }
-  async setLocation(id, newLocation) { return await this.setProperty(id, 'location', newLocation) }
+  async getLocation(id: string): Promise<string> { return await this.getProperty(id, 'location') }
+  async setLocation(id: string, newLocation: string) { await this.setProperty(id, 'location', newLocation) }
 
-  async findByLocation(location) {
+  async findByLocation(location: string): Promise<Array<string>> {
     return await this.filterByLiveDiscordMembers(await this.findByProperty('location', location))
   }
 
-  async getBattleCharacter(id) { return await this.getProperty(id, 'battleCharacter') }
+  async getBattleCharacter(id: string): Promise<string> { return await this.getProperty(id, 'battleCharacter') }
 
-  async getListeningTo(id) { return await this.getProperty(id, 'listeningTo') }
-  async setListeningTo(id, song) { return await this.setProperty(id, 'listeningTo', song) }
+  async getListeningTo(id: string): Promise<string> { return await this.getProperty(id, 'listeningTo') }
+  async setListeningTo(id: string, song: string) { await this.setProperty(id, 'listeningTo', song) }
 
-  async getDiscordMember(id) {
+  async getDiscordMember(id: string): Promise<discord.Member> {
     return await this.game.guild.members.find('id', id)
   }
 
-  async _setListeningTo(id, song) {
+  async _setListeningTo(id: string, song: string) {
     // Peform setListeningTo side-effects
 
     const member = await this.getDiscordMember(id)
@@ -111,7 +115,7 @@ export default class UserController extends BasicDatabaseController {
     }
   }
 
-  async _setLocation(userId, roomId) {
+  async _setLocation(userId: string, roomId: string) {
     // Perform setLocation side effects
 
     const member = await this.getDiscordMember(userId)

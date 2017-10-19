@@ -1,11 +1,14 @@
+// @flow
+
 import checkTypes from '../util/checkTypes'
+import Datastore from 'nedb-promise'
 
 // Async superset of Map
 export default class BasicDatabaseController {
-  constructor(db, dataSchema) {
-    if (!db) throw new TypeError('new BasicDatabaseController(nedb.DataStore db) expected')
-    if (!dataSchema || typeof dataSchema !== 'object') throw new TypeError('new BasicDatabaseController(object dataSchema) expected')
+  db: Datastore
+  dataSchema: Object
 
+  constructor(db: Datastore, dataSchema: Object) {
     this.db = db
 
     // UserData, TeamData, etc
@@ -28,44 +31,34 @@ export default class BasicDatabaseController {
     return (await this.db.find({}, { _id: 1 })).map(item => item._id)
   }
 
-  async has(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('BasicDatabaseController#has(string id) expected')
+  async has(id: string) {
     return (await this.db.findOne({ _id: id }, { _id: 1 })) !== null
   }
 
-  async add(id, data) {
-    if (!id || typeof id !== 'string') throw new TypeError('BasicDatabaseController#add(string id) expected')
-    if (!data || !checkTypes(data, this.dataSchema, true)) throw new TypeError('BasicDatabaseController#add(, (object following data schema) data) expected')
+  async add(id: string, data: Object) {
+    if (!checkTypes(data, this.dataSchema, true)) throw new TypeError('BasicDatabaseController#add(, (object following data schema) data) expected')
 
     await this.db.insert(Object.assign({ _id: id }, data))
   }
 
-  async delete(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('BasicDatabaseController#delete(string id) expected')
-
+  async delete(id: string) {
     await this.db.remove({ _id: id }, {})
   }
 
-  async get(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('BasicDatabaseController#get(string id) expected')
-
+  async get(id: string) {
     const doc = await this.db.findOne({ _id: id }, { _id: 0 })
     if (doc === null) throw new Error('BasicDatabaseController#get() item not found')
 
     return doc
   }
 
-  async set(id, data) {
-    if (!id || typeof id !== 'string') throw new TypeError('BasicDatabaseController#set(string id) expected')
-    if (!data || !checkTypes(data, this.dataSchema, false)) throw new TypeError('BasicDatabaseController(, (object following data schema) data) expected)')
+  async set(id: string, data: Object) {
+    if (!checkTypes(data, this.dataSchema, false)) throw new TypeError('BasicDatabaseController(, (object following data schema) data) expected)')
 
     return await this.update(id, { $set: data })
   }
 
-  async update(id, query) {
-    if (!id || typeof id !== 'string') throw new TypeError('BasicDatabaseController#update(string id) expected')
-    if (!query || typeof query !== 'object') throw new TypeError('BasicDatabaseController#update(object query) expected')
-
+  async update(id: string, query: Object) {
     const [ updated, doc ] = await this.db.update({ _id: id }, query, { returnUpdatedDocs: true, multi: false })
     if (updated === 0) throw new Error('BasicDatabaseController#update() item not found')
 
@@ -73,20 +66,18 @@ export default class BasicDatabaseController {
     return doc
   }
 
-  async getProperty(id, key) {
-    if (!id || typeof id !== 'string') throw new TypeError('BasicDatabaseController#getProperty(String id) expected')
-
+  async getProperty(id: string, key: string) {
     const doc = await this.db.findOne({ _id: id }, { _id: 0, [key]: 1 })
     if (doc === null) throw new Error('BasicDatabaseController#getProperty() item not found')
 
     return doc[key]
   }
 
-  async setProperty(id, key, value) {
+  async setProperty(id: string, key: string, value: any) {
     return await this.set(id, { [key]: value })
   }
 
-  async findByProperty(key, value) {
+  async findByProperty(key: string, value: any) {
     return (await this.db.find({ [key]: value })).map(doc => doc._id)
   }
 }

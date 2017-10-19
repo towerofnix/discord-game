@@ -311,8 +311,8 @@ export default class Game {
       const userId = message.author.id
       const battleCharacterId = await this.users.getBattleCharacter(userId)
 
-      let currentTeamId = null
-      let currentMemberId = null
+      let currentTeamId: string
+      let currentMemberId: string
 
       await showMenu(message.channel, userId, {
         start: 'root',
@@ -385,7 +385,6 @@ export default class Game {
           'delete team': {
             action: async () => {
               await this.teams.delete(currentTeamId)
-              currentTeamId = null
               return { history: 'clear', to: 'root' }
             }
           },

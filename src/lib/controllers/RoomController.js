@@ -1,27 +1,32 @@
+// @flow
+
 import BasicMaplikeController from './BasicMaplikeController'
 import Room from '../Room'
+import Game from '../Game'
 import * as log from '../util/log'
 
+import discord from 'discord.js'
+
 export default class RoomController extends BasicMaplikeController {
-  constructor(game) {
+  game: Game
+
+  constructor(game: Game) {
     super()
 
     this.game = game
   }
 
-  async notifyUserEntered(roomId, userId) {
+  async notifyUserEntered(roomId: string, userId: string) {
     // Notify room of new user
     const room = await this.get(roomId)
     await room.handleUserEntered(userId)
   }
 
-  get(roomId) {
+  get(roomId: string): Room {
     // Gets the Room object with the given ID (which is its channel name).
     // Throws an error if the given room does not exist. (When handling, e.g.,
     // user input, you should use `has` to check if the given room exists
     // before running `get`.)
-
-    if (!roomId || typeof roomId !== 'string') throw new TypeError('RoomController#get(string roomId) expected')
 
     if (this.has(roomId)) {
       return super.get(roomId)
@@ -30,18 +35,17 @@ export default class RoomController extends BasicMaplikeController {
     }
   }
 
-  async register(roomObject) {
-    if (!roomObject || !(roomObject instanceof Room)) throw new TypeError('RoomController#register(Room roomObject) expected')
-
+  async register(roomObject: Room) {
     await log.debug(`Registering room: ${roomObject.displayName} #${roomObject.channelName}`)
     this.set(roomObject.channelName, roomObject)
   }
 
-  async getChannelAndRole(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('RoomController#getChannelAndRole(string id) expected')
-    // TODO: Assert room is registered
-
+  async getChannelAndRole(id: string): Promise<{ role: discord.Role, channel: discord.Channel }> {
     const room = this.get(id)
+
+    if (!room) {
+      throw new Error(`Room ${id} does not exist`)
+    }
 
     const guild = this.game.guild
 
