@@ -8,6 +8,7 @@
     "shortid": "^2.2.8"
   },
   "scripts": {
+    "run": "node dist/bundle.js",
     "start": "webpack --config webpack.config.js",
     "start-verbose": "npm run start -- --display-error-details",
     "watch": "nodemon --watch src --exec 'npm run start'"
