@@ -5,6 +5,12 @@ module.exports = {
     ecmaVersion: 2017,
     sourceType: 'module',
   },
+  plugins: [ 'flowtype' ],
+  settings: {
+    flowtype: {
+      onlyFilesWithFlowAnnotation: true,
+    },
+  },
   env: {
     node: true,
     es6: true,
@@ -70,5 +76,33 @@ module.exports = {
     'arrow-body-style': [ 'warn', 'as-needed' ],
     'arrow-spacing': [ 'error' ],
     'prefer-const': 'warn',
+
+    'flowtype/boolean-style': [ 'error', 'boolean' ],
+    'flowtype/delimiter-dangle': [ 'error', 'always-multiline' ],
+    'flowtype/generic-spacing': [ 'error', 'never' ],
+    'flowtype/no-dupe-keys': 'warn',
+    'flowtype/no-primitive-constructor-types': 'warn',
+    'flowtype/no-types-missing-file-annotation': 'warn',
+    'flowtype/no-unused-expressions': 'warn',
+    'flowtype/no-weak-types': 'warn',
+    'flowtype/object-type-delimiter': [ 'error', 'comma' ],
+    'flowtype/require-parameter-type': [ 'error', {
+      excludeArrowFunctions: 'expressionsOnly',
+    }],
+    'flowtype/require-return-type': [ 'warn', 'always', {
+      excludeArrowFunctions: 'expressionsOnly',
+    }],
+    'flowtype/require-valid-file-annotation': [ 'warn', 'never', {
+      annotationStyle: 'line',
+    }],
+    'flowtype/semi': [ 'error', 'never' ],
+    'flowtype/space-after-type-colon': [ 'error', 'always', {
+      allowLineBreak: true,
+    }],
+    'flowtype/space-before-generic-bracket': [ 'error', 'never' ],
+    'flowtype/space-before-type-colon': [ 'error', 'never' ],
+    'flowtype/type-id-match': [ 'warn', '^([A-Z][a-z0-9]*)$' ],
+    'flowtype/union-intersection-spacing': [ 'error', 'always' ],
+    'flowtype/use-flow-type': 1, // marks flowtypes as used
   }
 };

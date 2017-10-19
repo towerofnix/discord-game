@@ -40,8 +40,8 @@ export default class Battle {
   teams: Array<string>
 
   // A big, bad thing created by Alex!! This should be handled in the music
-  // controller (something like pushing, rather than setting, music would be
-  // good maybe.)
+  // controller (TODO something like pushing, rather than setting, music would be
+  // good maybe - such as window.location.history)
   originallyPlayingSongs: Object
 
   // A mapping of team IDs to their text channels from the game's Discord
