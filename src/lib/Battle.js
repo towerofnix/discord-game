@@ -696,26 +696,13 @@ export default class Battle {
     }
   }
 
-  // TODO: Move this onto the Effect class.
-
   tickAllTemporaryEffects() {
-    // Subtracts one from every temporary effect on every character, so that
-    // the value is moved towards zero.
+    // Calls the tick() method of every temporary effect on every character.
+    // By default, tick() subtracts one so that the value moves towards zero.
 
     for (const characterEffects of this.temporaryEffects.values()) {
       for (const effect of characterEffects) {
-        // Decay speed controls how quickly the effect's value disappears.
-        // Higher means faster; zero means the effect won't be automatically
-        // removed (or decreased). Negative means the effect will actually
-        // become stronger over time. Defaults to 1 (so the value decreases
-        // by 1 each turn).
-        const { decaySpeed = 1 } = effect
-
-        if (decaySpeed > Math.abs(effect.value)) {
-          effect.value = 0
-        } else {
-          effect.value -= Math.sign(effect.value) * decaySpeed
-        }
+        effect.tick()
       }
     }
   }

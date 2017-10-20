@@ -78,13 +78,14 @@ module.exports = {
     'prefer-const': 'warn',
 
     'flowtype/boolean-style': [ 'error', 'boolean' ],
+    'flowtype/define-flow-type': 1, // marks builtin flow type idents as defined
     'flowtype/delimiter-dangle': [ 'error', 'always-multiline' ],
     'flowtype/generic-spacing': [ 'error', 'never' ],
     'flowtype/no-dupe-keys': 'warn',
     'flowtype/no-primitive-constructor-types': 'warn',
     'flowtype/no-types-missing-file-annotation': 'warn',
     'flowtype/no-unused-expressions': 'warn',
-    'flowtype/no-weak-types': 'warn',
+    //'flowtype/no-weak-types': 'warn',
     'flowtype/object-type-delimiter': [ 'error', 'comma' ],
     'flowtype/require-parameter-type': [ 'error', {
       excludeArrowFunctions: 'expressionsOnly',
