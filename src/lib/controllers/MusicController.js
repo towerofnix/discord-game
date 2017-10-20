@@ -126,7 +126,6 @@ export default class MusicController {
       const song = await this.game.users.getListeningTo(id)
 
       if (song !== null) {
-        await log.debug(`Giving user ${id} listening-to role`)
         const { role } = await this.getSongRoleAndChannel(song)
         const member = await this.game.users.getDiscordMember(id)
 
