@@ -8,6 +8,8 @@ import asyncFilter from '../util/asyncFilter'
 import Datastore from 'nedb-promise'
 import discord from 'discord.js'
 
+type Pvoid = Promise<void>
+
 const db = new Datastore({
   filename: 'data/users.json',
   autoload: true,
@@ -28,7 +30,7 @@ export default class UserController extends BasicDatabaseController {
     this.game = game
   }
 
-  async add(id: string, data: Object) {
+  async add(id: string, data: Object): Pvoid {
     const ret = await super.add(id, data)
 
     if (data.location)
@@ -37,7 +39,7 @@ export default class UserController extends BasicDatabaseController {
     return ret
   }
 
-  async set(id: string, data: Object) {
+  async set(id: string, data: Object): Pvoid {
     const ret = await super.set(id, data)
 
     // TODO refactor these into a BasicDatabaseController#onSetProperty(prop, fn).
@@ -70,7 +72,7 @@ export default class UserController extends BasicDatabaseController {
   }
 
   async getLocation(id: string): Promise<string> { return await this.getProperty(id, 'location') }
-  async setLocation(id: string, newLocation: string) { await this.setProperty(id, 'location', newLocation) }
+  async setLocation(id: string, newLocation: string): Pvoid { await this.setProperty(id, 'location', newLocation) }
 
   async findByLocation(location: string): Promise<Array<string>> {
     return await this.filterByLiveDiscordMembers(await this.findByProperty('location', location))
@@ -79,13 +81,13 @@ export default class UserController extends BasicDatabaseController {
   async getBattleCharacter(id: string): Promise<string> { return await this.getProperty(id, 'battleCharacter') }
 
   async getListeningTo(id: string): Promise<string> { return await this.getProperty(id, 'listeningTo') }
-  async setListeningTo(id: string, song: string) { await this.setProperty(id, 'listeningTo', song) }
+  async setListeningTo(id: string, song: string): Pvoid { await this.setProperty(id, 'listeningTo', song) }
 
   async getDiscordMember(id: string): Promise<discord.Member> {
     return await this.game.guild.members.find('id', id)
   }
 
-  async _setListeningTo(id: string, song: string) {
+  async _setListeningTo(id: string, song: string): Pvoid {
     // Peform setListeningTo side-effects
 
     const member = await this.getDiscordMember(id)
@@ -115,7 +117,7 @@ export default class UserController extends BasicDatabaseController {
     }
   }
 
-  async _setLocation(userId: string, roomId: string) {
+  async _setLocation(userId: string, roomId: string): Pvoid {
     // Perform setLocation side effects
 
     const member = await this.getDiscordMember(userId)

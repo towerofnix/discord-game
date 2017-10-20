@@ -16,6 +16,8 @@ import TeamController from './controllers/TeamController'
 import UserController from './controllers/UserController'
 import Battle from './Battle'
 
+type Pvoid = Promise<void>
+
 export default class Game {
   // The main bot connection to the Discord API.
   client: discord.Client
@@ -40,7 +42,7 @@ export default class Game {
     this.client.on('guildMemberAdd', member => this.handleMemberJoin(member))
   }
 
-  async handleClientReady() {
+  async handleClientReady(): Pvoid {
     await log.success('Connected to Discord API')
     this.guild = this.client.guilds.first() // Assumes one and only guild
 
@@ -53,11 +55,11 @@ export default class Game {
       await log.info('No users to add')
   }
 
-  async handleMemberJoin(member: discord.GuildMember) {
+  async handleMemberJoin(member: discord.GuildMember): Pvoid {
     await this.createUserForMember(member)
   }
 
-  async createUserForMember(member: discord.GuildMember) {
+  async createUserForMember(member: discord.GuildMember): Pvoid {
     if (await this.users.has(member.id) === false) { // Quick sanity check
       // Add new user to the database
       await log.info('A new user just joined! Adding them to the database...')
@@ -76,11 +78,11 @@ export default class Game {
     }
   }
 
-  async createUsersForNewMembers() {
+  async createUsersForNewMembers(): Promise<number> {
     let numAdded = 0
 
     await Promise.all(
-      Array.from(this.guild.members.entries()).map(async ([ id, member ]) => {
+      Array.from(this.guild.members.entries()).map(async ([ id, member ]: [ string, discord.Member ]): Pvoid => {
         // If this user is a bot, ignore it
         if (member.user.bot === true) {
           return
@@ -97,7 +99,7 @@ export default class Game {
     return numAdded
   }
 
-  async setup() {
+  async setup(): Pvoid {
     await log.debug('Game#setup()')
 
     this.battleCharacters = new BattleCharacterController(this)
@@ -117,14 +119,14 @@ export default class Game {
     this.commands.setupMessageListener()
     this.commands.addVerb('examine')
 
-    this.commands.set('play', async (rest, message) => {
+    this.commands.set('play', async (rest: string, message: discord.Message): Pvoid => {
       // TEMP
 
       const userId = message.author.id
       await this.users.setListeningTo(userId, rest)
     })
 
-    this.commands.set('pages', async (rest, message) => {
+    this.commands.set('pages', async (rest: string, message: discord.Message): Pvoid => {
       // TEMP ONCE MORE
 
       const userId = message.author.id
@@ -154,7 +156,7 @@ export default class Game {
       })
     })
 
-    this.commands.set('menu', async (rest, message) => {
+    this.commands.set('menu', async (rest: string, message: discord.Message): Pvoid => {
       // TEMP AGAIN
 
       const userId = message.author.id
@@ -165,16 +167,16 @@ export default class Game {
         dialogs: {
           root: {
             title: 'Root',
-            action: async () => {
+            action: async (): Pvoid => {
               await message.reply('Welcome to my AMAZING menu maze!')
             },
             options: [
               { title: 'Reference self', emoji: '🔄', action: { to: 'root' } },
-              { title: 'Run-action', emoji: '🍔', action: async () => {
+              { title: 'Run-action', emoji: '🍔', action: async (): Promise<Object> => {
                 await message.reply('Yeah, right!')
                 return { to: 'root' }
               } },
-              { title: 'Get outta here!', emoji: '🐻', action: async () => {
+              { title: 'Get outta here!', emoji: '🐻', action: async (): Promise<Object> => {
                 await message.reply('Awww.')
                 return { to: 'finalRegrets' }
               } },
@@ -196,7 +198,7 @@ export default class Game {
       })
     })
 
-    this.commands.set('battle', async (rest, message) => {
+    this.commands.set('battle', async (rest: string, message: discord.Message): Pvoid => {
       // TEMP
       log.info('Battle!')
 
@@ -226,26 +228,26 @@ export default class Game {
       battle.start()
     })
 
-    const _getUserArgFromMessage = async message => {
+    const _getUserArgFromMessage = async (message: discord.Message): Promise<string | void> => {
       const userIdList = Array.from(message.mentions.members.values())
 
       // TODO: Use richWrite instead of message.reply.
       if (userIdList.length === 0) {
         message.reply('Please @-mention the user you want to target.')
-        return false
+        return
       }
 
       const userId = userIdList[0].id
 
       if (await this.users.has(userId) === false) {
         message.reply('That isn\'t a user you can target! (They aren\'t in the user database.)')
-        return false
+        return
       }
 
       return userId
     }
 
-    this.commands.set('duel', async (rest, message) => {
+    this.commands.set('duel', async (rest: string, message: discord.Message): Pvoid => {
       // ALSO TEMP
 
       const userId = message.author.id
@@ -253,7 +255,10 @@ export default class Game {
       const userTeamId = await this.teams.findOrCreateForMember(playerBattleCharacterId)
 
       const opponentUserId = await _getUserArgFromMessage(message)
-      if (opponentUserId === false) return false
+
+      if (opponentUserId === undefined) {
+        return
+      }
 
       const opponentBattleCharacterId = await this.users.getBattleCharacter(opponentUserId)
 
@@ -271,20 +276,20 @@ export default class Game {
       battle.start()
     })
 
-    this.commands.set('warp', async (rest, message) => {
+    this.commands.set('warp', async (rest: string, message: discord.Message): Pvoid => {
       // FURTHERMORE TEMP
       const location = rest
 
       if (this.rooms.has(location) === false) {
         message.reply('That location does not exist!')
-        return false
+        return
       }
 
       const userId = message.author.id
       await this.users.setLocation(userId, location)
     })
 
-    this.commands.set('summon-cool-npc-friend', async (rest, message) => {
+    this.commands.set('summon-cool-npc-friend', async (rest: string, message: discord.Message): Pvoid => {
       // ADDITIONALLY TEMP
 
       const userId = message.author.id
@@ -305,7 +310,7 @@ export default class Game {
       message.reply(name + ' joins your team!')
     })
 
-    this.commands.set('team', async (rest, message) => {
+    this.commands.set('team', async (rest: string, message: discord.Message): Pvoid => {
       // UNSURPRISINGLY TEMP
 
       const userId = message.author.id
@@ -326,13 +331,13 @@ export default class Game {
               { title: 'Create new team', emoji: '🚀', action: { to: 'create new team' } }
             ],
             autopageOptions: async () => (await this.teams.findByMember(battleCharacterId))
-              .map(teamId => ({ title: '(Team name here)', action: () => {
+              .map(teamId => ({ title: '(Team name here)', action: (): Object => {
                 currentTeamId = teamId
                 return { to: 'manage current team' }
               } }))
           },
           'create new team': {
-            action: async () => {
+            action: async (): Promise<Object> => {
               const teamId = await this.teams.createNew([ battleCharacterId ])
               currentTeamId = teamId
               return { history: 'pop', to: 'manage current team' }
@@ -344,11 +349,11 @@ export default class Game {
               { title: '~~Invite~~ Add a new member', emoji: '💌', action: { to: 'invite new member' } },
               { title: 'Delete team', emoji: '🗑', action: { to: 'delete team' } }
             ],
-            autopageOptions: async () => {
+            autopageOptions: async (): Promise<Array<Object>> => {
               const members = await this.teams.getMembers(currentTeamId)
-              return await Promise.all(members.map(async memberId => {
+              return await Promise.all(members.map(async (memberId: string): Promise<Object> => {
                 const name = await this.battleCharacters.getName(memberId)
-                return { title: name, action: async () => {
+                return { title: name, action: async (): Promise<Object> => {
                   currentMemberId = memberId
                   return { to: 'manage member' }
                 } }
@@ -357,7 +362,7 @@ export default class Game {
           },
           'invite new member': {
             title: '(Team name here) - Which member? (The person you want to invite must be in the same location as you.)',
-            autopageOptions: async () => {
+            autopageOptions: async (): Promise<Array<Object>> => {
               const options = []
 
               const location = await this.users.getLocation(userId)
@@ -373,7 +378,7 @@ export default class Game {
 
                 const name = await this.battleCharacters.getName(memberId)
 
-                options.push({ title: name, action: async () => {
+                options.push({ title: name, action: async (): Promise<Object> => {
                   await this.teams.addMember(currentTeamId, memberId)
                   return { history: 'back' }
                 } })
@@ -383,7 +388,7 @@ export default class Game {
             }
           },
           'delete team': {
-            action: async () => {
+            action: async (): Promise<Object> => {
               await this.teams.delete(currentTeamId)
               return { history: 'clear', to: 'root' }
             }
@@ -391,7 +396,7 @@ export default class Game {
           'manage member': {
             title: async () => `(Team name here) - ${await this.battleCharacters.getName(currentMemberId)}`,
             options: [
-              { title: 'Remove from team', emoji: '👋', action: async () => {
+              { title: 'Remove from team', emoji: '👋', action: async (): Promise<Object> => {
                 await this.teams.removeMember(currentTeamId, currentMemberId)
                 return { history: 'back' }
               } }
@@ -401,7 +406,7 @@ export default class Game {
       })
     })
 
-    this.commands.set('team-add', async (rest, message) => {
+    this.commands.set('team-add', async (rest: string, message: discord.Message): Pvoid => {
       // FURTHERMORE TEMP
 
       const userId = message.author.id
@@ -409,7 +414,10 @@ export default class Game {
       const teamId = await this.teams.findOrCreateForMember(battleCharacterId)
 
       const otherUserId = await _getUserArgFromMessage(message)
-      if (otherUserId === false) return false
+
+      if (otherUserId === undefined) {
+        return
+      }
 
       const otherBattleCharacterId = await this.users.getBattleCharacter(otherUserId)
 
@@ -419,7 +427,7 @@ export default class Game {
     })
   }
 
-  async go() {
+  async go(): Pvoid {
     await log.debug('Game#go()')
 
     const clientId = await env('discord_client_id', 'string')
@@ -436,7 +444,7 @@ export default class Game {
     await log.success('Ready')
   }
 
-  async cleanDiscordServer() {
+  async cleanDiscordServer(): Pvoid {
     // Battle-related channels
     {
       await log.info('Removing battle-related channels...')

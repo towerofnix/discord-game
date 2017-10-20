@@ -8,6 +8,8 @@ import richWrite from '../util/richWrite'
 
 import discord from 'discord.js'
 
+type Pvoid = Promise<void>
+
 export const PREFIX = '.'
 
 export default class CommandController extends BasicMaplikeController {
@@ -35,7 +37,7 @@ export default class CommandController extends BasicMaplikeController {
     this.game.client.on('message', msg => this.handleMessage(msg))
   }
 
-  async handleMessage(message: discord.Message) {
+  async handleMessage(message: discord.Message): Pvoid {
     if (!message.content.startsWith(PREFIX)) return // Not a command
 
     const content = message.content.substr(PREFIX.length)
@@ -58,13 +60,13 @@ export default class CommandController extends BasicMaplikeController {
   }
 
   addVerb(verb: string) {
-    this.set(verb, async (rest, message) => {
+    this.set(verb, async (rest: string, message: discord.Message): Pvoid => {
       const userId = message.author.id
       const location = await this.game.users.getLocation(userId)
 
       if (this.game.rooms.has(location) === false) {
         warn(`User ${message.author.tag} attempted to use a verb (${verb} ${rest}) while in nonexistant room "${location}"!`)
-        return false
+        return
       }
 
       const { channel } = await this.game.rooms.getChannelAndRole(location)

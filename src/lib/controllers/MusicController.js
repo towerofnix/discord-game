@@ -8,8 +8,11 @@ import chalk from 'chalk'
 import discord from 'discord.js'
 import nodePath from 'path'
 
+type Pvoid = Promise<void>
+
 export default class MusicController {
   game: Game
+
   songs: Map<string, { path: string, bot: ?discord.Client }>
 
   constructor(game: Game) {
@@ -17,18 +20,18 @@ export default class MusicController {
     this.songs = new Map()
   }
 
-  async register(song: string, path: string) {
+  async register(song: string, path: string): Pvoid {
     log.debug('Registering song: ' + song)
     this.songs.set(song, { path, bot: null })
   }
 
-  async playMusic() {
+  async playMusic(): Pvoid {
     const tokens = await env('music_bots', 'object')
 
     if (tokens.length < this.songs.size)
       throw new TypeError(`Environment music_bots array is too short (there are ${this.songs.size} songs, but only ${tokens.length} music bots available)`)
 
-    await Promise.all(Array.from(this.songs.keys()).map((song, n) => new Promise((resolve, reject) => {
+    await Promise.all(Array.from(this.songs.keys()).map((song, n) => new Promise((resolve: () => void, reject: () => void) => {
       const songObj = this.songs.get(song)
 
       if (!songObj) {
@@ -38,7 +41,7 @@ export default class MusicController {
       const { path } = songObj
       const bot = new discord.Client()
 
-      bot.on('ready', async () => {
+      bot.on('ready', async (): Pvoid => {
         const { role, channel } = await this.getSongRoleAndChannel(song)
         const botMemberAsAdmin = this.game.guild.members.find('id', bot.user.id)
         const channelAsAdmin = this.game.guild.channels.find('id', channel)
@@ -56,7 +59,7 @@ export default class MusicController {
         this.songs.set(song, { path, bot, voiceConn })
         resolve()
 
-        async function loop() {
+        async function loop(): Pvoid {
           const dispatcher = voiceConn.playFile(nodePath.join(__dirname, path), {
             bitrate: 4000, // 48000 default
           })
@@ -114,7 +117,7 @@ export default class MusicController {
     return { role, channel }
   }
 
-  async giveRoles() {
+  async giveRoles(): Pvoid {
     if (await env('music_enabled', 'boolean') === false) return
 
     const users = await this.game.users.list()

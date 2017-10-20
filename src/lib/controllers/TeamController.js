@@ -7,6 +7,8 @@ import Datastore from 'nedb-promise'
 import shortid from 'shortid'
 import discord from 'discord.js'
 
+type Pvoid = Promise<void>
+
 const db = new Datastore({
   filename: 'data/teams.json',
   autoload: true,
@@ -27,7 +29,7 @@ export default class TeamController extends BasicDatabaseController {
     return await this.getProperty(id, 'members')
   }
 
-  async addMember(id: string, member: string) {
+  async addMember(id: string, member: string): Pvoid {
     if (await this.hasMember(id, member) === false) {
       await this.update(id, { $push: { members: member } })
       await this._addUserToTeamRole(id, member)
@@ -53,13 +55,13 @@ export default class TeamController extends BasicDatabaseController {
     return role
   }
 
-  async updateUserTeamRoles(id: string) {
+  async updateUserTeamRoles(id: string): Pvoid {
     for (const battleCharacterId of await this.getMembers(id)) {
       await this._addUserToTeamRole(id, battleCharacterId)
     }
   }
 
-  async _addUserToTeamRole(teamId: string, battleCharacterId: string) {
+  async _addUserToTeamRole(teamId: string, battleCharacterId: string): Pvoid {
     const type = await this.game.battleCharacters.getCharacterType(battleCharacterId)
 
     if (type === 'user') {
@@ -80,7 +82,7 @@ export default class TeamController extends BasicDatabaseController {
       .map(team => team._id)
   }
 
-  async removeMember(teamId: string, member: string) {
+  async removeMember(teamId: string, member: string): Pvoid {
     await this.update(teamId, { $pull: { members: member } })
   }
 

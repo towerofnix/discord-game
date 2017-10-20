@@ -14,6 +14,7 @@ const shortid = require('shortid')
 const discord = require('discord.js')
 
 type Color = number | string
+type Pvoid = Promise<void>
 
 export const EffectData = {
   name: String,
@@ -80,7 +81,7 @@ export default class Battle {
     this.battleStatuses = []
   }
 
-  async start() {
+  async start(): Pvoid {
     if (this.started) throw new Error('Battle#start() already started')
     this.started = true
 
@@ -118,7 +119,7 @@ export default class Battle {
     await this.runBattleLoop()
   }
 
-  async runBattleLoop() {
+  async runBattleLoop(): Pvoid {
     while (await this.getShouldContinueBattle()) {
       await this.runCurrentTurn()
       this.nextBattleCharacter()
@@ -158,7 +159,7 @@ export default class Battle {
     await Battle.deleteChannels(this.id, this.game.guild)
   }
 
-  async getShouldContinueBattle() {
+  async getShouldContinueBattle(): Promise<boolean> {
     // The battle should continue if two characters from two different teams
     // are alive.
 
@@ -171,7 +172,7 @@ export default class Battle {
     }
   }
 
-  async getAliveTeams() {
+  async getAliveTeams(): Promise<Array<string>> {
     const aliveTeams = []
 
     for (const team of this.teams) {
@@ -186,7 +187,7 @@ export default class Battle {
     return aliveTeams
   }
 
-  async runCurrentTurn() {
+  async runCurrentTurn(): Pvoid {
     const name = await this.game.battleCharacters.getName(this.currentCharacterId)
 
     if (await this.getTemporaryEffect(this.currentCharacterId, 'silentIdle') > 0) {
@@ -234,29 +235,27 @@ export default class Battle {
     }
   }
 
-  async onNewRound() {
+  async onNewRound(): Pvoid {
     await this.tickAllTemporaryEffects()
   }
 
-  async writeMoveMessage(move: BattleMove, color: Color, content: string) {
+  async writeMoveMessage(move: BattleMove, color: Color, content: string): Pvoid {
     await this.writeToAllChannels(color, await this.getCurrentMoveTitle(move), content)
   }
 
-  async getAllCharacters() {
+  async getAllCharacters(): Promise<Array<string>> {
     return (await Promise.all(this.teams.map(team => this.game.teams.getMembers(team)))).reduce((a, b) => a.concat(b), [])
   }
 
-  async getAllTeamsFilter(filter: (teamId: string, game: Game) => boolean) {
-    if (!filter || typeof filter !== 'function') throw new TypeError('Battle#getAllTeamsFilter(function filter) expected')
-
+  async getAllTeamsFilter(filter: (teamId: string, game: Game) => boolean): Promise<Array<string>> {
     return await asyncFilter(t => filter(t, this.game))(this.teams)
   }
 
-  async getAllAliveCharacters() {
+  async getAllAliveCharacters(): Promise<Array<string>> {
     return await this.getAllCharacters().then(asyncFilter(id => this.game.battleCharacters.isAlive(id)))
   }
 
-  async dealDamageToCharacter(move: BattleMove, targetId: string, damage: number) {
+  async dealDamageToCharacter(move: BattleMove, targetId: string, damage: number): Pvoid {
     const title = await this.getCurrentMoveTitle(move)
     const wasAlive = await this.game.battleCharacters.isAlive(targetId)
     await this.game.battleCharacters.dealDamage(targetId, damage)
@@ -268,20 +267,20 @@ export default class Battle {
     }
   }
 
-  async healCharacter(move: BattleMove, targetId: string, amount: number) {
+  async healCharacter(move: BattleMove, targetId: string, amount: number): Pvoid {
     const title = await this.getCurrentMoveTitle(move)
     await this.game.battleCharacters.heal(targetId, amount)
     await this.writeToAllChannels(0xD96FCA, title, `Heals ${await this.game.battleCharacters.getName(targetId)} for ${amount} HP.`)
   }
 
-  async getCurrentMoveTitle(move: BattleMove) {
+  async getCurrentMoveTitle(move: BattleMove): Promise<string> {
     return `${await this.game.battleCharacters.getName(this.currentCharacterId)} - ${move.name}`
   }
 
-  async getBattleStatusForTeam(team: string) {
+  async getBattleStatusForTeam(team: string): Promise<string> {
     let status = '**Your team:**\n'
 
-    const _addMemberLine = async (member, fromThisTeam) => {
+    const _addMemberLine = async (member: string, fromThisTeam: boolean): Pvoid => {
       const name = await this.game.battleCharacters.getName(member)
       if (await this.game.battleCharacters.isAlive(member)) {
         const curHP = await this.game.battleCharacters.getHP(member)
@@ -304,7 +303,7 @@ export default class Battle {
 
         if (tempEffects.length) {
           status += ' ('
-          status += tempEffects.map(({ name, value, getDisplayString }) => {
+          status += tempEffects.map(({ name, value, getDisplayString }: { name: string, value: number, getDisplayString: ?(value: number) => string }): string => {
             if (getDisplayString) {
               const str = getDisplayString(value)
 
@@ -341,11 +340,10 @@ export default class Battle {
     return status
   }
 
-
-  async getShortBattleStatusForTeam(team: string) {
+  async getShortBattleStatusForTeam(team: string): Promise<string> {
     let status = ''
 
-    const _addMemberLine = async (member, fromThisTeam) => {
+    const _addMemberLine = async (member: string, fromThisTeam: boolean): Pvoid => {
       const name = await this.game.battleCharacters.getName(member)
       if (await this.game.battleCharacters.isAlive(member)) {
         const curHP = await this.game.battleCharacters.getHP(member)
@@ -376,7 +374,7 @@ export default class Battle {
     return status
   }
 
-  async writeBattleStatuses(pin: boolean = false) {
+  async writeBattleStatuses(pin: boolean = false): Pvoid {
     this.battleStatuses = []
 
     for (const team of this.teams) {
@@ -390,7 +388,7 @@ export default class Battle {
     }
   }
 
-  async updateBattleStatuses() {
+  async updateBattleStatuses(): Pvoid {
     for (const [ msg, team ] of this.battleStatuses) {
       const status = await this.getBattleStatusForTeam(team)
       const statusShort = await this.getShortBattleStatusForTeam(team)
@@ -409,7 +407,7 @@ export default class Battle {
     }
   }
 
-  async nextBattleCharacter() {
+  async nextBattleCharacter(): Pvoid {
     const currentTeamMembers = await this.game.teams.getMembers(this.currentTeamId)
     const index = currentTeamMembers.indexOf(this.currentCharacterId)
 
@@ -420,7 +418,7 @@ export default class Battle {
     }
   }
 
-  async nextTeam() {
+  async nextTeam(): Pvoid {
     const index = this.teams.indexOf(this.currentTeamId)
 
     if (index + 1 >= this.teams.length) {
@@ -456,7 +454,8 @@ export default class Battle {
     }
   }
 
-  async getUserAction(battleCharacterId: string, teamId: string) {
+  // TODO: Return an Action (probably a type, not a class), not an Object
+  async getUserAction(battleCharacterId: string, teamId: string): Object {
     // TODO: Implement tactics and items
     // TEMP, user should be able to learn attacks and stuff
     // TODO: Move to attacks map stored on game
@@ -494,7 +493,7 @@ export default class Battle {
             delete userAction.move
           },
           title: turnTitle + ' - Attacks',
-          options: async () => {
+          options: async (): Promise<Array<Object>> => {
             const options = []
 
             for (const id of userAttacks) {
@@ -502,7 +501,7 @@ export default class Battle {
               const targets = await this.getMoveTargets(move)
 
               if (targets.length > 0) {
-                options.push({ title: move.name, emoji: move.emoji, action: () => {
+                options.push({ title: move.name, emoji: move.emoji, action: (): Object => {
                   userAction.move = move.id
                   return { to: 'pick target' }
                 } })
@@ -516,15 +515,15 @@ export default class Battle {
           action: () => {
             delete userAction.target
           },
-          title: () => {
+          title: (): string => {
             const move = this.game.moves.get(userAction.move)
-            if (move.targetType === 'character') {
-              return `${turnTitle} - Use ${move.name} on who?`
-            } else if (move.targetType === 'team') {
+            if (move.targetType === 'team') {
               return `${turnTitle} - Use ${move.name} on which team?`
+            } else {
+              return `${turnTitle} - Use ${move.name} on who?`
             }
           },
-          autopageOptions: async () => await this.getMoveTargets(this.game.moves.get(userAction.move), id => {
+          autopageOptions: async () => await this.getMoveTargets(this.game.moves.get(userAction.move), (id: string) => {
             userAction.target = id
           })
         }
@@ -534,7 +533,7 @@ export default class Battle {
     return userAction
   }
 
-  async getMoveTargets(move: BattleMove, actionCallback: (id: string) => ?Object = id => {}) {
+  async getMoveTargets(move: BattleMove, actionCallback: (id: string) => ?Object = id => null): Promise<Array<Object>> {
     if (move.targetType === 'character') {
       const characterIds = await this.getAllCharacters().then(asyncFilter(id => move.targetFilter(id, this.game)))
 
@@ -560,14 +559,14 @@ export default class Battle {
     return msgs.filter(msg => !!msg) // Remove falsey values
   }
 
-  async writeToTeamChannel(teamId: string, color: Color, title: string, content: string) {
+  async writeToTeamChannel(teamId: string, color: Color, title: string, content: string): Pvoid {
     // Writes a text box to the given team's channel, if that channel exists,
     // and if there is at least one player-type character inside the channel.
 
     if (this.channelMap.has(teamId) === false) {
       await warn('Battle#writeToTeamChannel called with a team ID that isn\'t in the team map?')
       console.trace('Warning trace of writeToTeamChannel') // eslint-disable-line no-console
-      return false
+      return
     }
 
     const members = await this.game.teams.getMembers(teamId)
@@ -576,12 +575,10 @@ export default class Battle {
       const channel = this.channelMap.get(teamId)
       return await richWrite(channel, color, title, content)
     }
-
-    return null
   }
 
-  static async deleteChannels(battleId: string, guild: discord.Guild) {
-    return await Promise.all(guild.channels
+  static async deleteChannels(battleId: string, guild: discord.Guild): Pvoid {
+    await Promise.all(guild.channels
       .filter(channel => channel.name.startsWith('battle-' + battleId))
       .map(channel => channel.delete())
     )
@@ -592,9 +589,7 @@ export default class Battle {
   // (Handy so that if, for example, a user takes damage out of battle, that
   // damage can use the same formulas as damage in-battle.)
 
-  async getDefendingMultiplier(characterId: string) {
-    if (typeof characterId !== 'string') throw new TypeError('Battle#getDefendingMultiplier(string characterId) expected')
-
+  async getDefendingMultiplier(characterId: string): Promise<number> {
     const defending = this.getTemporaryEffect(characterId, 'defend')
 
     if (defending > 0) {
@@ -604,15 +599,15 @@ export default class Battle {
     }
   }
 
-  async getActiveAttack(characterId: string) {
+  async getActiveAttack(characterId: string): Promise<number> {
     return await this.game.battleCharacters.getBaseAttack(characterId) + this.getTemporaryEffect(characterId, 'attack-buff')
   }
 
-  async getActiveDefense(characterId: string) {
+  async getActiveDefense(characterId: string): Promise<number> {
     return await this.game.battleCharacters.getBaseDefense(characterId) + this.getTemporaryEffect(characterId, 'defense-buff')
   }
 
-  async getBasicDamage(baseDamage: number, actorId: string, targetId: string) {
+  async getBasicDamage(baseDamage: number, actorId: string, targetId: string): Promise<number> {
     // Basic physical damage - this takes into account the attack and defense
     // stats of the actor and target, and considers whether or not the target
     // is defending.
@@ -630,7 +625,7 @@ export default class Battle {
     return Math.ceil(val)
   }
 
-  async getEnvironmentalDamage(baseDamage: number, targetId: string) {
+  async getEnvironmentalDamage(baseDamage: number, targetId: string): Promise<number> {
     // "Environmental" damage - this doesn't take into account the attack stat
     // of the actor or the defense stat of the target, but does consider whether
     // or not the target is defending.
@@ -645,7 +640,7 @@ export default class Battle {
     return Math.ceil(val)
   }
 
-  async getElementalDamage(baseDamage: number, element: string, actorId: string, targetId: string) {
+  async getElementalDamage(baseDamage: number, element: string, actorId: string, targetId: string): Promise<number> {
     // Elemental damage - in the future, may tweak damage dealt based on
     // specific resistances of the target. For now it behaves the same way
     // as environmental damage.
@@ -653,7 +648,7 @@ export default class Battle {
     return await this.getEnvironmentalDamage(baseDamage, targetId)
   }
 
-  getTemporaryEffect(characterId: string, effectType: string) {
+  getTemporaryEffect(characterId: string, effectType: string): number {
     const effects = this.temporaryEffects.get(characterId)
 
     if (effects) {
@@ -666,7 +661,7 @@ export default class Battle {
   // TODO: Figure out how to get Flow to recognize effects. It'll probably be
   // smartest (and simplest) to just make an Effect class, since that's virtually
   // what we do already (extending a common "effect base" object).
-  addTemporaryEffect(characterId: string, effect: Object) {
+  addTemporaryEffect(characterId: string, effect: Object): number {
     this.constrainTemporaryEffect(effect)
 
     this.getTemporaryEffects(characterId).push(effect)
@@ -686,7 +681,7 @@ export default class Battle {
     return effects
   }
 
-  boostTemporaryEffect(characterId: string, effectBase: Object, value: number) {
+  boostTemporaryEffect(characterId: string, effectBase: Object, value: number): number {
     const effect = this.getTemporaryEffects(characterId)
       .find(f => f.name === effectBase.name)
 

@@ -5,6 +5,8 @@ import Game from '../Game'
 import BattleMove from '../BattleMove'
 import { debug } from '../util/log'
 
+type Pvoid = Promise<void>
+
 export default class MoveController extends BasicMaplikeController {
   game: Game
 
@@ -14,7 +16,7 @@ export default class MoveController extends BasicMaplikeController {
     this.game = game
   }
 
-  async register(move: BattleMove) {
+  async register(move: BattleMove): Pvoid {
     await debug(`Registering move: ${move.name} (ID: ${move.id})`)
     this.set(move.id, move)
   }

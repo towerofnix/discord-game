@@ -7,6 +7,8 @@ import { either, value } from '../util/checkTypes'
 import shortid from 'shortid'
 import Datastore from 'nedb-promise'
 
+type Pvoid = Promise<void>
+
 const db = new Datastore({
   filename: 'data/battle-characters.json',
   autoload: true,
@@ -39,26 +41,26 @@ export default class BattleCharacterController extends BasicDatabaseController {
   }
 
   async getHP(id: string): Promise<number> { return await this.getProperty(id, 'curHP') }
-  async setHP(id: string, newHP: number) { await this.setProperty(id, 'curHP', newHP) }
+  async setHP(id: string, newHP: number): Pvoid { await this.setProperty(id, 'curHP', newHP) }
 
   async getMaxHP(id: string): Promise<number> { return await this.getProperty(id, 'maxHP') }
-  async setMaxHP(id: string, newMaxHP: number) { await this.setProperty(id, 'maxHP', newMaxHP) }
+  async setMaxHP(id: string, newMaxHP: number): Pvoid { await this.setProperty(id, 'maxHP', newMaxHP) }
 
-  async restoreHP(id: string) { await this.setHP(id, await this.getMaxHP(id)) }
+  async restoreHP(id: string): Pvoid { await this.setHP(id, await this.getMaxHP(id)) }
 
   async getBaseDefense(id: string): Promise<number> { return await this.getProperty(id, 'baseDefense') }
-  async getBaseAttack(id: string) { return await this.getProperty(id, 'baseAttack') }
+  async getBaseAttack(id: string): Pvoid { return await this.getProperty(id, 'baseAttack') }
 
   async getCharacterType(id: string): Promise<string> { return await this.getProperty(id, 'characterType') }
   async getCharacterId(id: string): Promise<string> { return await this.getProperty(id, 'characterId') }
 
   async getName(id: string): Promise<string> { return await this.getProperty(id, 'name') }
-  async setName(id: string, newName: string) { await this.setProperty(id, 'name', newName) }
+  async setName(id: string, newName: string): Pvoid { await this.setProperty(id, 'name', newName) }
 
   async getPronoun(id: string): Promise<string> { return await this.getProperty(id, 'pronoun') }
-  async setPronoun(id: string, newPronoun: string) { await this.setProperty(id, 'pronoun', newPronoun) }
+  async setPronoun(id: string, newPronoun: string): Pvoid { await this.setProperty(id, 'pronoun', newPronoun) }
 
-  async dealDamage(id: string, damage: number) {
+  async dealDamage(id: string, damage: number): Pvoid {
     const curHP = await this.getHP(id)
 
     if (curHP > damage) {
@@ -68,7 +70,7 @@ export default class BattleCharacterController extends BasicDatabaseController {
     }
   }
 
-  async heal(id: string, amount: number) {
+  async heal(id: string, amount: number): Pvoid {
     const curHP = await this.getHP(id)
     const maxHP = await this.getMaxHP(id)
     await this.setHP(id, Math.min(maxHP, curHP + amount))

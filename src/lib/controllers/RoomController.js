@@ -7,6 +7,8 @@ import * as log from '../util/log'
 
 import discord from 'discord.js'
 
+type Pvoid = Promise<void>
+
 export default class RoomController extends BasicMaplikeController {
   game: Game
 
@@ -16,7 +18,7 @@ export default class RoomController extends BasicMaplikeController {
     this.game = game
   }
 
-  async notifyUserEntered(roomId: string, userId: string) {
+  async notifyUserEntered(roomId: string, userId: string): Pvoid {
     // Notify room of new user
     const room = await this.get(roomId)
     await room.handleUserEntered(userId)
@@ -35,7 +37,7 @@ export default class RoomController extends BasicMaplikeController {
     }
   }
 
-  async register(roomObject: Room) {
+  async register(roomObject: Room): Pvoid {
     await log.debug(`Registering room: ${roomObject.displayName} #${roomObject.channelName}`)
     this.set(roomObject.channelName, roomObject)
   }
