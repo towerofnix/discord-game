@@ -1,5 +1,5 @@
 import BattleMove from '../../../lib/BattleMove'
-import musterStrength from '../../effects/musterStrength'
+import MusteredStrengthEffect from '../../effects/MusteredStrength'
 
 export default class MusterStrength extends BattleMove {
   constructor(game) {
@@ -24,6 +24,6 @@ export default class MusterStrength extends BattleMove {
 
     await battle.writeMoveMessage(this, 'GREY', str)
 
-    battle.addTemporaryEffect(actorId, Object.assign({}, musterStrength))
+    battle.addTemporaryEffect(actorId, new MusteredStrengthEffect())
   }
 }

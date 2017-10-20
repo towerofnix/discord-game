@@ -1,5 +1,5 @@
 import BattleMove, { aliveOnly } from '../../../lib/BattleMove.js'
-import defenseBuff from '../../effects/defenseBuff'
+import DefenseBuffEffect from '../../effects/DefenseBuff'
 
 export default class Buff extends BattleMove {
   constructor(game) {
@@ -15,7 +15,7 @@ export default class Buff extends BattleMove {
     const bc = this.game.battleCharacters
     await battle.writeMoveMessage(this, 0x22CC55, `${await bc.getName(actorId)} casts Buff.`)
 
-    const newBuff = await battle.boostTemporaryEffect(targetId, defenseBuff, +4)
+    const newBuff = await battle.boostTemporaryEffect(targetId, DefenseBuffEffect, +4)
 
     await battle.writeMoveMessage(this, 0x22CC55, `${await bc.getName(targetId)}'s defense is boosted to ${newBuff > 0 ? '+' + newBuff : newBuff}!`)
   }

@@ -1,6 +1,6 @@
 import BattleMove, { aliveTeamsOnly } from '../../../lib/BattleMove'
 import asyncFilter from '../../../lib/util/asyncFilter'
-import defenseBuff from '../../effects/defenseBuff'
+import DefenseBuffEffect from '../../effects/DefenseBuff'
 
 export default class Kabuff extends BattleMove {
   constructor(game) {
@@ -21,7 +21,7 @@ export default class Kabuff extends BattleMove {
       .then(asyncFilter(charId => bc.isAlive(charId)))
 
     for (const targetId of targetIds) {
-      const newBuff = await battle.boostTemporaryEffect(targetId, defenseBuff, +3)
+      const newBuff = await battle.boostTemporaryEffect(targetId, DefenseBuffEffect, +3)
       await battle.writeMoveMessage(this, 0x22CC55, `${await bc.getName(targetId)}'s defense is boosted to ${newBuff > 0 ? '+' + newBuff : newBuff}!`)
     }
   }

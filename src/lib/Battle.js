@@ -9,6 +9,7 @@ import env from './util/env'
 import asyncFilter from './util/asyncFilter'
 import BattleMove from './BattleMove'
 import Game from './Game'
+import Effect from './Effect'
 
 const shortid = require('shortid')
 const discord = require('discord.js')
@@ -55,8 +56,7 @@ export default class Battle {
   currentCharacterId: string
 
   // Mapping of battle character IDs to arrays of effects.
-  // TODO: Use Array<Effect> instead of Array<Object>.
-  temporaryEffects: Map<string, Array<Object>>
+  temporaryEffects: Map<string, Array<Effect>>
 
   // An array of "team status" messages, to be continually edited throughout
   // the battle.
@@ -303,7 +303,7 @@ export default class Battle {
 
         if (tempEffects.length) {
           status += ' ('
-          status += tempEffects.map(({ name, value, getDisplayString }: { name: string, value: number, getDisplayString: ?(value: number) => string }): string => {
+          status += tempEffects.map(({ name, value, getDisplayString }: Effect): string => {
             if (getDisplayString) {
               const str = getDisplayString(value)
 
@@ -658,18 +658,15 @@ export default class Battle {
     }
   }
 
-  // TODO: Figure out how to get Flow to recognize effects. It'll probably be
-  // smartest (and simplest) to just make an Effect class, since that's virtually
-  // what we do already (extending a common "effect base" object).
-  addTemporaryEffect(characterId: string, effect: Object): number {
-    this.constrainTemporaryEffect(effect)
+  addTemporaryEffect(characterId: string, effect: Effect): number {
+    effect.constrainValue()
 
     this.getTemporaryEffects(characterId).push(effect)
 
     return effect.value
   }
 
-  getTemporaryEffects(characterId: string): Array<Object> {
+  getTemporaryEffects(characterId: string): Array<Effect> {
     let effects = this.temporaryEffects.get(characterId)
 
     if (effects) {
@@ -681,31 +678,25 @@ export default class Battle {
     return effects
   }
 
-  boostTemporaryEffect(characterId: string, effectBase: Object, value: number): number {
+  boostTemporaryEffect(characterId: string, EffectClass: Class<Effect>, value: number): number {
     const effect = this.getTemporaryEffects(characterId)
-      .find(f => f.name === effectBase.name)
+      .find(f => f.constructor === EffectClass)
 
     if (effect) {
       effect.value += value
-      this.constrainTemporaryEffect(effect)
+      effect.constrainValue()
       return effect.value
     } else {
       // If the effect doesn't already exist, create it.
-      const effect = Object.assign({}, effectBase, { value })
-      this.constrainTemporaryEffect(effect)
+      const effect = new EffectClass()
+      effect.value = value
+      effect.constrainValue()
       this.addTemporaryEffect(characterId, effect)
       return value
     }
   }
 
   // TODO: Move this onto the Effect class.
-  constrainTemporaryEffect(effect: Object) {
-    if (effect.value < effect.minValue) {
-      effect.value = effect.minValue
-    } else if (effect.value > effect.maxValue) {
-      effect.value = effect.maxValue
-    }
-  }
 
   tickAllTemporaryEffects() {
     // Subtracts one from every temporary effect on every character, so that
