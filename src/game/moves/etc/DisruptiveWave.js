@@ -30,7 +30,9 @@ export default class DisruptiveWave extends BattleMove {
       .then(asyncFilter(charId => bc.isAlive(charId)))
 
     for (const targetId of targetIds) {
-      battle.temporaryEffects.set(targetId, battle.temporaryEffects.get(targetId).filter(effect => effect.etc.disruptable !== true))
+      if (battle.temporaryEffects.has(targetId)) {
+        battle.temporaryEffects.set(targetId, battle.temporaryEffects.get(targetId).filter(effect => effect.etc.disruptable !== true))
+      }
 
       const tName = await bc.getName(targetId)
       await battle.writeMoveMessage(this, 0x73D4F4, `All effects on ${tName} removed.`)
