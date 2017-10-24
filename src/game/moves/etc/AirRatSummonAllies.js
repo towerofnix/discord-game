@@ -1,7 +1,13 @@
+// @flow
+
 import BattleMove from '../../../lib/BattleMove'
+import Game from '../../../lib/Game'
+import Battle from '../../../lib/Battle'
+import SilentlyIdling from '../../effects/SilentlyIdling'
+import asyncFilter from '../../../lib/util/asyncFilter'
 
 export default class AirRatSummonAllies extends BattleMove {
-  constructor(game) {
+  constructor(game: Game) {
     super(game, {
       name: 'Summon Allies',
       id: 'air-rat-summon-allies',
@@ -9,13 +15,13 @@ export default class AirRatSummonAllies extends BattleMove {
     })
   }
 
-  async go(actorId, actorTeamId, targetId, battle) {
+  async go(actorId: string, actorTeamId: string, targetId: string, battle: Battle): Promise<void> {
     const name = await this.game.battleCharacters.getName(actorId)
 
     await battle.writeMoveMessage(this, 'RED', `${name} lets out an ear-wrenching screech!`)
 
     const targets = await battle.getAllCharacters()
-      .then(chars => Promise.all(chars.map(async char => {
+      .then(asyncFilter(async (char: string): Promise<boolean> => {
         if (await this.game.battleCharacters.getCharacterType(char) === 'ai') {
           if (await this.game.battleCharacters.getCharacterId(char) === 'air-rat') {
             return false
@@ -24,9 +30,8 @@ export default class AirRatSummonAllies extends BattleMove {
         if (await this.game.battleCharacters.getHP(char) <= 0) {
           return false
         }
-        return char
-      })))
-      .then(chars => chars.filter(char => char !== false))
+        return true
+      }))
 
     // TODO: Figure out how to show who took which damage
     // (At the moment, it just displays "Deals 1 damage."/etc once for each player)
@@ -57,9 +62,10 @@ export default class AirRatSummonAllies extends BattleMove {
       }
 
       for (let i = 0; i < summoned; i++) {
-        const allyId = await this.game.battleCharacters.createForCharacter('ai', 'air-rat', this.game.battleAIs.get('air-rat').name, 'it')
+        // TODO: Specifying name like that is bad. Should use the default object thing.
+        const allyId = await this.game.battleCharacters.createForCharacter('ai', 'air-rat', {name: this.game.battleAIs.get('air-rat').name, pronoun: 'it'})
         await this.game.teams.addMember(actorTeamId, allyId)
-        await battle.setTemporaryEffect(allyId, 'silentIdle', 1)
+        await battle.addTemporaryEffect(allyId, new SilentlyIdling())
       }
     }
   }

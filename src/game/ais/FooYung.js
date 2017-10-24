@@ -19,6 +19,9 @@ import { aliveTeamsOnly } from '../../lib/BattleMove'
 //
 // "Foo Yung does the fuddle dance."
 //  (Confuse on all party members)
+//
+// "Foo Yung casts Zing."
+//  (Revives Chow Mein)
 
 export default class FooYung extends BattleAI {
   constructor() {
@@ -40,7 +43,12 @@ export default class FooYung extends BattleAI {
 
     const targetTeam = opponentTeams[Math.floor(Math.random() * opponentTeams.length)]
 
-    const willUseAttack = Math.random() < 0.8
+    const deadAllies = await battle.game.teams.getMembers(myTeamId)
+      .then(asyncFilter(async char => await battle.game.battleCharacters.isAlive(char) === false))
+
+    const targetDeadAlly = deadAllies[Math.floor(Math.random() * deadAllies.length)]
+
+    const willUseAttack = Math.random() < 0.1
 
     if (willUseAttack && opponents.length > 0) {
       const random = Math.random()
@@ -53,10 +61,12 @@ export default class FooYung extends BattleAI {
         return { type: 'use move', move: 'foo-yung-attack', target: targetCharacter }
       }
     } else {
-      const random = Math.random()
+      const random = 1.0 || Math.random()
 
       if (random < 0.5) {
         return { type: 'use move', move: 'kabuff', target: myTeamId }
+      } else if (random > 0.9 && targetDeadAlly) {
+        return { type: 'use move', move: 'revive', target: targetDeadAlly }
       } else {
         return { type: 'use move', move: 'disruptive-wave', target: targetTeam }
       }
