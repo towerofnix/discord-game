@@ -7,7 +7,7 @@ export default class Effect {
   value: number
   minValue: number
   maxValue: number
-  decaySpeed: number
+  decaySpeed: number // See tick() method
 
   silent: boolean
 
@@ -34,6 +34,21 @@ export default class Effect {
       this.value = this.minValue
     } else if (this.value > this.maxValue) {
       this.value = this.maxValue
+    }
+  }
+
+  tick() {
+    // Decay speed controls how quickly the effect's value disappears.
+    // Higher means faster; zero means the effect won't be automatically
+    // removed (or decreased). Negative means the effect will actually
+    // become stronger over time. Defaults to 1 (so the value decreases
+    // by 1 each turn).
+    const { decaySpeed = 1 } = this
+
+    if (decaySpeed > Math.abs(this.value)) {
+      this.value = 0
+    } else {
+      this.value -= Math.sign(this.value) * decaySpeed
     }
   }
 }
