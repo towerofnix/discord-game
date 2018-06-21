@@ -4,6 +4,7 @@ import BasicDatabaseController from './BasicDatabaseController'
 import Game from '../Game'
 import { either } from '../util/checkTypes'
 import asyncFilter from '../util/asyncFilter'
+import env from '../util/env'
 
 import Datastore from 'nedb-promise'
 import discord from 'discord.js'
@@ -89,6 +90,9 @@ export default class UserController extends BasicDatabaseController {
 
   async _setListeningTo(id: string, song: string): Pvoid {
     // Peform setListeningTo side-effects
+
+    // Don't do anything if music is disabled
+    if (!await env('music_enabled', 'boolean')) return
 
     const member = await this.getDiscordMember(id)
 
