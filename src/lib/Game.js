@@ -15,6 +15,7 @@ import RoomController from './controllers/RoomController'
 import TeamController from './controllers/TeamController'
 import UserController from './controllers/UserController'
 import Battle from './Battle'
+import FakeDiscordTelnetServerClient from './FakeDiscordTelnetServerClient'
 
 type Pvoid = Promise<void>
 
@@ -37,7 +38,7 @@ export default class Game {
   users: UserController
 
   constructor() {
-    this.client = new discord.Client()
+    this.client = new FakeDiscordTelnetServerClient()
     this.client.on('ready', () => this.handleClientReady())
     this.client.on('guildMemberAdd', member => this.handleMemberJoin(member))
   }
@@ -429,14 +430,6 @@ export default class Game {
 
   async go(): Pvoid {
     await log.debug('Game#go()')
-
-    const clientId = await env('discord_client_id', 'string')
-    const perms = 0x00000008 // ADMINISTRATOR; bitwise OR with others if need be
-    const addToServerURL = `https://discordapp.com/oauth2/authorize?&client_id=${clientId}&scope=bot&permissions=${perms}&response_type=code`
-    await log.info(chalk`Add to server url: {underline {cyan ${addToServerURL}}}`)
-
-    const token = await env('discord_token', 'string')
-    await this.client.login(token)
 
     await this.cleanDiscordServer()
     if (await env('music_enabled', 'boolean') === true) await this.music.playMusic()
