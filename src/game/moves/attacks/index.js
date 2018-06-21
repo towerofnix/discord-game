@@ -2,6 +2,7 @@ import BlazingFire from './BlazingFire'
 import BoulderToss from './BoulderToss'
 import ColdBreath from './ColdBreath'
 import CockspurKick from './CockspurKick'
+import Godslayer from './Godslayer'
 import Tackle from './Tackle'
 
 // Enemy-specific moves..
@@ -16,6 +17,7 @@ const attacks = [
   BoulderToss,
   ColdBreath,
   CockspurKick,
+  Godslayer,
   Tackle,
 
   AirRatTailWhip,

@@ -1,4 +1,4 @@
-import BattleMove, { aliveOnly } from '../../../lib/BattleMove.js'
+import BattleMove, { aliveOnly } from '../../../lib/BattleMove'
 import DefenseBuffEffect from '../../effects/DefenseBuff'
 
 export default class Buff extends BattleMove {

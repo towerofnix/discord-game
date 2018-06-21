@@ -1,3 +1,7 @@
+import asyncFilter from './util/asyncFilter'
+import choose from './util/choose'
+import { aliveTeamsOnly } from './BattleMove'
+
 export default class BattleAI {
   constructor(opts) {
     if (!opts || typeof opts !== 'object') throw new TypeError('new Enemy(object opts) expected')
@@ -19,5 +23,24 @@ export default class BattleAI {
   // Override this!
   async getDefaultBattleCharacter() {
     return {}
+  }
+
+  async getOpponents(myTeamId, battle) {
+    return await battle.getAllAliveCharacters()
+      .then(asyncFilter(async char => await battle.game.teams.hasMember(myTeamId, char) === false))
+  }
+
+  async getOpponentTeams(myTeamId, battle) {
+    return await Promise.resolve(battle.teams)
+      .then(asyncFilter(teamId => teamId !== myTeamId))
+      .then(asyncFilter(teamId => aliveTeamsOnly(teamId, battle.game)))
+  }
+
+  async getRandomOpponent(...args) {
+    return choose(await this.getOpponents(...args))
+  }
+
+  async getRandomOpponentTeam(...args) {
+    return choose(await this.getOpponentTeams(...args))
   }
 }

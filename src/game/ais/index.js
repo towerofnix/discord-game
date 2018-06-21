@@ -1,15 +1,17 @@
-import Think from './Think'
-import Carnivine from './Carnivine'
 import AirRat from './AirRat'
-import FooYung from './FooYung'
+import Carnivine from './Carnivine'
 import ChowMein from './ChowMein'
+import FooYung from './FooYung'
+import Godslayer from './Godslayer'
+import Think from './Think'
 
 const ais = [
-  Think,
-  Carnivine,
-  FooYung,
   AirRat,
-  ChowMein
+  Carnivine,
+  ChowMein,
+  FooYung,
+  Godslayer,
+  Think
 ]
 
 export default ais
